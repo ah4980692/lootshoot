@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="Verify your LootShoot seller account."
+  />
+
+  <title>LootShoot — Verify Email</title>
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+  />
+
+  <link
+    rel="preconnect"
+    href="https://fonts.googleapis.com"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="style1.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+
+<body>
+
+  <header class="site-header">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">✥</span>
+      <span>
+        <b>LOOT<span>SHOOT</span></b>
+        <small>BUILT FOR GAMERS</small>
+      </span>
+    </a>
+  </header>
+
+
+  <main>
+
+    <section class="otp-section">
+
+      <div class="otp-card">
+
+        <div class="otp-icon">
+          <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="95" fill="none" stroke="#4f8fff" stroke-width="2"/>
+            <circle cx="100" cy="100" r="75" fill="none" stroke="#4f8fff" stroke-width="2"/>
+            <circle cx="100" cy="100" r="55" fill="none" stroke="#4f8fff" stroke-width="2"/>
+            <text x="100" y="110" text-anchor="middle" font-size="28" font-weight="bold" fill="#4f8fff" font-family="DM Sans">OTP</text>
+          </svg>
+        </div>
+
+        <h2>Verify OTP</h2>
+
+        <p class="otp-subtitle">
+          Enter the 6-digit code sent to
+        </p>
+        <p class="otp-email" id="signupEmailDisplay"></p>
+
+        <form id="otpForm" class="otp-form">
+
+          <div class="otp-inputs">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="0">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="1">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="2">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="3">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="4">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric" data-index="5">
+            <input type="text" id="signupOtp" style="display:none;">
+          </div>
+
+          <button class="button button-green otp-verify-btn" type="submit">
+            Verify OTP
+          </button>
+
+        </form>
+
+        <p id="otpError" class="otp-error"></p>
+
+        <p class="otp-resend-text">
+          Didn't receive code? <button type="button" id="resendOtpButton" class="otp-resend-link">Resend OTP</button>
+        </p>
+
+        <button
+          type="button"
+          id="backToSignup"
+          class="otp-back-link"
+        >
+          ← Back to signup
+        </button>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <div class="toast" id="toast"></div>
+
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+      const supabaseUrl = 'https://saguwhkijrdiwiabxvyv.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
+
+      const supabaseClient =
+        window.supabase.createClient(supabaseUrl, supabaseKey);
+
+
+      const email = sessionStorage.getItem('signupEmail');
+
+      const emailDisplay =
+        document.getElementById('signupEmailDisplay');
+
+      const otpForm =
+        document.getElementById('otpForm');
+
+      const otpInputs =
+        document.querySelectorAll('.otp-input');
+
+      const otpHiddenInput =
+        document.getElementById('signupOtp');
+
+      const otpError =
+        document.getElementById('otpError');
+
+      const resendOtpButton =
+        document.getElementById('resendOtpButton');
+
+      const backToSignup =
+        document.getElementById('backToSignup');
+
+
+      function showToast(message, timeout = 3000) {
+        const toast = document.getElementById('toast');
+
+        if (!toast) return;
+
+        toast.textContent = message;
+        toast.classList.add('visible');
+
+        setTimeout(() => {
+          toast.classList.remove('visible');
+        }, timeout);
+      }
+
+
+      if (!email) {
+        emailDisplay.textContent = 'No signup email found.';
+
+        otpForm.style.display = 'none';
+        resendOtpButton.style.display = 'none';
+
+        return;
+      }
+
+
+      emailDisplay.textContent = email;
+
+
+      // ============================================
+      // OTP INPUT HANDLING
+      // ============================================
+      otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          if (e.target.value && !/^\d$/.test(e.target.value)) {
+            e.target.value = '';
+            return;
+          }
+
+          if (e.target.value && index < otpInputs.length - 1) {
+            otpInputs[index + 1].focus();
+          }
+
+          updateOtpHiddenInput();
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !input.value && index > 0) {
+            otpInputs[index - 1].focus();
+          }
+        });
+
+        input.addEventListener('paste', (e) => {
+          e.preventDefault();
+          const pastedData = (e.clipboardData || window.clipboardData).getData('text');
+          const otpValues = pastedData.replace(/\D/g, '').split('');
+          
+          otpValues.forEach((val, i) => {
+            if (index + i < otpInputs.length) {
+              otpInputs[index + i].value = val;
+            }
+          });
+
+          updateOtpHiddenInput();
+          otpInputs[Math.min(index + otpValues.length - 1, otpInputs.length - 1)].focus();
+        });
+      });
+
+      function updateOtpHiddenInput() {
+        const otp = Array.from(otpInputs).map(input => input.value).join('');
+        otpHiddenInput.value = otp;
+      }
+
+
+      // ============================================
+      // VERIFY OTP
+      // ============================================
+      otpForm.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+
+        const otp = otpHiddenInput.value.trim();
+
+        otpError.textContent = '';
+
+
+        if (!/^\d{6}$/.test(otp)) {
+          otpError.textContent = 'Please enter the 6-digit OTP.';
+          return;
+        }
+
+
+        showToast('Verifying OTP...');
+
+
+        try {
+
+          const { data, error } =
+            await supabaseClient.auth.verifyOtp({
+              email: email,
+              token: otp,
+              type: 'email'
+            });
+
+
+          console.log('OTP verification result', {
+            data,
+            error
+          });
+
+
+          if (error) {
+            otpError.textContent = error.message;
+            showToast('OTP verification failed.');
+            return;
+          }
+
+
+          sessionStorage.removeItem('signupEmail');
+
+          showToast('Account verified successfully!');
+
+
+          setTimeout(() => {
+            window.location.href = 'index.html';
+          }, 1000);
+
+
+        } catch (err) {
+
+          console.error('OTP verification error', err);
+
+          otpError.textContent =
+            err?.message || 'Verification failed. Please try again.';
+
+          showToast('Verification failed.');
+
+        }
+
+      });
+
+
+      // ============================================
+      // RESEND OTP
+      // ============================================
+      resendOtpButton.addEventListener('click', async () => {
+
+        otpError.textContent = '';
+
+        // Disable button and show "sent"
+        resendOtpButton.disabled = true;
+        const originalText = resendOtpButton.textContent;
+        resendOtpButton.textContent = 'Sent';
+
+        showToast('Sending new OTP...');
+
+
+        try {
+
+          const { data, error } =
+            await supabaseClient.auth.resend({
+              type: 'signup',
+              email: email
+            });
+
+
+          console.log('resend result', {
+            data,
+            error
+          });
+
+
+          if (error) {
+            otpError.textContent = error.message;
+            showToast('Could not resend OTP.');
+            resendOtpButton.disabled = false;
+            resendOtpButton.textContent = originalText;
+            return;
+          }
+
+          // Clear OTP inputs
+          otpInputs.forEach(input => input.value = '');
+          otpInputs[0].focus();
+
+          showToast('New OTP sent to your email.');
+
+          // Re-enable button after 2 seconds
+          setTimeout(() => {
+            resendOtpButton.disabled = false;
+            resendOtpButton.textContent = originalText;
+          }, 2000);
+
+
+        } catch (err) {
+
+          console.error('resend OTP error', err);
+
+          otpError.textContent =
+            err?.message || 'Could not resend OTP.';
+
+          showToast('Could not resend OTP.');
+
+          resendOtpButton.disabled = false;
+          resendOtpButton.textContent = originalText;
+
+        }
+
+      });
+
+
+      // ============================================
+      // BACK TO SIGNUP
+      // ============================================
+      backToSignup.addEventListener('click', () => {
+        window.location.href = 'index.html';
+      });
+
+      // Focus first input on load
+      otpInputs[0].focus();
+
+    });
+  </script>
+
+</body>
+</html>
