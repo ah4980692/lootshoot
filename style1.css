@@ -145,9 +145,9 @@ a { color: inherit; text-decoration: none; }
 
 .trust-row:hover {
   transform: translateY(-2px);
-  border-color: #cfe9d9;
-  background: #f9fffb;
-  box-shadow: inset 0 0 0 1px rgba(21, 150, 90, 0.04);
+  border-color: #c1e3cf;
+  background: #f0fbf4;
+  box-shadow: inset 0 0 0 1px rgba(21, 150, 90, 0.06);
 }
 
 .trust-row:last-child { border-bottom: none; }
@@ -369,8 +369,8 @@ a { color: inherit; text-decoration: none; }
 
 .steps article:hover {
   transform: translateY(-4px);
-  border-color: #a5d9b8;
-  background: rgba(255, 255, 255, 0.94);
+  border-color: #c1e3cf;
+  background: #f0fbf4;
   box-shadow: 0 16px 36px rgba(30, 100, 60, 0.08);
 }
 
@@ -1305,35 +1305,32 @@ a { color: inherit; text-decoration: none; }
   .seller-modal h2 {
     font-size: 35px;
   }
-}
 
 
-@media (max-width: 400px) {
-
-  .hero h1 {
-    font-size: 40px;
+  /* OTP PAGE MOBILE */
+  .otp-section {
+    padding: 64px 16px 20px !important;
   }
 
-  .status {
-    font-size: 10px;
+  .otp-card {
+    max-width: 330px !important;
+    padding: 20px 18px !important;
+    border-radius: 16px !important;
   }
 
-  .section h2,
-  .dark-section h2 {
-    font-size: 34px;
+  .otp-card h2 { font-size: 22px !important; }
+  .otp-subtitle { font-size: 11px !important; }
+  .otp-email { font-size: 10.5px !important; margin-bottom: 16px !important; }
+  .otp-icon { width: 66px !important; height: 66px !important; margin-bottom: 16px !important; }
+  .otp-icon svg { width: 66px !important; height: 66px !important; }
+  .otp-inputs { gap: 6px !important; }
+  .otp-input { width: 36px !important; height: 36px !important; font-size: 15px !important; border-radius: 10px !important; }
+  .otp-form { gap: 12px !important; }
+  .otp-verify-btn {
+    padding: 11px 14px !important;
+    font-size: 12px !important;
   }
-
-  .steps article {
-    min-height: 300px;
-  }
-
-  .steps h3 {
-    font-size: 22px;
-  }
-
-  .steps p {
-    font-size: 14px;
-  }
+  .otp-resend-text, .otp-back-link { font-size: 11px !important; }
 }
 
 /* TERMS PAGE STYLES */
@@ -1362,6 +1359,32 @@ a { color: inherit; text-decoration: none; }
   border-bottom: 1px solid #ebf1ed;
 }
 
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid #dfeae3;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #2d3d36;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: 0.2s ease;
+}
+
+.back-button:hover {
+  border-color: #15965a;
+  color: #15965a;
+  transform: translateY(-1px);
+}
+
+.back-button span {
+  font-size: 16px;
+  line-height: 1;
+}
+
 .terms-hero label {
   display: inline-block;
   color: #5a7f67;
@@ -1378,10 +1401,6 @@ a { color: inherit; text-decoration: none; }
   line-height: 1.04;
   letter-spacing: -0.06em;
   color: #101c17;
-}
-
-.terms-hero h1 span {
-  color: #15965a;
 }
 
 .terms-meta {
