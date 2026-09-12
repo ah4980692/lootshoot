@@ -34,21 +34,14 @@
       <a href="index1.html#faq">FAQ</a>
     </nav>
 
-    <div class="header-actions">
-      <button class="button button-outline" id="signInButton">
-        Sign in
-      </button>
-
-      <button class="button button-green" id="sellerButton">
-        Become a Seller <b>→</b>
-      </button>
-    </div>
   </header>
 
   <main class="terms-shell">
     <div class="terms-card">
       <div class="terms-hero">
-        <label>Legal</label>
+        <button type="button" class="back-button" aria-label="Go back to previous page">
+          <span aria-hidden="true">←</span> Back
+        </button>
         <h1>LootShoot — <span>Terms & Conditions</span></h1>
         <div class="terms-meta">Last updated: September 2026</div>
       </div>
@@ -131,5 +124,59 @@
   </footer>
 
   <script src="script1.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const backButton = document.querySelector('.back-button');
+      if (!backButton) return;
+
+      backButton.addEventListener('click', () => {
+        if (window.opener && !window.opener.closed) {
+          try {
+            const openerDoc = window.opener.document;
+            const sellerModal = openerDoc.getElementById('sellerModal');
+            const signInModal = openerDoc.getElementById('signInModal');
+
+            if (sellerModal) {
+              sellerModal.classList.add('open');
+              window.close();
+              return;
+            }
+
+            if (signInModal) {
+              signInModal.classList.add('open');
+              window.close();
+              return;
+            }
+
+            window.opener.focus();
+            window.close();
+            return;
+          } catch (error) {
+            // Ignore cross-origin issues and fall through to browser history.
+          }
+        }
+
+        const referrer = document.referrer;
+
+        if (referrer) {
+          try {
+            const parsedReferrer = new URL(referrer);
+            if (parsedReferrer.origin === window.location.origin) {
+              window.location.href = referrer;
+              return;
+            }
+          } catch (error) {
+            // Ignore invalid referrer values and fall back below.
+          }
+        }
+
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = 'index1.html';
+        }
+      });
+    });
+  </script>
 </body>
 </html>
