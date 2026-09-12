@@ -18,7 +18,7 @@
 
   <link
     rel="preconnect"
-    href="https://fonts.gstatic.com"
+    href="https://fonts.googleapis.com"
     crossorigin
   />
 
@@ -28,6 +28,7 @@
   />
 
   <link rel="stylesheet" href="style1.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
 <body>
@@ -400,8 +401,6 @@
 
       <button class="modal-close" id="closeSellerModal">×</button>
 
-      <label>Seller access</label>
-
       <h2>
         Create your <span class="seller-highlight">seller</span><br>
         account
@@ -486,8 +485,6 @@
 
       <button class="modal-close" id="closeSignInModal">×</button>
 
-      <label>Sign in</label>
-
       <h2>
         Welcome back<br>
         <span class="seller-highlight">sign in</span>
@@ -496,13 +493,13 @@
       <form id="signInForm" class="signin-form">
 
         <label>
-          Email or username
-          <input id="signinIdentifier" type="text" required placeholder="you@example.com or username">
+          Email 
+          <input id="signinIdentifier" type="text" required placeholder="Enter your email">
         </label>
 
         <label>
           Password
-          <input id="signinPassword" type="password" required placeholder="Your password">
+          <input id="signinPassword" type="password" required placeholder="Enter your password">
         </label>
 
         <div class="signin-meta">
@@ -568,7 +565,7 @@
 
         <label>
           Confirm password
-          <input id="confirmNewPassword" type="password" required placeholder="Re-enter new password">
+          <input id="confirmNewPassword" type="password" required placeholder="Re-enter your new password">
         </label>
 
         <button class="button button-green full" type="button" id="resetPasswordButton">
@@ -584,6 +581,195 @@
   <div class="toast" id="toast"></div>
 
   <script src="script1.js"></script>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      console.log('Auth script loaded');
+
+      // Supabase initialization
+      const supabaseUrl = 'https://saguwhkijrdiwiabxvyv.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
+      const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+      // small toast helper
+      function showToast(msg, timeout = 3000) {
+        const t = document.getElementById('toast');
+        if (!t) { console.log('Toast missing:', msg); return; }
+        t.textContent = msg;
+        t.classList.add('visible');
+        setTimeout(() => t.classList.remove('visible'), timeout);
+      }
+
+      // helper to show inline error under a form
+      function setFormError(form, text) {
+        if (!form) return;
+        let el = form.querySelector('.form-error');
+        if (!el) {
+          el = document.createElement('div');
+          el.className = 'form-error';
+          el.style.color = '#e74c3c';
+          el.style.marginTop = '8px';
+          form.appendChild(el);
+        }
+        el.textContent = text || '';
+      }
+
+      // Seller signup
+      const sellerForm = document.getElementById('sellerForm');
+
+      if (sellerForm) {
+        sellerForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          e.stopImmediatePropagation();
+
+          console.log('seller signup submit');
+
+          const email = document.getElementById('sellerEmail').value.trim();
+          const password = document.getElementById('sellerPassword').value;
+          const username = document.getElementById('sellerUsername').value.trim();
+          const whatsapp = document.getElementById('sellerWhatsApp').value.trim();
+          const confirmPassword = document.getElementById('sellerConfirmPassword').value;
+
+          if (password !== confirmPassword) {
+            document.getElementById('passwordError').textContent = 'Passwords do not match';
+            return;
+          }
+
+          document.getElementById('passwordError').textContent = '';
+
+          if (!email) {
+            setFormError(sellerForm, 'Enter your email');
+            return;
+          }
+
+          showToast('Creating your account...');
+
+          try {
+            const { data, error } = await supabaseClient.auth.signUp({
+              email,
+              password,
+              options: {
+                data: {
+                  username,
+                  whatsapp
+                }
+              }
+            });
+
+            console.log('signup result', { data, error });
+
+            if (error) {
+              showToast('Signup error: ' + error.message);
+              setFormError(sellerForm, error.message);
+              return;
+            }
+
+            // Save the email so the OTP page knows which account to verify
+            sessionStorage.setItem('signupEmail', email);
+
+            showToast('OTP sent to your email');
+
+            // Open the separate OTP page
+            window.location.href = 'otp.html';
+
+          } catch (err) {
+            console.error('signup error', err);
+            showToast('Signup failed: ' + (err?.message || err));
+          }
+        }, { passive: false });
+      }
+
+      // Sign in
+      const signInForm = document.getElementById('signInForm');
+
+      if (signInForm) {
+        signInForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+
+          console.log('signin submit');
+
+          setFormError(signInForm, '');
+
+          const identifier = document.getElementById('signinIdentifier').value.trim();
+          const password = document.getElementById('signinPassword').value;
+
+          if (!identifier) {
+            setFormError(signInForm, 'Enter email');
+            return;
+          }
+
+          if (!identifier.includes('@')) {
+            setFormError(signInForm, 'Please sign in with your email address.');
+            return;
+          }
+
+          try {
+            const { data, error } =
+              await supabaseClient.auth.signInWithPassword({
+                email: identifier,
+                password: password
+              });
+
+            console.log('signin result', { data, error });
+
+            if (error) {
+              showToast('Sign in failed: ' + error.message);
+              setFormError(signInForm, error.message);
+              return;
+            }
+
+            showToast('Signed in successfully');
+            setFormError(signInForm, '');
+
+            console.log('user signed in', data?.user);
+
+          } catch (err) {
+            console.error('signin exception', err);
+            showToast('Sign in error: ' + (err?.message || err));
+            setFormError(signInForm, err?.message || String(err));
+          }
+        });
+      }
+
+      // Forgot password: send reset email
+      const sendOtpButton = document.getElementById('sendOtpButton');
+
+      if (sendOtpButton) {
+        sendOtpButton.addEventListener('click', async () => {
+          const email = document.getElementById('forgotEmail').value.trim();
+
+          if (!email) return showToast('Enter your email');
+
+          const res = await supabaseClient.auth.resetPasswordForEmail(email);
+
+          console.log('resetPasswordForEmail', res);
+
+          const { data, error } = res;
+
+          if (error) return showToast('Error: ' + error.message);
+
+          showToast('Password reset email sent');
+        });
+      }
+
+      // Optional: sign out function usable from other UI
+      async function signOut() {
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+          showToast('Sign out error: ' + error.message);
+        } else {
+          showToast('Signed out');
+        }
+      }
+
+      // expose signOut and client to global for debugging
+      window.supabaseAuth = {
+        signOut,
+        supabaseClient
+      };
+    });
+  </script>
 
 </body>
 </html>
