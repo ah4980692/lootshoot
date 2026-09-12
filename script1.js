@@ -123,7 +123,7 @@ if (supportButton) {
 
 // ============================================
 // SIGN IN
-// Simple sign-in modal (demo) — open/close and basic submit
+// Simple sign-in modal — open/close
 // ============================================
 const signInButton = document.getElementById('signInButton');
 const signInModal = document.getElementById('signInModal');
@@ -159,25 +159,6 @@ if (openSellerFromSignIn) {
   });
 }
 
-if (signInForm) {
-  signInForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-
-    const id = document.getElementById('signinIdentifier').value.trim();
-    const pass = document.getElementById('signinPassword').value;
-
-    if (!id || !pass) {
-      showToast('Please enter your email/username and password.');
-      return;
-    }
-
-    // Demo success
-    showToast('Signed in (demo)');
-    signInForm.reset();
-    if (signInModal) signInModal.classList.remove('open');
-  });
-}
-
 // ============================================
 // BECOME A SELLER
 // ============================================
@@ -203,44 +184,6 @@ if (sellerModal) {
     if (e.target === sellerModal) {
       sellerModal.classList.remove('open');
     }
-  });
-}
-
-if (sellerForm) {
-  sellerForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    const email = document.getElementById('sellerEmail').value;
-    const password = document.getElementById('sellerPassword').value;
-    const confirmPassword = document.getElementById('sellerConfirmPassword').value;
-    const whatsapp = document.getElementById('sellerWhatsApp').value;
-    const passwordError = document.getElementById('passwordError');
-    
-    // Email validation regex - requires: username@domain(3+chars).extension(2+chars)
-    const emailRegex = /^[^\s@]+@[^\s@]{3,}\.[^\s@]{2,}$/;
-    
-    if (!emailRegex.test(email)) {
-      showToast('Please enter a valid email address (e.g., user@example.com)');
-      return;
-    }
-    
-    if (password !== confirmPassword) {
-      passwordError.textContent = 'Passwords do not match. Please try again.';
-      passwordError.classList.add('show');
-      return;
-    }
-    
-    // WhatsApp validation - accept +92XXXXXXXXXX, 03XXXXXXXXXX, or 923XXXXXXXXX formats
-    const whatsappRegex = /^(\+92|0092|92)?[0-9]{10,}$/;
-    if (!whatsappRegex.test(whatsapp.replace(/\s|-/g, ''))) {
-      showToast('Please enter a valid WhatsApp number (e.g., +923411234567)');
-      return;
-    }
-    
-    passwordError.classList.remove('show');
-    showToast('Seller signup is coming soon.');
-    sellerForm.reset();
-    sellerModal.classList.remove('open');
   });
 }
 
