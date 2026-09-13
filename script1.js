@@ -13,6 +13,21 @@ function showToast(message) {
   }, 3000);
 }
 
+// Show an inline error message inside the forgot-password modal
+function setForgotError(text) {
+  const emailStep = document.querySelector('.reset-step[data-step="email"]');
+  if (!emailStep) return;
+  let el = emailStep.querySelector('.form-error');
+  if (!el) {
+    el = document.createElement('div');
+    el.className = 'form-error';
+    el.style.color = '#e74c3c';
+    el.style.marginTop = '8px';
+    emailStep.appendChild(el);
+  }
+  el.textContent = text || '';
+}
+
 // ============================================
 // SMOOTH SCROLL (Browse packages)
 // ============================================
@@ -234,23 +249,81 @@ if (forgotPasswordModal) {
   });
 }
 
+// Clear inline error when user edits the email field
+if (forgotEmailInput) {
+  forgotEmailInput.addEventListener('input', () => {
+    setForgotError('');
+  });
+}
+
 // ============================================
 // REAL FORGOT PASSWORD OTP FLOW
 // ============================================
 
 if (sendOtpButton) {
   sendOtpButton.addEventListener('click', async () => {
+    // Clear any previous inline error
+    setForgotError('');
 
     const email = forgotEmailInput.value.trim();
 
     if (!email) {
+      setForgotError('Please enter your email address.');
       showToast('Please enter your email address.');
       return;
     }
 
-    showToast('Sending OTP...');
+    showToast('Checking account...');
 
     try {
+
+      // Check whether the email exists in LootShoot
+      if (!window.supabaseAuth || !window.supabaseAuth.supabaseClient) {
+        console.error('supabaseAuth not initialized');
+        showToast('Auth not initialized. Please reload the page.');
+        return;
+      }
+
+      const { data: checkData, error: checkError } =
+        await window.supabaseAuth.supabaseClient.functions.invoke(
+          'check-reset-email',
+          {
+            body: { email }
+          }
+        );
+
+      console.log('check-reset-email result', { checkData, checkError });
+
+      if (checkError) {
+        console.error('Email check error:', checkError);
+        showToast('Could not check account. Please try again.');
+        return;
+      }
+
+      // Support multiple shapes returned by the function: { exists: true },
+      // { body: { exists: true } } or other variants. Be defensive.
+      let exists = false;
+
+      if (checkData && typeof checkData === 'object') {
+        if ('exists' in checkData) exists = !!checkData.exists;
+        else if ('body' in checkData && checkData.body && 'exists' in checkData.body)
+          exists = !!checkData.body.exists;
+        else if ('data' in checkData && checkData.data && 'exists' in checkData.data)
+          exists = !!checkData.data.exists;
+      } else {
+        // Fallback: truthy checkData treated as exists
+        exists = !!checkData;
+      }
+
+      // Email is not registered
+      if (!exists) {
+        setForgotError('No account found for that email.');
+        showToast('Account not found. Please check your email.');
+        return;
+      }
+
+      // Email exists, so send the recovery OTP
+      showToast('Sending OTP...');
 
       const { error } =
         await window.supabaseAuth.supabaseClient.auth
@@ -282,7 +355,6 @@ if (sendOtpButton) {
 
   });
 }
-
 
 if (verifyOtpButton) {
   verifyOtpButton.addEventListener('click', async () => {
@@ -342,7 +414,6 @@ if (verifyOtpButton) {
 
   });
 }
-
 
 if (resetPasswordButton) {
   resetPasswordButton.addEventListener('click', async () => {
@@ -416,3 +487,4 @@ if (resetPasswordButton) {
 
   });
 }
+
