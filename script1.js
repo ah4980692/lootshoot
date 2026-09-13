@@ -234,8 +234,13 @@ if (forgotPasswordModal) {
   });
 }
 
+// ============================================
+// REAL FORGOT PASSWORD OTP FLOW
+// ============================================
+
 if (sendOtpButton) {
-  sendOtpButton.addEventListener('click', () => {
+  sendOtpButton.addEventListener('click', async () => {
+
     const email = forgotEmailInput.value.trim();
 
     if (!email) {
@@ -243,14 +248,46 @@ if (sendOtpButton) {
       return;
     }
 
-    resetEmailDisplay.textContent = email;
-    showResetStep('otp');
-    showToast('OTP sent to your email (demo).');
+    showToast('Sending OTP...');
+
+    try {
+
+      const { error } =
+        await window.supabaseAuth.supabaseClient.auth
+          .resetPasswordForEmail(email);
+
+      if (error) {
+        console.error('Password reset error:', error);
+        showToast('Error: ' + error.message);
+        return;
+      }
+
+      resetEmailDisplay.textContent = email;
+
+      showResetStep('otp');
+
+      otpCodeInput.value = '';
+
+      showToast('OTP sent to your email.');
+
+    } catch (err) {
+
+      console.error('Password reset error:', err);
+
+      showToast(
+        'Error: ' + (err?.message || 'Could not send OTP.')
+      );
+
+    }
+
   });
 }
 
+
 if (verifyOtpButton) {
-  verifyOtpButton.addEventListener('click', () => {
+  verifyOtpButton.addEventListener('click', async () => {
+
+    const email = forgotEmailInput.value.trim();
     const code = otpCodeInput.value.trim();
 
     if (!code) {
@@ -258,13 +295,58 @@ if (verifyOtpButton) {
       return;
     }
 
-    showResetStep('new-password');
-    showToast('Code verified (demo).');
+    if (!/^\d{6}$/.test(code)) {
+      showToast('Please enter a valid 6-digit OTP.');
+      return;
+    }
+
+    showToast('Verifying OTP...');
+
+    try {
+
+      const { data, error } =
+        await window.supabaseAuth.supabaseClient.auth
+          .verifyOtp({
+            email: email,
+            token: code,
+            type: 'recovery'
+          });
+
+      console.log('Recovery OTP result:', {
+        data,
+        error
+      });
+
+      if (error) {
+        console.error('OTP verification error:', error);
+
+        showToast('Invalid or expired OTP.');
+
+        return;
+      }
+
+      showResetStep('new-password');
+
+      showToast('OTP verified successfully.');
+
+    } catch (err) {
+
+      console.error('OTP verification error:', err);
+
+      showToast(
+        'Verification failed: ' +
+        (err?.message || 'Please try again.')
+      );
+
+    }
+
   });
 }
 
+
 if (resetPasswordButton) {
-  resetPasswordButton.addEventListener('click', () => {
+  resetPasswordButton.addEventListener('click', async () => {
+
     const newPassword = newPasswordInput.value;
     const confirmPassword = confirmNewPasswordInput.value;
 
@@ -278,12 +360,59 @@ if (resetPasswordButton) {
       return;
     }
 
-    showToast('Password updated successfully (demo).');
-    forgotPasswordModal.classList.remove('open');
-    signInForm.reset();
-    forgotEmailInput.value = '';
-    otpCodeInput.value = '';
-    newPasswordInput.value = '';
-    confirmNewPasswordInput.value = '';
+    if (newPassword.length < 6) {
+      showToast('Password must be at least 6 characters.');
+      return;
+    }
+
+    showToast('Updating password...');
+
+    try {
+
+      const { data, error } =
+        await window.supabaseAuth.supabaseClient.auth
+          .updateUser({
+            password: newPassword
+          });
+
+      console.log('Password update result:', {
+        data,
+        error
+      });
+
+      if (error) {
+        console.error('Password update error:', error);
+
+        showToast('Could not update password: ' + error.message);
+
+        return;
+      }
+
+      showToast('Password updated successfully!');
+
+      setTimeout(() => {
+
+        forgotPasswordModal.classList.remove('open');
+
+        forgotEmailInput.value = '';
+        otpCodeInput.value = '';
+        newPasswordInput.value = '';
+        confirmNewPasswordInput.value = '';
+
+        showResetStep('email');
+
+      }, 1200);
+
+    } catch (err) {
+
+      console.error('Password update error:', err);
+
+      showToast(
+        'Password update failed: ' +
+        (err?.message || 'Please try again.')
+      );
+
+    }
+
   });
 }
