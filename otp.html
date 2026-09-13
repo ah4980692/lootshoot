@@ -258,7 +258,51 @@
           }
 
 
+          // ============================================
+          // SAVE SELLER DATA TO DATABASE
+          // ============================================
+
+          const username =
+            sessionStorage.getItem('signupUsername');
+
+          const whatsapp =
+            sessionStorage.getItem('signupWhatsApp');
+
+
+          const { error: sellerError } =
+            await supabaseClient
+              .from('sellers')
+              .insert({
+                id: data.user.id,
+                username: username,
+                email: email,
+                whatsapp: whatsapp
+              });
+
+
+          if (sellerError) {
+
+            console.error(
+              'Seller profile creation error:',
+              sellerError
+            );
+
+            otpError.textContent =
+              sellerError.message;
+
+            showToast(
+              'Account verified, but seller profile could not be saved.'
+            );
+
+            return;
+          }
+
+
+          // Clear temporary signup data
           sessionStorage.removeItem('signupEmail');
+          sessionStorage.removeItem('signupUsername');
+          sessionStorage.removeItem('signupWhatsApp');
+
 
           showToast('Account verified successfully!');
 
