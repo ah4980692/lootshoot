@@ -664,10 +664,12 @@
               return;
             }
 
-            // Save the email so the OTP page knows which account to verify
-            sessionStorage.setItem('signupEmail', email);
+            // Save signup details so the OTP page can create the seller profile
+sessionStorage.setItem('signupEmail', email);
+sessionStorage.setItem('signupUsername', username);
+sessionStorage.setItem('signupWhatsApp', whatsapp);
 
-            showToast('OTP sent to your email');
+showToast('OTP sent to your email');
 
             // Open the separate OTP page
             window.location.href = 'otp.html';
@@ -731,26 +733,7 @@
         });
       }
 
-      // Forgot password: send reset email
-      const sendOtpButton = document.getElementById('sendOtpButton');
-
-      if (sendOtpButton) {
-        sendOtpButton.addEventListener('click', async () => {
-          const email = document.getElementById('forgotEmail').value.trim();
-
-          if (!email) return showToast('Enter your email');
-
-          const res = await supabaseClient.auth.resetPasswordForEmail(email);
-
-          console.log('resetPasswordForEmail', res);
-
-          const { data, error } = res;
-
-          if (error) return showToast('Error: ' + error.message);
-
-          showToast('Password reset email sent');
-        });
-      }
+     
 
       // Optional: sign out function usable from other UI
       async function signOut() {
