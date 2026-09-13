@@ -723,7 +723,16 @@ showToast('OTP sent to your email');
             showToast('Signed in successfully');
             setFormError(signInForm, '');
 
+            const sessionEmail = data?.user?.email || identifier;
+            const sessionUsername = data?.user?.user_metadata?.username || sessionEmail.split('@')[0];
+            const sessionWhatsApp = data?.user?.user_metadata?.whatsapp || sessionStorage.getItem('signupWhatsApp') || '+92 300 0000000';
+
+            sessionStorage.setItem('sellerSessionEmail', sessionEmail);
+            sessionStorage.setItem('sellerSessionUsername', sessionUsername);
+            sessionStorage.setItem('sellerSessionWhatsApp', sessionWhatsApp);
+
             console.log('user signed in', data?.user);
+            window.location.href = 'seller-dashboard.html';
 
           } catch (err) {
             console.error('signin exception', err);
