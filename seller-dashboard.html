@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Seller Dashboard</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      :root {
+        --bg: #f4f7fb;
+        --panel: #ffffff;
+        --panel-alt: #eef4ff;
+        --primary: #2d8c66;
+        --primary-dark: #1f6a4d;
+        --text: #1e2430;
+        --muted: #6d777f;
+        --border: #e7ecf2;
+        --shadow: 0 18px 45px rgba(25, 40, 60, 0.08);
+      }
+
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background: linear-gradient(180deg, #f4f7fb 0%, #eef5f2 100%);
+        color: var(--text);
+      }
+
+      .seller-shell {
+        max-width: 480px;
+        margin: 0 auto;
+        min-height: 100vh;
+        background: var(--bg);
+        position: relative;
+        padding-bottom: 96px;
+      }
+
+      .seller-header {
+        background: linear-gradient(135deg, #122b23 0%, #1c4a3f 100%);
+        color: white;
+        padding: 28px 22px 20px;
+        border-bottom-left-radius: 28px;
+        border-bottom-right-radius: 28px;
+      }
+
+      .top-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand-badge {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.14);
+        display: grid;
+        place-items: center;
+        font-weight: 700;
+      }
+
+      .header-title {
+        font-size: 0.8rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        opacity: 0.8;
+        margin: 0 0 8px;
+      }
+
+      .header-name {
+        margin: 0;
+        font-size: 1.8rem;
+        font-weight: 700;
+      }
+
+      .header-card {
+        margin-top: 20px;
+        background: rgba(255, 255, 255, 0.09);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 18px;
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header-card strong {
+        display: block;
+        font-size: 1rem;
+      }
+
+      .header-card span {
+        font-size: 0.8rem;
+        opacity: 0.75;
+      }
+
+      .pill {
+        background: rgba(255, 255, 255, 0.12);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+      }
+
+      .seller-content {
+        padding: 22px 18px 0;
+      }
+
+      .screen-section {
+        display: none;
+      }
+
+      .screen-section.active {
+        display: block;
+      }
+
+      .section-title {
+        margin: 10px 0 14px;
+        font-size: 1.05rem;
+        font-weight: 700;
+      }
+
+      .grid-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        box-shadow: var(--shadow);
+        padding: 18px;
+      }
+
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .stat-box {
+        background: var(--panel-alt);
+        border-radius: 16px;
+        padding: 14px 12px;
+        text-align: center;
+      }
+
+      .stat-box strong {
+        display: block;
+        font-size: 1.2rem;
+        margin-bottom: 4px;
+      }
+
+      .stat-box span {
+        font-size: 0.72rem;
+        color: var(--muted);
+      }
+
+      .product-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 16px;
+      }
+
+      .product-item {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 12px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .product-thumb {
+        width: 74px;
+        height: 74px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, #dff3eb, #cfe7ff);
+        display: grid;
+        place-items: center;
+        font-size: 1.8rem;
+      }
+
+      .product-meta {
+        flex: 1;
+      }
+
+      .product-meta h4 {
+        margin: 0 0 6px;
+        font-size: 0.95rem;
+      }
+
+      .product-meta p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.75rem;
+      }
+
+      .price-tag {
+        font-weight: 700;
+        color: var(--primary-dark);
+      }
+
+      .empty-state {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 30px 16px;
+        text-align: center;
+        color: var(--muted);
+      }
+
+      .offer-form {
+        display: grid;
+        gap: 12px;
+      }
+
+      .offer-form input,
+      .offer-form textarea {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 0.95rem;
+      }
+
+      .offer-form textarea {
+        resize: vertical;
+        min-height: 110px;
+      }
+
+      .primary-btn {
+        border: none;
+        border-radius: 12px;
+        background: var(--primary);
+        color: white;
+        font-weight: 700;
+        padding: 12px 14px;
+        cursor: pointer;
+      }
+
+      .profile-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 22px 18px;
+      }
+
+      .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 18px;
+      }
+
+      .avatar-wrap {
+        position: relative;
+        width: 88px;
+        height: 88px;
+        border-radius: 50%;
+        overflow: hidden;
+        border: 4px solid #e8f5ee;
+        background: linear-gradient(135deg, #d9f1e6, #d6e7ff);
+        box-shadow: 0 12px 26px rgba(26, 99, 72, 0.12);
+      }
+
+      .avatar-wrap img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      .avatar-fallback {
+        width: 100%;
+        height: 100%;
+        display: grid;
+        place-items: center;
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-dark);
+      }
+
+      .profile-meta h3 {
+        margin: 0 0 4px;
+        font-size: 1.3rem;
+      }
+
+      .profile-meta p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.8rem;
+      }
+
+      .profile-status {
+        margin-top: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: #ebf9f0;
+        color: var(--primary-dark);
+        font-size: 0.74rem;
+        font-weight: 700;
+      }
+
+      .profile-status::before {
+        content: "";
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #28c76f;
+        display: inline-block;
+      }
+
+      .profile-info {
+        display: grid;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .profile-info-row {
+        background: linear-gradient(180deg, #f7fbff 0%, #eef8f2 100%);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 12px 14px;
+      }
+
+      .profile-info-row .label {
+        display: block;
+        font-size: 0.72rem;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      .profile-info-row .value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: var(--text);
+        word-break: break-word;
+      }
+
+      .profile-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .profile-btn {
+        border: none;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease;
+      }
+
+      .profile-btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .profile-btn.primary {
+        background: var(--primary);
+        color: white;
+      }
+
+      .profile-btn.secondary {
+        background: #fff1f1;
+        color: #d44848;
+      }
+
+      .seller-bottom-nav {
+        position: fixed;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 0;
+        width: min(96vw, 480px);
+        background: rgba(255, 255, 255, 0.98);
+        border: 1px solid rgba(22, 41, 61, 0.08);
+        border-bottom: none;
+        border-radius: 18px 18px 0 0;
+        box-shadow: 0 -8px 20px rgba(26, 38, 55, 0.08);
+        display: flex;
+        align-items: stretch;
+        justify-content: space-between;
+        padding: 8px 6px 10px;
+        backdrop-filter: blur(8px);
+      }
+
+      .nav-item {
+        appearance: none;
+        border: none;
+        background: transparent;
+        color: var(--muted);
+        border-radius: 12px;
+        padding: 8px 6px;
+        min-height: 52px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .nav-item .icon {
+        font-size: 1.12rem;
+        line-height: 1;
+      }
+
+      .nav-item.active {
+        background: #eaf7f0;
+        color: var(--primary-dark);
+        border: 1px solid rgba(45, 140, 102, 0.15);
+      }
+
+      .nav-item.active .icon {
+        transform: translateY(-1px);
+      }
+
+      @media (min-width: 900px) {
+        body {
+          padding: 28px;
+          background: #edf3f7;
+        }
+
+        .seller-shell {
+          max-width: 1200px;
+          width: min(1200px, calc(100vw - 100px));
+          border-radius: 30px;
+          overflow: hidden;
+          box-shadow: 0 24px 60px rgba(23, 34, 48, 0.12);
+          border: 1px solid rgba(19, 35, 48, 0.06);
+        }
+
+        .seller-content {
+          padding: 28px 28px 110px;
+        }
+
+        .product-list {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .profile-card,
+        .grid-card,
+        .empty-state {
+          max-width: 760px;
+        }
+      }
+
+      @media (min-width: 600px) {
+        .seller-shell {
+          border-left: 1px solid var(--border);
+          border-right: 1px solid var(--border);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="seller-shell">
+      <header class="seller-header">
+        <div class="top-row">
+          <div class="brand-badge">L</div>
+          <div class="pill">Live seller</div>
+        </div>
+
+        <p class="header-title">Dashboard</p>
+        <h1 class="header-name">Welcome back</h1>
+
+        <div class="header-card">
+          <div>
+            <strong>My earnings</strong>
+            <span>Updated today</span>
+          </div>
+          <div class="pill">PKR 58.5k</div>
+        </div>
+      </header>
+
+      <main class="seller-content">
+        <section class="screen-section active" data-section="explore">
+          <h2 class="section-title">Explore</h2>
+
+          <div class="grid-card">
+            <div class="stats-row">
+              <div class="stat-box">
+                <strong>24</strong>
+                <span>Offers</span>
+              </div>
+              <div class="stat-box">
+                <strong>8</strong>
+                <span>Alerts</span>
+              </div>
+              <div class="stat-box">
+                <strong>96%</strong>
+                <span>Response</span>
+              </div>
+            </div>
+          </div>
+
+          <h2 class="section-title">Popular listings</h2>
+
+          <div class="product-list">
+            <div class="product-item">
+              <div class="product-thumb">🧥</div>
+              <div class="product-meta">
+                <h4>Premium winter jacket</h4>
+                <p>Active listing</p>
+              </div>
+              <div class="price-tag">Rs 5,999</div>
+            </div>
+
+            <div class="product-item">
+              <div class="product-thumb">📱</div>
+              <div class="product-meta">
+                <h4>Smartphone bundle</h4>
+                <p>3 new enquiries</p>
+              </div>
+              <div class="price-tag">Rs 28,500</div>
+            </div>
+
+            <div class="product-item">
+              <div class="product-thumb">👜</div>
+              <div class="product-meta">
+                <h4>Luxury handbag</h4>
+                <p>Trending now</p>
+              </div>
+              <div class="price-tag">Rs 7,200</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen-section" data-section="notifications">
+          <h2 class="section-title">Notifications</h2>
+          <div class="empty-state">You have no new notifications right now.</div>
+        </section>
+
+        <section class="screen-section" data-section="create-offer">
+          <h2 class="section-title">Create Offer</h2>
+          <div class="grid-card">
+            <form class="offer-form">
+              <input type="text" placeholder="Offer title" />
+              <input type="text" placeholder="Price" />
+              <textarea placeholder="Describe your offer..."></textarea>
+              <button type="button" class="primary-btn">Publish Offer</button>
+            </form>
+          </div>
+        </section>
+
+        <section class="screen-section" data-section="my-ads">
+          <h2 class="section-title">My Ads</h2>
+          <div class="product-list">
+            <div class="product-item">
+              <div class="product-thumb">🧤</div>
+              <div class="product-meta">
+                <h4>Winter collection</h4>
+                <p>Published 2 days ago</p>
+              </div>
+              <div class="price-tag">Rs 4,900</div>
+            </div>
+            <div class="product-item">
+              <div class="product-thumb">🎧</div>
+              <div class="product-meta">
+                <h4>Audio gear</h4>
+                <p>Published 5 days ago</p>
+              </div>
+              <div class="price-tag">Rs 9,800</div>
+            </div>
+          </div>
+        </section>
+
+        <section class="screen-section" data-section="my-profile">
+          <h2 class="section-title">My Profile</h2>
+          <div class="profile-card">
+            <div class="profile-header">
+              <div class="avatar-wrap">
+                <img
+                  id="profileImage"
+                  src=""
+                  alt="Profile picture"
+                  style="display:none;"
+                />
+                <div class="avatar-fallback" id="profileInitials">S</div>
+              </div>
+
+              <div class="profile-meta">
+                <h3 id="profileUsername">Seller Name</h3>
+                <p id="profileRole">Verified seller</p>
+                <div class="profile-status">Active</div>
+              </div>
+            </div>
+
+            <div class="profile-info">
+              <div class="profile-info-row">
+                <span class="label">Email</span>
+                <span class="value" id="profileEmail">seller@example.com</span>
+              </div>
+
+              <div class="profile-info-row">
+                <span class="label">WhatsApp Number</span>
+                <span class="value" id="profileWhatsApp">+92 300 1234567</span>
+              </div>
+
+              <div class="profile-info-row">
+                <span class="label">Member Since</span>
+                <span class="value" id="profileMemberSince">August 2025</span>
+              </div>
+            </div>
+
+            <div class="profile-actions">
+              <button type="button" class="profile-btn primary" id="editProfileBtn">Edit Profile</button>
+              <button type="button" class="profile-btn secondary" id="logoutBtn">Logout</button>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <nav class="seller-bottom-nav" aria-label="Bottom navigation">
+        <button class="nav-item active" type="button" data-target="explore" aria-label="Explore">
+          <span class="icon">⌂</span>
+          <span>Explore</span>
+        </button>
+        <button class="nav-item" type="button" data-target="notifications" aria-label="Notifications">
+          <span class="icon">🔔</span>
+          <span>Notifications</span>
+        </button>
+        <button class="nav-item" type="button" data-target="create-offer" aria-label="Create Offer">
+          <span class="icon">＋</span>
+          <span>Create Offer</span>
+        </button>
+        <button class="nav-item" type="button" data-target="my-ads" aria-label="My Ads">
+          <span class="icon">🧾</span>
+          <span>My Ads</span>
+        </button>
+        <button class="nav-item" type="button" data-target="my-profile" aria-label="My Profile">
+          <span class="icon">👤</span>
+          <span>My Profile</span>
+        </button>
+      </nav>
+    </div>
+
+    <script>
+      const navItems = document.querySelectorAll('.nav-item');
+      const sections = document.querySelectorAll('.screen-section');
+
+      navItems.forEach((button) => {
+        button.addEventListener('click', () => {
+          const target = button.dataset.target;
+
+          navItems.forEach((item) => item.classList.toggle('active', item === button));
+          sections.forEach((section) => {
+            section.classList.toggle('active', section.dataset.section === target);
+          });
+        });
+      });
+
+      const profileUsername = document.getElementById('profileUsername');
+      const profileEmail = document.getElementById('profileEmail');
+      const profileWhatsApp = document.getElementById('profileWhatsApp');
+      const profileMemberSince = document.getElementById('profileMemberSince');
+      const profileInitials = document.getElementById('profileInitials');
+      const profileImage = document.getElementById('profileImage');
+      const editProfileBtn = document.getElementById('editProfileBtn');
+      const logoutBtn = document.getElementById('logoutBtn');
+
+      function getInitials(name) {
+        if (!name) return 'S';
+        return name
+          .split(' ')
+          .map((part) => part[0])
+          .join('')
+          .slice(0, 2)
+          .toUpperCase();
+      }
+
+      function populateProfile() {
+        const savedUsername = sessionStorage.getItem('sellerSessionUsername') ||
+          sessionStorage.getItem('signupUsername') ||
+          'Seller Name';
+
+        const savedEmail = sessionStorage.getItem('sellerSessionEmail') ||
+          sessionStorage.getItem('signupEmail') ||
+          'seller@example.com';
+
+        const savedWhatsApp = sessionStorage.getItem('sellerSessionWhatsApp') ||
+          sessionStorage.getItem('signupWhatsApp') ||
+          '+92 300 1234567';
+
+        const joinedDate = new Date();
+        const month = joinedDate.toLocaleString('en-US', { month: 'long' });
+        const year = joinedDate.getFullYear();
+
+        profileUsername.textContent = savedUsername;
+        profileEmail.textContent = savedEmail;
+        profileWhatsApp.textContent = savedWhatsApp;
+        profileMemberSince.textContent = `${month} ${year}`;
+        profileInitials.textContent = getInitials(savedUsername);
+
+        const profilePic = sessionStorage.getItem('sellerProfileImage');
+        if (profilePic) {
+          profileImage.src = profilePic;
+          profileImage.style.display = 'block';
+          profileInitials.style.display = 'none';
+        }
+      }
+
+      populateProfile();
+
+      editProfileBtn.addEventListener('click', () => {
+        alert('Edit profile screen will open here.');
+      });
+
+      logoutBtn.addEventListener('click', () => {
+        sessionStorage.clear();
+        window.location.href = 'index1.html';
+      });
+    </script>
+  </body>
+</html>
