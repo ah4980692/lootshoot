@@ -1,0 +1,1067 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="LootShoot — Edit seller profile."
+  />
+
+  <title>LootShoot — Edit Profile</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #f5f7f6;
+      color: #172027;
+      font-family: "DM Sans", sans-serif;
+    }
+
+    .page {
+      width: min(100%, 680px);
+      margin: 0 auto;
+      padding: 0 18px 40px;
+    }
+
+    .topbar {
+      margin: 0 -18px 24px;
+      padding: 18px;
+      background: linear-gradient(135deg, #10231b, #1d6b45);
+      color: white;
+    }
+
+    .topbar-inner {
+      width: min(100%, 680px);
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .back-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      font-size: 22px;
+      cursor: pointer;
+    }
+
+    .topbar h1 {
+      margin: 0;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 24px;
+    }
+
+    .card {
+      background: white;
+      border: 1px solid #e2e8e5;
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(20, 35, 28, 0.06);
+    }
+
+    .photo-area {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 28px;
+    }
+
+    .avatar-wrap {
+      position: relative;
+      width: 112px;
+      height: 112px;
+      cursor: pointer;
+    }
+
+    .avatar {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid #e8f4ed;
+      background: #e8f4ed;
+    }
+
+    .avatar-fallback {
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      border: 4px solid #e8f4ed;
+      background: #dcefe4;
+      color: #17613f;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+    }
+
+    .camera {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: #1d8b58;
+      color: white;
+      border: 3px solid white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 17px;
+    }
+
+    .photo-text {
+      margin: 10px 0 0;
+      color: #68747b;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid #d7dfdb;
+      border-radius: 11px;
+      padding: 13px 14px;
+      font: inherit;
+      color: #172027;
+      outline: none;
+      background: #fff;
+    }
+
+    input:focus {
+      border-color: #1d8b58;
+      box-shadow: 0 0 0 3px rgba(29, 139, 88, 0.1);
+    }
+
+    input[readonly] {
+      background: #f3f5f4;
+      color: #7a858b;
+      cursor: not-allowed;
+    }
+
+    .hint {
+      margin: 6px 0 0;
+      font-size: 12px;
+      color: #7b858a;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    button.action {
+      flex: 1;
+      min-height: 46px;
+      border-radius: 11px;
+      padding: 12px 16px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .cancel {
+      border: 1px solid #d6dfda;
+      background: white;
+      color: #263238;
+    }
+
+    .save {
+      border: 0;
+      background: #1d8b58;
+      color: white;
+    }
+
+    .save:disabled {
+      opacity: 0.65;
+      cursor: wait;
+    }
+
+    .message {
+      min-height: 20px;
+      margin-top: 14px;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .error {
+      color: #d64b3d;
+    }
+
+    .success {
+      color: #16804f;
+    }
+
+    @media (max-width: 480px) {
+      .card {
+        padding: 20px;
+      }
+
+      .actions {
+        flex-direction: column-reverse;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+
+    <div class="topbar-inner">
+
+      <button
+        class="back-btn"
+        id="backBtn"
+        type="button"
+        aria-label="Back"
+      >
+        ‹
+      </button>
+
+      <h1>Edit Profile</h1>
+
+    </div>
+
+  </header>
+
+
+  <main class="page">
+
+    <section class="card">
+
+      <!-- PROFILE PHOTO -->
+      <div class="photo-area">
+
+        <div
+          class="avatar-wrap"
+          id="avatarPicker"
+          title="Change profile photo"
+        >
+
+          <div
+            class="avatar-fallback"
+            id="avatarFallback"
+          >
+            S
+          </div>
+
+          <img
+            class="avatar"
+            id="avatarPreview"
+            src=""
+            alt="Profile photo"
+            style="display:none;"
+          />
+
+          <div class="camera">
+            📷
+          </div>
+
+        </div>
+
+        <p class="photo-text">
+          Tap the photo to change it
+        </p>
+
+        <input
+          id="avatarInput"
+          type="file"
+          accept="image/jpeg,image/jpg,image/png,image/webp"
+          hidden
+        />
+
+      </div>
+
+
+      <!-- EDIT PROFILE FORM -->
+      <form id="editProfileForm">
+
+        <!-- NAME -->
+        <div class="form-group">
+
+          <label for="nameInput">
+            Name
+          </label>
+
+          <input
+            id="nameInput"
+            type="text"
+            required
+            maxlength="50"
+            placeholder="Enter your name"
+          />
+
+        </div>
+
+
+        <!-- WHATSAPP -->
+        <div class="form-group">
+
+          <label for="whatsappInput">
+            WhatsApp Number
+          </label>
+
+          <input
+            id="whatsappInput"
+            type="tel"
+            required
+            maxlength="30"
+            placeholder="e.g. +923411234567"
+          />
+
+        </div>
+
+
+        <!-- EMAIL - READ ONLY -->
+        <div class="form-group">
+
+          <label for="emailInput">
+            Email
+          </label>
+
+          <input
+            id="emailInput"
+            type="email"
+            readonly
+          />
+
+          <p class="hint">
+            Email cannot be changed here.
+          </p>
+
+        </div>
+
+
+        <!-- BUTTONS -->
+        <div class="actions">
+
+          <button
+            class="action cancel"
+            id="cancelBtn"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="action save"
+            id="saveBtn"
+            type="submit"
+          >
+            Save Changes
+          </button>
+
+        </div>
+
+
+        <div
+          class="message"
+          id="message"
+        ></div>
+
+      </form>
+
+    </section>
+
+  </main>
+
+
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+
+      // ==========================================
+      // SUPABASE
+      // ==========================================
+
+      const supabaseUrl =
+        "https://saguwhkijrdiwiabxvyv.supabase.co";
+
+      const supabaseKey =
+        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+
+      const supabaseClient =
+        window.supabase.createClient(
+          supabaseUrl,
+          supabaseKey
+        );
+
+
+      // ==========================================
+      // ELEMENTS
+      // ==========================================
+
+      const form =
+        document.getElementById("editProfileForm");
+
+      const nameInput =
+        document.getElementById("nameInput");
+
+      const whatsappInput =
+        document.getElementById("whatsappInput");
+
+      const emailInput =
+        document.getElementById("emailInput");
+
+      const avatarPicker =
+        document.getElementById("avatarPicker");
+
+      const avatarInput =
+        document.getElementById("avatarInput");
+
+      const avatarPreview =
+        document.getElementById("avatarPreview");
+
+      const avatarFallback =
+        document.getElementById("avatarFallback");
+
+      const saveBtn =
+        document.getElementById("saveBtn");
+
+      const message =
+        document.getElementById("message");
+
+
+      // ==========================================
+      // VARIABLES
+      // ==========================================
+
+      let currentUser = null;
+
+      let selectedFile = null;
+
+      let currentAvatarUrl = null;
+
+
+      // ==========================================
+      // GET INITIALS
+      // ==========================================
+
+      function getInitials(name) {
+
+        if (!name) {
+          return "S";
+        }
+
+        return name
+          .trim()
+          .split(/\s+/)
+          .map(part => part[0])
+          .join("")
+          .slice(0, 2)
+          .toUpperCase();
+      }
+
+
+      // ==========================================
+      // MESSAGE
+      // ==========================================
+
+      function setMessage(text, type = "") {
+
+        message.textContent = text;
+
+        message.className =
+          "message " + type;
+      }
+
+
+      // ==========================================
+      // SHOW AVATAR
+      // ==========================================
+
+      function showAvatar(url, name) {
+
+        if (url) {
+
+          avatarPreview.src = url;
+
+          avatarPreview.style.display =
+            "block";
+
+          avatarFallback.style.display =
+            "none";
+
+        } else {
+
+          avatarPreview.removeAttribute("src");
+
+          avatarPreview.style.display =
+            "none";
+
+          avatarFallback.textContent =
+            getInitials(name);
+
+          avatarFallback.style.display =
+            "flex";
+        }
+      }
+
+
+      // ==========================================
+      // LOAD PROFILE
+      // ==========================================
+
+      async function loadProfile() {
+
+        setMessage("Loading...");
+
+
+        // Get currently logged-in user
+        const {
+          data: userData,
+          error: userError
+        } = await supabaseClient.auth.getUser();
+
+
+        if (
+          userError ||
+          !userData?.user
+        ) {
+
+          window.location.href =
+            "index1.html";
+
+          return;
+        }
+
+
+        currentUser =
+          userData.user;
+
+
+        // Get seller profile
+        const {
+          data: seller,
+          error: sellerError
+        } = await supabaseClient
+          .from("sellers")
+          .select(
+            "id, username, email, whatsapp, avatar_url"
+          )
+          .eq(
+            "id",
+            currentUser.id
+          )
+          .maybeSingle();
+
+
+        if (sellerError) {
+
+          console.error(
+            sellerError
+          );
+
+          setMessage(
+            "Could not load your profile.",
+            "error"
+          );
+
+          return;
+        }
+
+
+        // Username
+        const username =
+          seller?.username ||
+          currentUser
+            .user_metadata
+            ?.username ||
+          currentUser.email
+            ?.split("@")[0] ||
+          "Seller";
+
+
+        // WhatsApp
+        const whatsapp =
+          seller?.whatsapp ||
+          currentUser
+            .user_metadata
+            ?.whatsapp ||
+          "";
+
+
+        // Email
+        const email =
+          seller?.email ||
+          currentUser.email ||
+          "";
+
+
+        // Put values into inputs
+        nameInput.value =
+          username;
+
+        whatsappInput.value =
+          whatsapp;
+
+        emailInput.value =
+          email;
+
+
+        // Existing avatar
+        currentAvatarUrl =
+          seller?.avatar_url ||
+          null;
+
+
+        showAvatar(
+          currentAvatarUrl,
+          username
+        );
+
+
+        setMessage("");
+      }
+
+
+      // ==========================================
+      // OPEN FILE PICKER
+      // ==========================================
+
+      avatarPicker.addEventListener(
+        "click",
+        () => {
+
+          avatarInput.click();
+
+        }
+      );
+
+
+      // ==========================================
+      // SELECT PROFILE PHOTO
+      // ==========================================
+
+      avatarInput.addEventListener(
+        "change",
+        () => {
+
+          const file =
+            avatarInput.files?.[0];
+
+
+          if (!file) {
+            return;
+          }
+
+
+          const allowedTypes = [
+            "image/jpeg",
+            "image/jpg",
+            "image/png",
+            "image/webp"
+          ];
+
+
+          // Check file type
+          if (
+            !allowedTypes.includes(
+              file.type
+            )
+          ) {
+
+            avatarInput.value = "";
+
+            setMessage(
+              "Only JPG, JPEG, PNG, or WEBP images are allowed.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          // Check file size
+          if (
+            file.size >
+            5 * 1024 * 1024
+          ) {
+
+            avatarInput.value = "";
+
+            setMessage(
+              "Profile photo must be 5 MB or smaller.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          selectedFile =
+            file;
+
+
+          // Show local preview
+          const previewUrl =
+            URL.createObjectURL(
+              file
+            );
+
+
+          avatarPreview.src =
+            previewUrl;
+
+          avatarPreview.style.display =
+            "block";
+
+          avatarFallback.style.display =
+            "none";
+
+          setMessage("");
+        }
+      );
+
+
+      // ==========================================
+      // SAVE PROFILE
+      // ==========================================
+
+      form.addEventListener(
+        "submit",
+        async (event) => {
+
+          event.preventDefault();
+
+
+          if (!currentUser) {
+            return;
+          }
+
+
+          const username =
+            nameInput.value.trim();
+
+          const whatsapp =
+            whatsappInput.value.trim();
+
+
+          // Validate name
+          if (!username) {
+
+            setMessage(
+              "Please enter your name.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          // Validate WhatsApp
+          if (!whatsapp) {
+
+            setMessage(
+              "Please enter your WhatsApp number.",
+              "error"
+            );
+
+            return;
+          }
+
+
+          saveBtn.disabled =
+            true;
+
+          saveBtn.textContent =
+            "Saving...";
+
+          setMessage("");
+
+
+          try {
+
+            let avatarUrl =
+              currentAvatarUrl;
+
+
+            // ==================================
+            // UPLOAD PHOTO
+            // ==================================
+
+            if (selectedFile) {
+
+              const extension =
+                selectedFile.name
+                  .split(".")
+                  .pop()
+                  .toLowerCase();
+
+
+              const filePath =
+                currentUser.id +
+                "/avatar-" +
+                Date.now() +
+                "." +
+                extension;
+
+
+              const {
+                error: uploadError
+              } =
+                await supabaseClient
+                  .storage
+                  .from("avatars")
+                  .upload(
+                    filePath,
+                    selectedFile,
+                    {
+                      cacheControl:
+                        "3600",
+
+                      upsert:
+                        false,
+
+                      contentType:
+                        selectedFile.type
+                    }
+                  );
+
+
+              if (uploadError) {
+
+                throw new Error(
+                  "Photo upload failed: " +
+                  uploadError.message
+                );
+              }
+
+
+              // Get public URL
+              const {
+                data: publicData
+              } =
+                supabaseClient
+                  .storage
+                  .from("avatars")
+                  .getPublicUrl(
+                    filePath
+                  );
+
+
+              avatarUrl =
+                publicData.publicUrl;
+            }
+
+
+            // ==================================
+            // UPDATE SELLER PROFILE
+            // ==================================
+
+            const {
+              error: updateError
+            } =
+              await supabaseClient
+                .from("sellers")
+                .update({
+
+                  username:
+                    username,
+
+                  whatsapp:
+                    whatsapp,
+
+                  avatar_url:
+                    avatarUrl
+
+                })
+                .eq(
+                  "id",
+                  currentUser.id
+                );
+
+
+            if (updateError) {
+
+              throw new Error(
+                "Profile update failed: " +
+                updateError.message
+              );
+            }
+
+
+            // ==================================
+            // UPDATE AUTH METADATA
+            // ==================================
+
+            await supabaseClient
+              .auth
+              .updateUser({
+
+                data: {
+                  username:
+                    username,
+
+                  whatsapp:
+                    whatsapp
+                }
+
+              });
+
+
+            // ==================================
+            // UPDATE SESSION DATA
+            // ==================================
+
+            sessionStorage.setItem(
+              "sellerSessionUsername",
+              username
+            );
+
+            sessionStorage.setItem(
+              "sellerSessionWhatsApp",
+              whatsapp
+            );
+
+
+            if (avatarUrl) {
+
+              sessionStorage.setItem(
+                "sellerProfileImage",
+                avatarUrl
+              );
+            }
+
+
+            currentAvatarUrl =
+              avatarUrl;
+
+            selectedFile =
+              null;
+
+            avatarInput.value =
+              "";
+
+
+            // Success message
+            setMessage(
+              "Profile updated successfully.",
+              "success"
+            );
+
+
+            // Return to dashboard
+            setTimeout(
+              () => {
+
+                window.location.href =
+                  "seller-dashboard.html?tab=my-profile";
+
+              },
+              700
+            );
+
+
+          } catch (error) {
+
+            console.error(
+              error
+            );
+
+            setMessage(
+              error?.message ||
+              "Could not update profile.",
+              "error"
+            );
+
+          } finally {
+
+            saveBtn.disabled =
+              false;
+
+            saveBtn.textContent =
+              "Save Changes";
+          }
+
+        }
+      );
+
+
+      // ==========================================
+      // BACK BUTTON
+      // ==========================================
+
+      document
+        .getElementById("backBtn")
+        .addEventListener(
+          "click",
+          () => {
+
+            window.location.href =
+              "seller-dashboard.html?tab=my-profile";
+
+          }
+        );
+
+
+      // ==========================================
+      // CANCEL BUTTON
+      // ==========================================
+
+      document
+        .getElementById("cancelBtn")
+        .addEventListener(
+          "click",
+          () => {
+
+            window.location.href =
+              "seller-dashboard.html?tab=my-profile";
+
+          }
+        );
+
+
+      // ==========================================
+      // LOAD PROFILE ON PAGE OPEN
+      // ==========================================
+
+      await loadProfile();
+
+    });
+  </script>
+
+</body>
+</html>
