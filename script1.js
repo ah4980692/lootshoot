@@ -486,5 +486,4 @@ if (resetPasswordButton) {
     }
 
   });
-}
-
+                                   }
