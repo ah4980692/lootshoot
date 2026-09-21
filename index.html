@@ -723,10 +723,17 @@ showToast('OTP sent to your email');
             showToast('Signed in successfully');
             setFormError(signInForm, '');
 
+            if (data?.session) {
+              sessionStorage.setItem('sellerAuthSession', JSON.stringify(data.session));
+              localStorage.setItem('sellerAuthSession', JSON.stringify(data.session));
+            }
+
             const sessionEmail = data?.user?.email || identifier;
             const sessionUsername = data?.user?.user_metadata?.username || sessionEmail.split('@')[0];
             const sessionWhatsApp = data?.user?.user_metadata?.whatsapp || sessionStorage.getItem('signupWhatsApp') || '+92 300 0000000';
 
+            sessionStorage.setItem('sellerSessionUserId', data?.user?.id || '');
+            localStorage.setItem('sellerSessionUserId', data?.user?.id || '');
             sessionStorage.setItem('sellerSessionEmail', sessionEmail);
             sessionStorage.setItem('sellerSessionUsername', sessionUsername);
             sessionStorage.setItem('sellerSessionWhatsApp', sessionWhatsApp);
