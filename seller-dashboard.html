@@ -1555,6 +1555,14 @@
   });
 
 
+  const requestedTab =
+    new URLSearchParams(window.location.search).get("tab");
+
+  if (requestedTab === "my-ads") {
+    activateTab("my-ads");
+  }
+
+
   /* =========================================
      SUPABASE
      FIXED: was pointing at a mistyped project
