@@ -1260,10 +1260,6 @@
     </nav>
 
 
-    <button class="menu-button">
-      ☰
-    </button>
-
   </header>
 
 
@@ -1310,17 +1306,6 @@
 
           </div>
 
-
-          <button
-            class="filter-button"
-            type="button"
-          >
-
-            <span>☰</span>
-
-            Filters
-
-          </button>
 
         </div>
 
@@ -1665,10 +1650,6 @@
             ${escapeHTML(badgeLabel)}
           </span>
 
-          <button class="favorite">
-            ♡
-          </button>
-
         </div>
 
 
@@ -1703,23 +1684,6 @@
         </div>
 
       `;
-
-      card
-        .querySelector(".favorite")
-        .addEventListener("click", event => {
-
-          event.stopPropagation();
-
-          const button = event.currentTarget;
-
-          button.classList.toggle("liked");
-
-          button.textContent =
-            button.classList.contains("liked")
-              ? "♥"
-              : "♡";
-
-        });
 
       card
         .querySelector(".details")
