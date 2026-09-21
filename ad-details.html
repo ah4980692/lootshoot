@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>Ad Details - LootShoot</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: #f4f7fb;
+      color: #1e2430;
+    }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: #f4f7fb;
+      padding-bottom: 40px;
+    }
+
+    .topbar {
+      height: 64px;
+      background: white;
+      border-bottom: 1px solid #e7ecf2;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: #eef4ff;
+      border-radius: 12px;
+      font-size: 1.4rem;
+      cursor: pointer;
+    }
+
+    .topbar-title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    /* IMAGE AREA */
+
+    .image-section {
+      background: #000;
+    }
+
+    .image-slider {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+      scrollbar-width: none;
+      overscroll-behavior-x: contain;
+    }
+
+    .image-slider::-webkit-scrollbar {
+      display: none;
+    }
+
+    .slide {
+      min-width: 100%;
+      height: 100%;
+      scroll-snap-align: start;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #111;
+    }
+
+    .slide img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    .no-image {
+      color: white;
+      font-size: 1rem;
+      opacity: 0.7;
+    }
+
+    /* DOTS */
+
+    .dots {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      padding: 10px;
+      background: #000;
+    }
+
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #777;
+    }
+
+    .dot.active {
+      background: white;
+    }
+
+    /* DETAILS */
+
+    .details {
+      padding: 18px;
+    }
+
+    .price {
+      font-size: 1.55rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 10px;
+    }
+
+    .type {
+      display: inline-block;
+      background: #eaf7f0;
+      color: #1f6a4d;
+      padding: 7px 11px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    .divider {
+      height: 1px;
+      background: #e7ecf2;
+      margin: 18px 0;
+    }
+
+    .description-title {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .description {
+      color: #6d777f;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
+    .date {
+      margin-top: 18px;
+      color: #6d777f;
+      font-size: 0.72rem;
+    }
+
+    .not-found {
+      padding: 50px 20px;
+      text-align: center;
+      color: #6d777f;
+    }
+
+    @media (min-width: 600px) {
+
+      body {
+        padding: 20px;
+        background: #edf3f7;
+      }
+
+      .page {
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(25, 40, 60, 0.1);
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+<div class="page">
+
+  <div class="topbar">
+
+    <button
+      class="back-btn"
+      onclick="history.back()"
+      aria-label="Go back"
+    >
+      ←
+    </button>
+
+    <div class="topbar-title">
+      Ad Details
+    </div>
+
+  </div>
+
+
+  <!-- IMAGE SLIDER -->
+
+  <div class="image-section">
+
+    <div
+      class="image-slider"
+      id="imageSlider"
+    ></div>
+
+    <div
+      class="dots"
+      id="dots"
+    ></div>
+
+  </div>
+
+
+  <!-- DETAILS -->
+
+  <div
+    class="details"
+    id="details"
+  >
+
+  </div>
+
+</div>
+
+
+<script>
+
+  function escapeHTML(value) {
+
+    return String(value || "")
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
+
+  }
+
+
+  /* =========================================
+     SUPABASE
+  ========================================= */
+
+  const supabaseUrl =
+    "https://saguwhkijrdiwiabxvyv.supabase.co";
+
+  const supabaseKey =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+
+  const supabaseClient =
+    window.supabase.createClient(
+      supabaseUrl,
+      supabaseKey
+    );
+
+
+  /* =========================================
+     GET AD ID FROM URL
+  ========================================= */
+
+  const params =
+    new URLSearchParams(
+      window.location.search
+    );
+
+  const adId =
+    params.get("id");
+
+
+  const slider =
+    document.getElementById(
+      "imageSlider"
+    );
+
+  const dots =
+    document.getElementById(
+      "dots"
+    );
+
+  const details =
+    document.getElementById(
+      "details"
+    );
+
+
+  /* =========================================
+     LOAD AD FROM SUPABASE
+  ========================================= */
+
+  async function loadAd() {
+
+    if (!adId) {
+
+      showNotFound();
+      return;
+
+    }
+
+
+    console.log("Loading ad by id:", adId);
+
+    const {
+      data,
+      error
+    } = await supabaseClient
+      .from("ads")
+      .select(
+        "id, type, title, price, description, images, created_at"
+      )
+      .eq("id", adId);
+
+    if (error) {
+      console.error("Could not load ad:", error);
+      showNotFound();
+      return;
+    }
+
+    const ad = Array.isArray(data) ? data[0] : data;
+
+    if (!ad) {
+      console.error("No ad matched this id:", adId);
+      showNotFound();
+      return;
+    }
+
+    renderAd(ad);
+
+  }
+
+
+  /* =========================================
+     NOT FOUND
+  ========================================= */
+
+  function showNotFound() {
+
+    slider.innerHTML = `
+      <div class="slide">
+        <div class="no-image">
+          Ad not found
+        </div>
+      </div>
+    `;
+
+    dots.innerHTML = "";
+
+    details.innerHTML = `
+      <div class="not-found">
+        This ad could not be found.
+      </div>
+    `;
+
+  }
+
+
+  /* =========================================
+     RENDER AD
+  ========================================= */
+
+  function renderAd(ad) {
+
+
+    /* =====================================
+       IMAGES
+    ===================================== */
+
+    const images =
+      Array.isArray(ad.images)
+        ? ad.images
+        : [];
+
+
+    if (!images.length) {
+
+      slider.innerHTML = `
+        <div class="slide">
+          <div class="no-image">
+            No photos available
+          </div>
+        </div>
+      `;
+
+      dots.innerHTML = "";
+
+    } else {
+
+      images.forEach(
+        (image, index) => {
+
+          const slide =
+            document.createElement("div");
+
+          slide.className =
+            "slide";
+
+          slide.innerHTML = `
+            <img
+              src="${escapeHTML(image)}"
+              alt="${escapeHTML(ad.title)}"
+            >
+          `;
+
+          slider.appendChild(slide);
+
+
+          const dot =
+            document.createElement("div");
+
+          dot.className =
+            "dot" +
+            (index === 0
+              ? " active"
+              : "");
+
+          dots.appendChild(dot);
+
+        }
+      );
+
+
+      /* UPDATE DOT WHEN SWIPING */
+
+      slider.addEventListener(
+        "scroll",
+        () => {
+
+          const index =
+            Math.round(
+              slider.scrollLeft /
+              slider.clientWidth
+            );
+
+          document
+            .querySelectorAll(".dot")
+            .forEach((dot, i) => {
+
+              dot.classList.toggle(
+                "active",
+                i === index
+              );
+
+            });
+
+        }
+      );
+
+    }
+
+
+    /* =====================================
+       DETAILS
+    ===================================== */
+
+    const createdDate =
+      ad.created_at
+        ? new Date(ad.created_at)
+        : null;
+
+
+    details.innerHTML = `
+
+      <div class="price">
+        Rs ${Number(
+          ad.price || 0
+        ).toLocaleString()}
+      </div>
+
+      <div class="title">
+        ${escapeHTML(ad.title)}
+      </div>
+
+      <div class="type">
+        ${escapeHTML(
+          ad.type
+            ? ad.type.toUpperCase()
+            : "AD"
+        )}
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="description-title">
+        Description
+      </div>
+
+      <div class="description">
+        ${escapeHTML(ad.description)}
+      </div>
+
+      ${
+        createdDate
+          ? `
+            <div class="date">
+              Posted ${createdDate.toLocaleDateString(
+                "en-US",
+                {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric"
+                }
+              )}
+            </div>
+          `
+          : ""
+      }
+
+    `;
+
+  }
+
+
+  /* =========================================
+     START
+  ========================================= */
+
+  loadAd();
+
+</script>
+
+</body>
+</html>
