@@ -137,6 +137,17 @@ if (supportButton) {
 }
 
 // ============================================
+// EXPLORE MARKETPLACE
+// ============================================
+const browseButton = document.getElementById('browseButton');
+
+if (browseButton) {
+  browseButton.addEventListener('click', () => {
+    window.location.href = 'seller-dashboard.html';
+  });
+}
+
+// ============================================
 // SIGN IN
 // Simple sign-in modal — open/close
 // ============================================
