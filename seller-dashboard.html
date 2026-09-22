@@ -542,7 +542,7 @@
     color: white;
   }
 
-  @media (max-width: 380px) {
+  @media (max-width: 600px) {
 
     .my-ad-image {
       height: 115px;
@@ -575,8 +575,9 @@
     }
 
     .view-details-btn {
-      padding: 8px;
-      font-size: 11px;
+      height: 39px;
+      padding: 0;
+      font-size: 13px;
     }
 
     .ad-badge {
@@ -1074,6 +1075,12 @@
   navButtons.forEach(btn => {
     btn.addEventListener("click", () => activateTab(btn.dataset.target));
   });
+
+  const requestedTab = new URLSearchParams(window.location.search).get("tab");
+
+  if (requestedTab === "my-ads") {
+    activateTab("myAdsSection");
+  }
 
 
   /* =========================================================
