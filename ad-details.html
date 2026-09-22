@@ -140,9 +140,28 @@
     }
 
     .no-image {
-      color: white;
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #e7ecf2 0%, #dce7f0 100%);
+      border: 2px dashed #b0bec5;
+      border-radius: 12px;
+      flex-direction: column;
+      gap: 12px;
+      color: #6d777f;
+    }
+
+    .no-image-icon {
+      font-size: 3rem;
+      opacity: 0.4;
+    }
+
+    .no-image-text {
       font-size: 1rem;
-      opacity: 0.7;
+      font-weight: 600;
+      opacity: 0.6;
     }
 
     /* IMAGE THUMBNAILS */
@@ -492,9 +511,10 @@
     if (!images.length) {
 
       slider.innerHTML = `
-        <div class="slide">
+        <div class="slide" style="background: #f4faf6; padding: 40px 20px;">
           <div class="no-image">
-            No photos available
+            <div class="no-image-icon">🖼️</div>
+            <div class="no-image-text">No Image Available</div>
           </div>
         </div>
       `;
