@@ -20,10 +20,6 @@
 
   <style>
 
-    /* =========================================
-       RESET
-    ========================================= */
-
     * {
       box-sizing: border-box;
       margin: 0;
@@ -41,22 +37,14 @@
       font-family: inherit;
     }
 
-
-    /* =========================================
-       HEADER
-    ========================================= */
-
     .top-header {
       height: 72px;
       background: #ffffff;
       border-bottom: 1px solid #e2eee9;
-
       display: flex;
       align-items: center;
       justify-content: space-between;
-
       padding: 0 5%;
-
       position: relative;
       z-index: 10;
     }
@@ -65,9 +53,7 @@
       display: flex;
       align-items: center;
       gap: 9px;
-
       color: #092f36;
-
       font-family: "Space Grotesk", sans-serif;
       font-size: 21px;
       font-weight: 700;
@@ -77,17 +63,14 @@
     .logo-icon {
       width: 31px;
       height: 31px;
-
       border: 3px solid #15965a;
       border-radius: 50%;
-
       position: relative;
     }
 
     .logo-icon::before,
     .logo-icon::after {
       content: "";
-
       position: absolute;
       background: #15965a;
     }
@@ -95,7 +78,6 @@
     .logo-icon::before {
       width: 3px;
       height: 37px;
-
       left: 11px;
       top: -6px;
     }
@@ -103,7 +85,6 @@
     .logo-icon::after {
       width: 37px;
       height: 3px;
-
       left: -6px;
       top: 11px;
     }
@@ -127,26 +108,17 @@
 
     .menu-button {
       display: none;
-
       width: 42px;
       height: 42px;
-
       border: 0;
       background: transparent;
-
       font-size: 25px;
       cursor: pointer;
     }
 
-
-    /* =========================================
-       EXPLORE PAGE
-    ========================================= */
-
     .explore-page {
       min-height: calc(100vh - 72px);
       padding: 30px 20px 70px;
-
       background:
         linear-gradient(
           135deg,
@@ -155,24 +127,14 @@
         );
     }
 
-
-    /* =========================================
-       HERO
-    ========================================= */
-
     .explore-hero {
-
       max-width: 1200px;
       min-height: 270px;
-
       margin: 0 auto;
-
       position: relative;
       overflow: hidden;
-
       border: 1px solid #dcefe7;
       border-radius: 25px;
-
       background:
         linear-gradient(
           110deg,
@@ -184,160 +146,100 @@
     .hero-content {
       position: relative;
       z-index: 3;
-
       max-width: 650px;
-
       padding: 40px;
     }
 
     .hero-label {
       display: block;
-
       margin-bottom: 8px;
-
       color: #15965a;
-
       font-size: 11px;
       font-weight: 800;
       letter-spacing: 1.3px;
     }
 
     .hero-content h1 {
-
       color: #062b32;
-
       font-family: "Space Grotesk", sans-serif;
-
       font-size: clamp(45px, 7vw, 70px);
       line-height: 1;
-
       letter-spacing: -2px;
     }
 
     .hero-content p {
-
       max-width: 500px;
-
       margin: 14px 0 23px;
-
       color: #55767b;
-
       font-size: 15px;
       line-height: 1.6;
     }
 
-
-    /* =========================================
-       HERO DECORATION
-    ========================================= */
-
     .hero-decoration {
-
       position: absolute;
-
       right: -50px;
       top: -80px;
-
       width: 530px;
       height: 400px;
-
       background: #91e4c2;
-
       opacity: .42;
-
       border-radius: 48% 52% 55% 45%;
-
       transform: rotate(-12deg);
-
       z-index: 1;
     }
 
-
-    /* =========================================
-       FOJI.PNG CHARACTER
-    ========================================= */
-
     .hero-character {
-
       position: absolute;
-
       right: 0;
       top: 0;
-
       width: 420px;
       height: 100%;
-
       z-index: 2;
-
       pointer-events: none;
     }
 
     .hero-character img {
-
       width: 100%;
       height: 100%;
-
       object-fit: contain;
       object-position: center bottom;
-
       display: block;
-
       opacity: .78;
     }
 
-
-    /* =========================================
-       SEARCH
-    ========================================= */
-
     .search-row {
-
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
     .search-box {
-
       width: 100%;
       max-width: 500px;
       height: 48px;
-
       display: flex;
       align-items: center;
       gap: 10px;
-
       padding: 0 17px;
-
       background: #ffffff;
-
       border: 1px solid #d5eae1;
-
       border-radius: 25px;
-
       box-shadow:
         0 6px 20px rgba(20, 100, 70, .07);
     }
 
     .search-icon {
-
       color: #15965a;
-
       font-size: 27px;
       line-height: 1;
     }
 
     .search-box input {
-
       width: 100%;
-
       border: 0;
       outline: 0;
-
       background: transparent;
-
       color: #153b41;
-
       font-size: 14px;
     }
 
@@ -345,28 +247,15 @@
       color: #86a1a5;
     }
 
-
-    /* =========================================
-       FILTER BUTTON
-    ========================================= */
-
     .filter-button {
-
       height: 48px;
-
       padding: 0 20px;
-
       border: 1px solid #cfe7dc;
-
       border-radius: 25px;
-
       background: #ffffff;
-
       color: #163a40;
-
       font-size: 14px;
       font-weight: 700;
-
       cursor: pointer;
     }
 
@@ -379,22 +268,12 @@
       border-color: #15965a;
     }
 
-
-    /* =========================================
-       CATEGORIES
-    ========================================= */
-
     .categories {
-
       max-width: 1200px;
-
       margin: 24px auto 20px;
-
       display: flex;
       gap: 10px;
-
       overflow-x: auto;
-
       scrollbar-width: none;
     }
 
@@ -403,24 +282,15 @@
     }
 
     .category {
-
       flex: 0 0 auto;
-
       padding: 12px 25px;
-
       border: 1px solid #d5ebe2;
-
       border-radius: 25px;
-
       background: #ffffff;
-
       color: #12363d;
-
       font-size: 14px;
       font-weight: 700;
-
       cursor: pointer;
-
       transition: .2s ease;
     }
 
@@ -429,109 +299,60 @@
     }
 
     .category.active {
-
       background: #15965a;
-
       border-color: #15965a;
-
       color: #ffffff;
     }
 
-
-    /* =========================================
-       LISTINGS GRID
-    ========================================= */
-
     .listings {
-
       max-width: 1200px;
-
       margin: 0 auto;
-
       display: grid;
-
       grid-template-columns:
         repeat(4, minmax(0, 1fr));
-
       gap: 18px;
     }
 
-
-    /* =========================================
-       CARD
-    ========================================= */
-
     .card {
-
       overflow: hidden;
-
       background: #ffffff;
-
       border: 1px solid #dceee7;
-
       border-radius: 17px;
-
       box-shadow:
         0 7px 25px rgba(16, 90, 65, .08);
-
       transition:
         transform .2s ease,
         box-shadow .2s ease;
     }
 
     .card:hover {
-
       transform: translateY(-4px);
-
       box-shadow:
         0 12px 30px rgba(16, 90, 65, .13);
     }
 
-
-    /* =========================================
-       CARD IMAGE
-    ========================================= */
-
     .card-image {
-
       height: 155px;
-
       position: relative;
       overflow: hidden;
-
       background: #dff2e9;
     }
 
     .card-image img {
-
       width: 100%;
       height: 100%;
-
       object-fit: cover;
-
       display: block;
     }
 
-
-    /* =========================================
-       BADGES
-    ========================================= */
-
     .badge {
-
       position: absolute;
-
       left: 10px;
       top: 10px;
-
       padding: 6px 12px;
-
       border-radius: 20px;
-
       background: #6ff0bb;
-
       color: #06352a;
-
       font-size: 11px;
       font-weight: 800;
     }
@@ -544,33 +365,18 @@
       background: #8ce8c3;
     }
 
-
-    /* =========================================
-       FAVORITE
-    ========================================= */
-
     .favorite {
-
       position: absolute;
-
       right: 10px;
       top: 10px;
-
       width: 33px;
       height: 33px;
-
       border: 0;
-
       border-radius: 50%;
-
       background: #ffffff;
-
       color: #15965a;
-
       font-size: 21px;
-
       cursor: pointer;
-
       box-shadow:
         0 3px 10px rgba(0,0,0,.10);
     }
@@ -579,139 +385,84 @@
       color: #e74d72;
     }
 
-
-    /* =========================================
-       CARD CONTENT
-    ========================================= */
-
     .card-content {
       padding: 15px;
     }
 
     .card-title {
-
       margin-bottom: 5px;
-
       color: #092f36;
-
       font-family: "Space Grotesk", sans-serif;
-
       font-size: 16px;
       line-height: 1.3;
-
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .card-info {
-
       margin: 0;
-
       color: #7a979b;
-
       font-size: 12px;
-
       line-height: 1.5;
-
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
     .price {
-
       margin: 10px 0;
-
       color: #15965a;
-
       font-size: 20px;
-
       font-weight: 800;
     }
 
-
-    /* =========================================
-       SELLER
-    ========================================= */
-
     .seller {
-
       display: flex;
       align-items: center;
-
       gap: 8px;
-
       color: #25474d;
-
       font-size: 12px;
       font-weight: 700;
     }
 
     .seller-avatar {
-
       width: 27px;
       height: 27px;
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       border-radius: 50%;
-
       background: #d9f4e8;
-
       color: #15965a;
-
       font-weight: 800;
-
       overflow: hidden;
-
       flex-shrink: 0;
     }
 
     .seller-avatar img {
-
       width: 100%;
       height: 100%;
-
       object-fit: cover;
-
       display: block;
     }
 
-
-    /* =========================================
-       DETAILS BUTTON
-    ========================================= */
-
     .details {
-
       width: 100%;
       height: 39px;
-
       margin-top: 13px;
-
       border: 1px solid #64d4aa;
-
       border-radius: 20px;
-
       background: #ffffff;
-
       color: #15965a;
-
       font-size: 13px;
       font-weight: 800;
-
       cursor: pointer;
-
       transition: .2s ease;
     }
 
     .details:hover {
-
       background: #15965a;
-
       color: #ffffff;
     }
 
@@ -719,17 +470,10 @@
       margin-left: 6px;
     }
 
-
-    /* =========================================
-       POP CARD
-    ========================================= */
-
     .pop-image {
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       background:
         radial-gradient(
           circle at 30% 40%,
@@ -739,49 +483,32 @@
     }
 
     .pop-content {
-
       display: flex;
       align-items: center;
-
       gap: 7px;
-
       color: #ffffff;
     }
 
     .pop-heart {
-
       color: #ff6683;
-
       font-size: 39px;
     }
 
     .pop-number {
-
       font-size: 29px;
-
       font-weight: 800;
-
       line-height: 1;
     }
 
     .pop-text {
-
       font-size: 14px;
-
       font-weight: 800;
     }
 
-
-    /* =========================================
-       UC CARD
-    ========================================= */
-
     .uc-image {
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       background:
         linear-gradient(
           135deg,
@@ -791,50 +518,31 @@
     }
 
     .uc-box {
-
       padding: 18px 38px;
-
       border-radius: 12px;
-
       background: #e5d09c;
-
       color: #5d481e;
-
       text-align: center;
-
       transform: rotate(-5deg);
-
       box-shadow:
         0 8px 15px rgba(0,0,0,.20);
     }
 
     .uc-box strong {
-
       display: block;
-
       font-size: 43px;
-
       line-height: 1;
     }
 
     .uc-box span {
-
       font-size: 14px;
-
       font-weight: 800;
     }
 
-
-    /* =========================================
-       MYTHIC ACCOUNT
-    ========================================= */
-
     .mythic-image {
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       background:
         linear-gradient(
           135deg,
@@ -847,17 +555,10 @@
       font-size: 80px;
     }
 
-
-    /* =========================================
-       ROYAL PASS
-    ========================================= */
-
     .royal-image {
-
       display: flex;
       align-items: center;
       justify-content: center;
-
       background:
         linear-gradient(
           135deg,
@@ -867,80 +568,46 @@
     }
 
     .royal-content {
-
       text-align: center;
-
       color: #f0d477;
     }
 
     .royal-content strong {
-
       display: block;
-
       font-size: 55px;
-
       line-height: 1;
     }
 
     .royal-content span {
-
       font-size: 11px;
-
       font-weight: 800;
     }
 
-
-    /* =========================================
-       NO RESULTS
-    ========================================= */
-
     .no-results {
-
       display: none;
-
       max-width: 500px;
-
       margin: 50px auto;
-
       text-align: center;
-
       color: #6f8c90;
     }
 
     .no-results h3 {
-
       margin-bottom: 7px;
-
       color: #123b42;
-
       font-family: "Space Grotesk", sans-serif;
     }
 
-
-    /* =========================================
-       TABLET
-    ========================================= */
-
     @media (max-width: 1050px) {
-
       .listings {
         grid-template-columns:
           repeat(2, minmax(0, 1fr));
       }
-
     }
-
-
-    /* =========================================
-       MOBILE
-    ========================================= */
 
     @media (max-width: 650px) {
 
       .top-header {
-
         height: 64px;
-
         padding: 0 17px;
       }
 
@@ -949,10 +616,8 @@
       }
 
       .logo-icon {
-
         width: 27px;
         height: 27px;
-
         border-width: 2px;
       }
 
@@ -964,26 +629,17 @@
         display: block;
       }
 
-
       .explore-page {
-
         padding: 18px 12px 50px;
       }
 
-
-      /* HERO */
-
       .explore-hero {
-
         min-height: 0;
-
         border-radius: 20px;
       }
 
       .hero-content {
-
         width: 100%;
-
         padding: 25px 17px 20px;
       }
 
@@ -992,66 +648,43 @@
       }
 
       .hero-content h1 {
-
         font-size: 43px;
-
         letter-spacing: -1.5px;
       }
 
       .hero-content p {
-
         max-width: 275px;
-
         margin: 12px 0 20px;
-
         font-size: 13px;
       }
 
       .hero-decoration {
-
         right: -100px;
         top: -40px;
-
         width: 370px;
         height: 260px;
       }
 
-
-      /* =====================================
-         FOJI IMAGE - MOBILE
-      ====================================== */
-
       .hero-character {
-
         width: 210px;
         height: 100%;
-
         right: -5px;
         top: 0;
       }
 
       .hero-character img {
-
         opacity: .65;
-
         object-position: center bottom;
       }
 
-
-      /* SEARCH */
-
       .search-row {
-
         position: relative;
         z-index: 5;
-
         gap: 7px;
       }
 
       .search-box {
-
         height: 44px;
-
         padding: 0 13px;
       }
 
@@ -1064,51 +697,31 @@
       }
 
       .filter-button {
-
         width: 46px;
-
         padding: 0;
-
         font-size: 0;
       }
 
       .filter-button span {
-
         margin: 0;
-
         font-size: 18px;
       }
 
-
-      /* CATEGORIES */
-
       .categories {
-
         margin: 17px 0;
-
         gap: 8px;
       }
 
       .category {
-
         padding: 10px 17px;
-
         font-size: 12px;
       }
 
-
-      /* LISTINGS */
-
       .listings {
-
         grid-template-columns:
           repeat(2, minmax(0, 1fr));
-
         gap: 10px;
       }
-
-
-      /* CARD */
 
       .card-image {
         height: 115px;
@@ -1119,65 +732,47 @@
       }
 
       .card-title {
-
         font-size: 13px;
       }
 
       .card-info {
-
         font-size: 10px;
       }
 
       .price {
-
         margin: 7px 0;
-
         font-size: 16px;
       }
 
       .seller {
-
         font-size: 10px;
       }
 
       .seller-avatar {
-
         width: 23px;
         height: 23px;
       }
 
       .details {
-
         height: 33px;
-
         margin-top: 9px;
-
         font-size: 10px;
       }
 
       .badge {
-
         top: 7px;
         left: 7px;
-
         padding: 5px 8px;
-
         font-size: 8px;
       }
 
       .favorite {
-
         top: 7px;
         right: 7px;
-
         width: 27px;
         height: 27px;
-
         font-size: 18px;
       }
-
-
-      /* POP */
 
       .pop-heart {
         font-size: 25px;
@@ -1191,11 +786,7 @@
         font-size: 9px;
       }
 
-
-      /* UC */
-
       .uc-box {
-
         padding: 12px 22px;
       }
 
@@ -1207,15 +798,9 @@
         font-size: 9px;
       }
 
-
-      /* MYTHIC */
-
       .mythic-icon {
         font-size: 55px;
       }
-
-
-      /* ROYAL */
 
       .royal-content strong {
         font-size: 40px;
@@ -1230,48 +815,9 @@
   </style>
 </head>
 
-
 <body>
 
-
-  <!-- =========================================
-       HEADER
-  ========================================== -->
-
-  <header class="top-header">
-
-    <div class="logo">
-
-      <div class="logo-icon"></div>
-
-      LOOTSHOOT
-
-    </div>
-
-
-    <!-- No Sign In / Sign Up -->
-
-    <nav class="header-menu">
-
-      <a href="#">Marketplace</a>
-      <a href="#">How it works</a>
-      <a href="#">FAQ</a>
-
-    </nav>
-
-
-  </header>
-
-
-
-  <!-- =========================================
-       EXPLORE
-  ========================================== -->
-
   <main class="explore-page">
-
-
-    <!-- HERO -->
 
     <section class="explore-hero">
 
@@ -1289,7 +835,6 @@
           Find the best PUBG Mobile accounts, POP and more from trusted sellers.
         </p>
 
-
         <div class="search-row">
 
           <div class="search-box">
@@ -1306,20 +851,11 @@
 
           </div>
 
-
         </div>
 
       </div>
 
-
-      <!-- Decorative background -->
-
       <div class="hero-decoration"></div>
-
-
-      <!-- =====================================
-           FOJI.PNG CHARACTER
-      ====================================== -->
 
       <div class="hero-character">
 
@@ -1331,12 +867,6 @@
       </div>
 
     </section>
-
-
-
-    <!-- =========================================
-         CATEGORIES
-    ========================================== -->
 
     <div class="categories">
 
@@ -1370,21 +900,10 @@
 
     </div>
 
-
-
-    <!-- =========================================
-         LISTINGS
-         POPULATED FROM SUPABASE
-    ========================================== -->
-
     <section
       class="listings"
       id="listings"
     ></section>
-
-
-
-    <!-- NO RESULTS / EMPTY STATE -->
 
     <div
       class="no-results"
@@ -1397,14 +916,7 @@
 
     </div>
 
-
   </main>
-
-
-
-  <!-- =========================================
-       JAVASCRIPT
-  ========================================== -->
 
   <script>
 
@@ -1420,9 +932,7 @@
     const categoryButtons =
       document.querySelectorAll(".category");
 
-
     let selectedCategory = "all";
-
 
     /* =========================================
        SUPABASE
@@ -1440,7 +950,6 @@
         supabaseKey
       );
 
-
     /* =========================================
        LOAD ADS FROM SUPABASE
     ========================================= */
@@ -1454,6 +963,7 @@
         await supabaseClient
           .from("ads")
           .select("*")
+          .eq("status", "approved")
           .order(
             "created_at",
             { ascending: false }
@@ -1473,7 +983,6 @@
       return ads || [];
 
     }
-
 
     async function getSellersByIds(sellerIds) {
 
@@ -1510,11 +1019,6 @@
       return sellerMap;
 
     }
-
-
-    /* =========================================
-       AD TYPE HELPERS
-    ========================================= */
 
     function getAdTypeLabel(type) {
 
@@ -1601,11 +1105,6 @@
 
     }
 
-
-    /* =========================================
-       BUILD A LISTING CARD
-    ========================================= */
-
     function buildAdCard(ad, seller) {
 
       const card =
@@ -1652,7 +1151,6 @@
 
         </div>
 
-
         <div class="card-content">
 
           <h3 class="card-title">
@@ -1698,11 +1196,6 @@
       return card;
 
     }
-
-
-    /* =========================================
-       LOAD + RENDER LISTINGS
-    ========================================= */
 
     async function loadListings() {
 
@@ -1760,11 +1253,6 @@
 
     }
 
-
-    /* =========================================
-       CATEGORY BUTTONS
-    ========================================= */
-
     categoryButtons.forEach(button => {
 
       button.addEventListener("click", () => {
@@ -1784,20 +1272,10 @@
 
     });
 
-
-    /* =========================================
-       SEARCH
-    ========================================= */
-
     searchInput.addEventListener(
       "input",
       filterListings
     );
-
-
-    /* =========================================
-       FILTER FUNCTION
-    ========================================= */
 
     function filterListings() {
 
@@ -1862,7 +1340,6 @@
       }
 
     }
-
 
     loadListings();
 
