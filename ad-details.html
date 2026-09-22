@@ -65,13 +65,30 @@
     /* IMAGE AREA */
 
     .image-section {
-      background: #000;
+      position: relative;
+      background: #f4faf6;
+    }
+
+    .image-counter {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 4;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(17, 24, 39, 0.72);
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 700;
+      line-height: 1;
+      pointer-events: none;
     }
 
     .image-slider {
       width: 100%;
-      aspect-ratio: 16 / 9;
+      height: auto;
       display: flex;
+      align-items: flex-start;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       scroll-behavior: smooth;
@@ -85,17 +102,39 @@
 
     .slide {
       min-width: 100%;
-      height: 100%;
+      height: auto;
       scroll-snap-align: start;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: center;
-      background: #111;
+      position: relative;
+      overflow: hidden;
+      background: #f4faf6;
+    }
+
+    .slide-backdrop {
+      position: absolute;
+      inset: -18px;
+      width: calc(100% + 36px) !important;
+      height: calc(100% + 36px) !important;
+      object-fit: cover !important;
+      filter: blur(18px);
+      opacity: 0.45;
+      transform: scale(1.08);
+    }
+
+    .slide-image {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      height: auto !important;
+      object-fit: contain;
+      display: block;
     }
 
     .slide img {
       width: 100%;
-      height: 100%;
+      height: auto;
       object-fit: contain;
       display: block;
     }
@@ -106,25 +145,59 @@
       opacity: 0.7;
     }
 
-    /* DOTS */
+    /* IMAGE THUMBNAILS */
 
     .dots {
       display: flex;
-      justify-content: center;
-      gap: 6px;
-      padding: 10px;
-      background: #000;
+      justify-content: flex-start;
+      gap: 10px;
+      padding: 12px 14px;
+      overflow-x: auto;
+      background: #f4faf6;
+      scrollbar-width: none;
+    }
+
+    .dots::-webkit-scrollbar {
+      display: none;
     }
 
     .dot {
-      width: 7px;
-      height: 7px;
-      border-radius: 50%;
-      background: #777;
+      flex: 0 0 64px;
+      width: 64px;
+      height: 52px;
+      padding: 0;
+      border: 2px solid transparent;
+      border-radius: 10px;
+      overflow: hidden;
+      background: #dceee7;
+      cursor: pointer;
+    }
+
+    .dot img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .dot.active {
-      background: white;
+      border-color: #25a56a;
+      box-shadow: 0 0 0 1px rgba(37, 165, 106, 0.2);
+    }
+
+    @media (max-width: 380px) {
+
+      .dots {
+        gap: 8px;
+        padding: 10px;
+      }
+
+      .dot {
+        flex-basis: 58px;
+        width: 58px;
+        height: 48px;
+      }
+
     }
 
     /* DETAILS */
@@ -238,6 +311,12 @@
     ></div>
 
     <div
+      class="image-counter"
+      id="imageCounter"
+      aria-live="polite"
+    ></div>
+
+    <div
       class="dots"
       id="dots"
     ></div>
@@ -311,6 +390,11 @@
       "dots"
     );
 
+  const imageCounter =
+    document.getElementById(
+      "imageCounter"
+    );
+
   const details =
     document.getElementById(
       "details"
@@ -377,6 +461,7 @@
     `;
 
     dots.innerHTML = "";
+    imageCounter.textContent = "";
 
     details.innerHTML = `
       <div class="not-found">
@@ -415,8 +500,30 @@
       `;
 
       dots.innerHTML = "";
+      imageCounter.textContent = "";
 
     } else {
+
+      function updateImageCounter(index) {
+        imageCounter.textContent = `${index + 1}/${images.length}`;
+      }
+
+      function fitSliderToActiveImage() {
+
+        const index = Math.round(
+          slider.scrollLeft / slider.clientWidth
+        );
+
+        const activeSlide = slider.children[index];
+        const activeImage = activeSlide?.querySelector(".slide-image");
+
+        updateImageCounter(index);
+
+        if (activeImage?.complete && activeImage.offsetHeight) {
+          slider.style.height = `${activeImage.offsetHeight}px`;
+        }
+
+      }
 
       images.forEach(
         (image, index) => {
@@ -429,6 +536,13 @@
 
           slide.innerHTML = `
             <img
+              class="slide-backdrop"
+              src="${escapeHTML(image)}"
+              alt=""
+              aria-hidden="true"
+            >
+            <img
+              class="slide-image"
               src="${escapeHTML(image)}"
               alt="${escapeHTML(ad.title)}"
             >
@@ -436,9 +550,23 @@
 
           slider.appendChild(slide);
 
+          slide
+            .querySelector(".slide-image")
+            .addEventListener("load", fitSliderToActiveImage);
+
 
           const dot =
-            document.createElement("div");
+            document.createElement("button");
+
+          dot.type = "button";
+          dot.setAttribute("aria-label", `View image ${index + 1}`);
+
+          dot.innerHTML = `
+            <img
+              src="${escapeHTML(image)}"
+              alt=""
+            >
+          `;
 
           dot.className =
             "dot" +
@@ -448,11 +576,21 @@
 
           dots.appendChild(dot);
 
+          dot.addEventListener("click", () => {
+            updateImageCounter(index);
+            slider.scrollTo({
+              left: index * slider.clientWidth,
+              behavior: "smooth"
+            });
+          });
+
         }
       );
 
 
       /* UPDATE DOT WHEN SWIPING */
+
+      fitSliderToActiveImage();
 
       slider.addEventListener(
         "scroll",
@@ -474,6 +612,8 @@
               );
 
             });
+
+          fitSliderToActiveImage();
 
         }
       );
@@ -517,9 +657,7 @@
         Description
       </div>
 
-      <div class="description">
-        ${escapeHTML(ad.description)}
-      </div>
+      <div class="description"></div>
 
       ${
         createdDate
@@ -539,6 +677,9 @@
       }
 
     `;
+
+    details.querySelector(".description").textContent =
+      ad.description || "";
 
   }
 
