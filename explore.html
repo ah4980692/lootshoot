@@ -963,7 +963,6 @@
         await supabaseClient
           .from("ads")
           .select("*")
-          .eq("status", "approved")
           .order(
             "created_at",
             { ascending: false }
@@ -984,37 +983,64 @@
 
     }
 
+    /* =========================================
+       LOAD PUBLIC SELLER INFORMATION
+       Uses get_public_seller RPC so that
+       logged-out visitors can see username
+       and avatar without exposing private
+       seller information.
+    ========================================= */
+
     async function getSellersByIds(sellerIds) {
 
       if (!sellerIds.length) {
         return {};
       }
 
-      const {
-        data: sellers,
-        error
-      } =
-        await supabaseClient
-          .from("sellers")
-          .select("id, username, avatar_url")
-          .in("id", sellerIds);
-
-      if (error) {
-
-        console.error(
-          "Could not load sellers:",
-          error
-        );
-
-        return {};
-
-      }
-
       const sellerMap = {};
 
-      (sellers || []).forEach(seller => {
-        sellerMap[seller.id] = seller;
-      });
+      for (const sellerId of sellerIds) {
+
+        const {
+          data,
+          error
+        } =
+          await supabaseClient.rpc(
+            "get_public_seller",
+            {
+              p_seller_id: sellerId
+            }
+          );
+
+        if (error) {
+
+          console.error(
+            "Could not load seller:",
+            sellerId,
+            error
+          );
+
+          continue;
+
+        }
+
+        if (data) {
+
+          sellerMap[sellerId] = {
+
+            id: sellerId,
+
+            username:
+              data.username || "",
+
+            avatar_url:
+              data.avatar_url || ""
+
+          };
+
+        }
+
+      }
 
       return sellerMap;
 
@@ -1230,7 +1256,13 @@
       }
 
       const sellerIds =
-        [...new Set(ads.map(ad => ad.seller_id))];
+        [
+          ...new Set(
+            ads
+              .map(ad => ad.seller_id)
+              .filter(Boolean)
+          )
+        ];
 
       const sellerMap =
         await getSellersByIds(sellerIds);
