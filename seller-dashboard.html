@@ -819,6 +819,94 @@
 
   }
 
+  /* Auth Modal */
+
+  .auth-modal-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 2000;
+  }
+
+  .auth-modal-backdrop.open {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-modal {
+    background: white;
+    border-radius: 18px;
+    padding: 28px;
+    width: 90%;
+    max-width: 420px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    position: relative;
+  }
+
+  .auth-modal-title {
+    font-size: 24px;
+    font-weight: 800;
+    color: var(--primary);
+    margin-bottom: 12px;
+  }
+
+  .auth-modal-subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 24px;
+  }
+
+  .auth-modal-buttons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .auth-modal-btn {
+    border: none;
+    padding: 13px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .auth-modal-btn.primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .auth-modal-btn.primary:hover {
+    background: var(--primary-hover);
+  }
+
+  .auth-modal-btn.secondary {
+    background: var(--light-green-2);
+    color: var(--primary);
+    border: 1px solid var(--accent);
+  }
+
+  .auth-modal-btn.secondary:hover {
+    background: var(--light-green);
+  }
+
+  .auth-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    color: var(--muted);
+    cursor: pointer;
+  }
+
 </style>
 </head>
 <body>
@@ -941,7 +1029,7 @@
             </div>
 
             <div class="image-note">
-              Up to 5 photos, JPG or PNG.
+              Up to 10 photos, JPG or PNG.
             </div>
 
           </div>
@@ -1052,6 +1140,21 @@
 
   </nav>
 
+  <!-- AUTH MODAL -->
+  <div class="auth-modal-backdrop" id="signInModal">
+    <div class="auth-modal">
+      <button type="button" class="auth-modal-close" aria-label="Close" onclick="document.getElementById('signInModal').classList.remove('open');">×</button>
+      
+      <div class="auth-modal-title">Sign In Required</div>
+      <div class="auth-modal-subtitle">You must sign in or create an account to access this section.</div>
+      
+      <div class="auth-modal-buttons">
+        <button type="button" class="auth-modal-btn secondary" onclick="window.location.href='index.html';">Sign Up</button>
+        <button type="button" class="auth-modal-btn primary" onclick="window.location.href='index.html';">Sign In</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1097,8 +1200,38 @@
 
   }
 
+  /* Protected sections that require authentication */
+  const protectedSections = ["notificationsSection", "createSection", "myAdsSection", "profileSection"];
+
   navButtons.forEach(btn => {
-    btn.addEventListener("click", () => activateTab(btn.dataset.target));
+    btn.addEventListener("click", async () => {
+      const target = btn.dataset.target;
+      
+      /* Allow Explore section without authentication */
+      if (target === "exploreSection") {
+        activateTab(target);
+        return;
+      }
+
+      /* Check authentication for protected sections */
+      if (protectedSections.includes(target)) {
+        const user = await getAuthenticatedUser();
+        
+        if (!user) {
+          /* Show sign in modal if not authenticated */
+          const signInModal = document.getElementById("signInModal");
+          if (signInModal) {
+            signInModal.classList.add("open");
+          }
+          return;
+        }
+        
+        activateTab(target);
+        return;
+      }
+      
+      activateTab(target);
+    });
   });
 
   const requestedTab = new URLSearchParams(window.location.search).get("tab");
@@ -1275,8 +1408,7 @@
 
     }
 
-    console.error("Supabase authentication failed: no active session");
-
+    // Public browsing mode: no session is expected for Explore.
     return null;
 
   }
@@ -1417,7 +1549,6 @@
       const user = await getAuthenticatedUser();
 
       if (!user) {
-        console.warn("No authenticated Supabase user yet.");
         return;
       }
 
@@ -1483,6 +1614,13 @@
 
   async function loadProfileAfterLogin() {
 
+    /* Public browsing mode: do nothing when no user is signed in. */
+    const user = await getAuthenticatedUser();
+
+    if (!user) {
+      return;
+    }
+
     /* Give Supabase a moment to restore the authentication session. */
     await new Promise(resolve => setTimeout(resolve, 500));
 
@@ -1517,7 +1655,6 @@
     const user = await getAuthenticatedUser();
 
     if (!user) {
-      console.error("Could not get authenticated user:", "No active Supabase session");
       return [];
     }
 
@@ -1596,6 +1733,16 @@
   }
 
   async function renderMyAds() {
+
+    const user = await getAuthenticatedUser();
+
+    if (!user) {
+      const container = document.getElementById("myAdsContainer");
+      if (container) {
+        container.innerHTML = `<div class="empty-message">Please sign in to view your ads.</div>`;
+      }
+      return;
+    }
 
     const container = document.getElementById("myAdsContainer");
 
@@ -1766,9 +1913,6 @@
 
   }
 
-  renderMyAds();
-
-
   /* =========================================================
      CREATE OFFER — TYPE SELECT
   ========================================================= */
@@ -1795,7 +1939,7 @@
      PHOTO UPLOAD
   ========================================================= */
 
-  const MAX_OFFER_PHOTOS = 5;
+  const MAX_OFFER_PHOTOS = 10;
 
   let offerPhotoFiles = [];
 
@@ -1911,7 +2055,7 @@
     }
 
     if (offerPhotoFiles.length > MAX_OFFER_PHOTOS) {
-      showFormMessage("You can upload up to 5 photos.", "error");
+      showFormMessage("You can upload up to 10 photos.", "error");
       return;
     }
 
@@ -1983,7 +2127,8 @@
           price: numericPrice,
           description: description,
           images: imageUrls,
-          created_at: nowIso
+          created_at: nowIso,
+          status: "approved"
         });
 
       if (insertError) {
