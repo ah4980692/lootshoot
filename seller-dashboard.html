@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seller Dashboard - LootShoot</title>
 
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link
+  href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+  rel="stylesheet"
+>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <style>
@@ -396,17 +403,25 @@
   }
 
   .my-ad-card {
-    background: white;
-    border-radius: 16px;
     overflow: hidden;
-    box-shadow: 0 7px 25px rgba(12, 75, 50, 0.07);
+    background: #ffffff;
+    font-family: "DM Sans", sans-serif;
+    border: 1px solid #dceee7;
+    border-radius: 17px;
+    box-shadow: 0 7px 25px rgba(16, 90, 65, 0.08);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .my-ad-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 30px rgba(16, 90, 65, 0.13);
   }
 
   .my-ad-image {
     position: relative;
     height: 155px;
-    background: var(--light-green-2);
     overflow: hidden;
+    background: #dff2e9;
   }
 
   .my-ad-image img {
@@ -429,15 +444,15 @@
   }
 
   .ad-badge-pop {
-    background: #c9f0dd;
+    background: #71e9ba;
   }
 
   .ad-badge-account {
-    background: var(--light-green);
+    background: #6ff0bb;
   }
 
   .ad-badge-other {
-    background: #b8ecd4;
+    background: #8ce8c3;
   }
 
   .ad-delete-btn {
@@ -464,50 +479,53 @@
   }
 
   .my-ad-content {
-    padding: 14px;
+    padding: 15px;
   }
 
   .my-ad-title {
-    font-size: 15px;
-    font-weight: 800;
     margin-bottom: 5px;
+    color: #092f36;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 16px;
+    line-height: 1.3;
+    font-weight: 700;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .my-ad-desc {
-    font-size: 11px;
-    color: var(--muted-2);
-    margin-bottom: 8px;
+    margin: 0;
+    color: #7a979b;
+    font-size: 12px;
+    line-height: 1.5;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
 
   .my-ad-price {
-    font-size: 17px;
+    margin: 10px 0;
+    color: #15965a;
+    font-size: 20px;
     font-weight: 800;
-    color: var(--primary);
-    margin-bottom: 10px;
   }
 
   .my-ad-seller {
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 11px;
-    font-weight: 700;
     color: #25474d;
-    margin-bottom: 10px;
+    font-size: 12px;
+    font-weight: 700;
   }
 
   .seller-avatar-sm {
-    width: 22px;
-    height: 22px;
+    width: 27px;
+    height: 27px;
     border-radius: 50%;
-    background: var(--light-green);
-    color: var(--primary);
+    background: #d9f4e8;
+    color: #15965a;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -526,20 +544,22 @@
 
   .view-details-btn {
     width: 100%;
-    border: 1px solid var(--accent);
+    height: 39px;
+    margin-top: 13px;
+    border: 1px solid #64d4aa;
     border-radius: 20px;
-    background: white;
-    color: var(--accent-dark);
-    padding: 9px;
-    font-size: 12px;
+    background: #ffffff;
+    color: #15965a;
+    padding: 0;
+    font-size: 13px;
     font-weight: 800;
     cursor: pointer;
     transition: 0.2s ease;
   }
 
   .view-details-btn:hover {
-    background: var(--accent);
-    color: white;
+    background: #15965a;
+    color: #ffffff;
   }
 
   @media (max-width: 600px) {
@@ -570,8 +590,8 @@
     }
 
     .seller-avatar-sm {
-      width: 20px;
-      height: 20px;
+      width: 23px;
+      height: 23px;
     }
 
     .view-details-btn {
