@@ -439,7 +439,7 @@
     border-radius: 20px;
     font-size: 11px;
     font-weight: 800;
-    color: var(--primary);
+    color: #06352a;
     z-index: 2;
   }
 
@@ -530,7 +530,7 @@
     align-items: center;
     justify-content: center;
     font-weight: 800;
-    font-size: 10px;
+    font-size: inherit;
     overflow: hidden;
     flex-shrink: 0;
   }
@@ -562,6 +562,10 @@
     color: #ffffff;
   }
 
+  .view-details-btn span {
+    margin-left: 6px;
+  }
+
   @media (max-width: 600px) {
 
     .my-ad-image {
@@ -581,8 +585,8 @@
     }
 
     .my-ad-price {
-      font-size: 15px;
-      margin-bottom: 8px;
+      margin: 7px 0;
+      font-size: 16px;
     }
 
     .my-ad-seller {
@@ -1583,10 +1587,10 @@
     const number = Number(price);
 
     if (Number.isNaN(number)) {
-      return "PKR —";
+      return "Rs. —";
     }
 
-    return "PKR " + number.toLocaleString("en-PK");
+    return "Rs. " + number.toLocaleString();
 
   }
 
@@ -1656,7 +1660,7 @@
         <p class="my-ad-desc">${escapeHTML(ad.description || "")}</p>
         <div class="my-ad-price">${formatPrice(ad.price)}</div>
         <div class="my-ad-seller">${sellerAvatarHTML}${escapeHTML(sellerName)}</div>
-        <button type="button" class="view-details-btn">View Details →</button>
+        <button type="button" class="view-details-btn">View Details <span>→</span></button>
       </div>
     `;
 
