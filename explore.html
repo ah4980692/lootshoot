@@ -934,6 +934,50 @@
 
     let selectedCategory = "all";
 
+    function saveExploreState() {
+
+      sessionStorage.setItem(
+        "exploreScrollY",
+        String(window.scrollY || document.documentElement.scrollTop || 0)
+      );
+
+      sessionStorage.setItem(
+        "exploreSelectedCategory",
+        selectedCategory
+      );
+
+      sessionStorage.setItem(
+        "exploreSearchText",
+        searchInput.value
+      );
+
+    }
+
+    function restoreExploreState() {
+
+      const savedCategory =
+        sessionStorage.getItem("exploreSelectedCategory") || "all";
+
+      const savedSearch =
+        sessionStorage.getItem("exploreSearchText") || "";
+
+      searchInput.value = savedSearch;
+      selectedCategory = savedCategory;
+
+      categoryButtons.forEach(button => {
+        const isActive =
+          button.dataset.category === savedCategory;
+
+        button.classList.toggle("active", isActive);
+      });
+
+      const savedScrollY =
+        Number(sessionStorage.getItem("exploreScrollY") || 0);
+
+      return savedScrollY;
+
+    }
+
     /* =========================================
        SUPABASE
     ========================================= */
@@ -963,6 +1007,7 @@
         await supabaseClient
           .from("ads")
           .select("*")
+          .eq("status", "approved")
           .order(
             "created_at",
             { ascending: false }
@@ -1125,6 +1170,9 @@
 
     function openAdDetails(adId) {
 
+      sessionStorage.setItem("adDetailsReturnUrl", "explore.html");
+      saveExploreState();
+
       window.location.href =
         "ad-details.html?id=" +
         encodeURIComponent(adId);
@@ -1215,6 +1263,8 @@
 
           event.stopPropagation();
 
+          saveExploreState();
+
           openAdDetails(ad.id);
 
         });
@@ -1281,7 +1331,15 @@
 
       });
 
+      const savedScrollY = restoreExploreState();
       filterListings();
+
+      requestAnimationFrame(() => {
+        window.scrollTo({
+          top: savedScrollY,
+          behavior: "auto"
+        });
+      });
 
     }
 
@@ -1298,6 +1356,7 @@
         selectedCategory =
           button.dataset.category;
 
+        saveExploreState();
         filterListings();
 
       });
@@ -1306,7 +1365,10 @@
 
     searchInput.addEventListener(
       "input",
-      filterListings
+      () => {
+        saveExploreState();
+        filterListings();
+      }
     );
 
     function filterListings() {
@@ -1373,7 +1435,20 @@
 
     }
 
-    loadListings();
+    window.addEventListener("load", () => {
+
+      const savedScrollY = restoreExploreState();
+
+      loadListings().then(() => {
+
+        window.scrollTo({
+          top: savedScrollY,
+          behavior: "auto"
+        });
+
+      });
+
+    });
 
   </script>
 
