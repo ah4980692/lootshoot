@@ -2105,7 +2105,6 @@
         ${imageHTML}
         <span class="ad-badge ${badgeClass}">${escapeHTML(badgeLabel)}</span>
         ${pendingBadgeHTML}
-        <button type="button" class="ad-delete-btn" aria-label="Delete ad" title="Delete ad">🗑</button>
       </div>
       <div class="my-ad-content">
         <h3 class="my-ad-title">${escapeHTML(ad.title || "Untitled Ad")}</h3>
@@ -2118,113 +2117,117 @@
 
     const deleteBtn = card.querySelector(".ad-delete-btn");
 
-    deleteBtn.addEventListener("click", async event => {
+    if (deleteBtn) {
+      deleteBtn.addEventListener("click", async event => {
 
-      event.preventDefault();
-      event.stopPropagation();
+        event.preventDefault();
+        event.stopPropagation();
 
-      const deleteConfirmModal = document.getElementById("deleteConfirmModal");
+        const deleteConfirmModal = document.getElementById("deleteConfirmModal");
 
-      if (deleteConfirmModal) {
-        deleteConfirmModal.classList.add("open");
-      }
+        if (deleteConfirmModal) {
+          deleteConfirmModal.classList.add("open");
+        }
 
-      const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+        const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 
-      confirmDeleteBtn.onclick = async () => {
+        confirmDeleteBtn.onclick = async () => {
 
-        deleteConfirmModal.classList.remove("open");
+          deleteConfirmModal.classList.remove("open");
 
-        deleteBtn.disabled = true;
+          deleteBtn.disabled = true;
 
-        try {
+          try {
 
-          const user = await getAuthenticatedUser();
+            const user = await getAuthenticatedUser();
 
-          if (!user) {
-            throw new Error("You must be signed in.");
-          }
+            if (!user) {
+              throw new Error("You must be signed in.");
+            }
 
-          if (Array.isArray(ad.images) && ad.images.length) {
+            if (Array.isArray(ad.images) && ad.images.length) {
 
-            const filePaths = ad.images
-              .map(url => {
-                const marker = "/storage/v1/object/public/ad-images/";
-                const index = url.indexOf(marker);
+              const filePaths = ad.images
+                .map(url => {
+                  const marker = "/storage/v1/object/public/ad-images/";
+                  const index = url.indexOf(marker);
 
-                if (index === -1) {
-                  return null;
+                  if (index === -1) {
+                    return null;
+                  }
+
+                  return decodeURIComponent(url.substring(index + marker.length));
+                })
+                .filter(Boolean);
+
+              if (filePaths.length) {
+
+                const { error: storageError } = await supabaseClient
+                  .storage
+                  .from("ad-images")
+                  .remove(filePaths);
+
+                if (storageError) {
+                  console.warn("Could not remove some images:", storageError);
                 }
 
-                return decodeURIComponent(url.substring(index + marker.length));
-              })
-              .filter(Boolean);
-
-            if (filePaths.length) {
-
-              const { error: storageError } = await supabaseClient
-                .storage
-                .from("ad-images")
-                .remove(filePaths);
-
-              if (storageError) {
-                console.warn("Could not remove some images:", storageError);
               }
 
             }
 
+            const { error: deleteError } = await supabaseClient
+              .from("ads")
+              .delete()
+              .eq("id", ad.id)
+              .eq("seller_id", user.id);
+
+            if (deleteError) {
+              throw deleteError;
+            }
+
+            renderMyAds();
+
+          } catch (error) {
+
+            console.error("Could not delete ad:", error);
+
+            alert("Could not delete this ad. Please try again.");
+
+            deleteBtn.disabled = false;
+
           }
 
-          const { error: deleteError } = await supabaseClient
-            .from("ads")
-            .delete()
-            .eq("id", ad.id)
-            .eq("seller_id", user.id);
+        };
 
-          if (deleteError) {
-            throw deleteError;
-          }
+        const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
 
-          renderMyAds();
+        cancelDeleteBtn.onclick = () => {
+          deleteConfirmModal.classList.remove("open");
+        };
 
-        } catch (error) {
-
-          console.error("Could not delete ad:", error);
-
-          alert("Could not delete this ad. Please try again.");
-
-          deleteBtn.disabled = false;
-
-        }
-
-      };
-
-      const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
-
-      cancelDeleteBtn.onclick = () => {
-        deleteConfirmModal.classList.remove("open");
-      };
-
-    });
+      });
+    }
 
     const viewDetailsBtn = card.querySelector(".view-details-btn");
 
     viewDetailsBtn.addEventListener("click", event => {
       event.preventDefault();
       event.stopPropagation();
+      const isApproved = String(ad.status || "").toLowerCase() === "approved";
+      sessionStorage.setItem("adDetailsFromMyAds", "true");
+      sessionStorage.setItem("adDetailsIsApproved", isApproved ? "true" : "false");
       openAdDetails(ad.id, "seller-dashboard.html?tab=my-ads");
     });
 
     card.addEventListener("click", event => {
 
-      if (event.target.closest(".ad-delete-btn")) {
-        return;
-      }
-
       if (event.target.closest(".view-details-btn")) {
         return;
       }
 
+      const isApproved = String(ad.status || "").toLowerCase() === "approved";
+      sessionStorage.setItem("adDetailsFromMyAds", "true");
+      sessionStorage.setItem("adDetailsIsApproved", isApproved ? "true" : "false");
       openAdDetails(ad.id, "seller-dashboard.html?tab=my-ads");
 
     });
