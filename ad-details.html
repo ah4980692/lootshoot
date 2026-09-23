@@ -307,7 +307,6 @@
 
     <button
       class="back-btn"
-      onclick="history.back()"
       aria-label="Go back"
     >
       ←
@@ -418,6 +417,29 @@
     document.getElementById(
       "details"
     );
+
+  const backBtn =
+    document.querySelector(
+      ".back-btn"
+    );
+
+  if (backBtn) {
+    backBtn.addEventListener(
+      "click",
+      () => {
+        const returnUrl =
+          sessionStorage.getItem("adDetailsReturnUrl");
+
+        if (returnUrl) {
+          sessionStorage.removeItem("adDetailsReturnUrl");
+          window.location.href = returnUrl;
+          return;
+        }
+
+        history.back();
+      }
+    );
+  }
 
 
   /* =========================================
