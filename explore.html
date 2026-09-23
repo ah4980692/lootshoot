@@ -1170,12 +1170,18 @@
 
     function openAdDetails(adId) {
 
-      sessionStorage.setItem("adDetailsReturnUrl", "explore.html");
+      sessionStorage.setItem("adDetailsReturnUrl", window.self !== window.parent ? "seller-dashboard.html" : "explore.html");
+      sessionStorage.setItem("fromIframe", window.self !== window.parent ? "true" : "false");
       saveExploreState();
 
-      window.location.href =
-        "ad-details.html?id=" +
-        encodeURIComponent(adId);
+      const isInIframe = window.self !== window.parent;
+      const targetUrl = "ad-details.html?id=" + encodeURIComponent(adId);
+
+      if (isInIframe) {
+        window.parent.location.href = targetUrl;
+      } else {
+        window.location.href = targetUrl;
+      }
 
     }
 
