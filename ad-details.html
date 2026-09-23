@@ -26,6 +26,14 @@
       color: #1e2430;
     }
 
+    body .nav-bar,
+    body .bottom-nav,
+    body .navigation-bar,
+    body .seller-bottom-nav,
+    .seller-bottom-nav {
+      display: none !important;
+    }
+
     .page {
       max-width: 480px;
       margin: 0 auto;
@@ -222,56 +230,202 @@
     /* DETAILS */
 
     .details {
-      padding: 18px;
+      padding: 0;
+    }
+
+    .details-header {
+      background: white;
+      padding: 20px 18px;
+      border-bottom: 1px solid #e7ecf2;
     }
 
     .price {
-      font-size: 1.55rem;
+      font-size: 1.5rem;
       font-weight: 700;
-      margin-bottom: 10px;
+      color: #25a56a;
+      margin-bottom: 14px;
     }
 
     .title {
-      font-size: 1.25rem;
+      font-size: 1.3rem;
       font-weight: 700;
-      line-height: 1.3;
-      margin-bottom: 10px;
+      line-height: 1.4;
+      margin-bottom: 12px;
+      color: #1e2430;
     }
 
-    .type {
+    .type-badge {
       display: inline-block;
-      background: #eaf7f0;
-      color: #1f6a4d;
-      padding: 7px 11px;
-      border-radius: 999px;
-      font-size: 0.72rem;
+      background: linear-gradient(135deg, #25a56a, #1f6a4d);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
       font-weight: 700;
-      margin-bottom: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      box-shadow: 0 2px 8px rgba(37, 165, 106, 0.2);
     }
 
-    .divider {
-      height: 1px;
-      background: #e7ecf2;
-      margin: 18px 0;
+    .details-section {
+      padding: 20px 18px;
+      background: #fbfefc;
+      margin-bottom: 8px;
+      border: none;
+      border-top: 1px solid #d0ebe3;
+      border-bottom: 1px solid #d0ebe3;
+      border-radius: 0;
+      margin: 12px 0;
+    }
+
+    .section-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #6d777f;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 12px;
+      opacity: 0.8;
     }
 
     .description-title {
-      font-size: 1rem;
+      font-size: 1.3rem;
       font-weight: 700;
-      margin-bottom: 8px;
+      color: #000000;
+      margin-bottom: 12px;
+      line-height: 1.4;
     }
 
     .description {
-      color: #6d777f;
-      font-size: 0.9rem;
-      line-height: 1.55;
+      color: #000000;
+      font-size: 0.95rem;
+      line-height: 1.6;
       white-space: pre-wrap;
+      word-wrap: break-word;
     }
 
     .date {
-      margin-top: 18px;
+      color: #9ca3af;
+      font-size: 0.8rem;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #e7ecf2;
+    }
+
+    .divider {
+      display: none;
+    }
+
+    /* ACTION BUTTONS */
+
+    .action-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #e7ecf2;
+    }
+
+    .action-btn {
+      flex: 1;
+      padding: 12px 16px;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .edit-btn {
+      background: #25a56a;
+      color: white;
+    }
+
+    .edit-btn:hover {
+      background: #1f8556;
+      box-shadow: 0 4px 12px rgba(37, 165, 106, 0.3);
+    }
+
+    .delete-btn {
+      background: #f5e5e5;
+      color: #a83232;
+    }
+
+    .delete-btn:hover {
+      background: #fce0e0;
+    }
+
+    /* DELETE MODAL */
+
+    .delete-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .delete-modal-backdrop.open {
+      display: flex;
+    }
+
+    .delete-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      max-width: 320px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    }
+
+    .delete-modal-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #1e2430;
+    }
+
+    .delete-modal-text {
+      font-size: 0.9rem;
       color: #6d777f;
-      font-size: 0.72rem;
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+
+    .delete-modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .delete-modal-btn {
+      flex: 1;
+      padding: 10px 16px;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .delete-modal-btn.cancel {
+      background: #e7ecf2;
+      color: #1e2430;
+    }
+
+    .delete-modal-btn.cancel:hover {
+      background: #dce7f0;
+    }
+
+    .delete-modal-btn.delete {
+      background: #a83232;
+      color: white;
+    }
+
+    .delete-modal-btn.delete:hover {
+      background: #8b2a2a;
     }
 
     .not-found {
@@ -353,6 +507,19 @@
 
 </div>
 
+<!-- DELETE CONFIRMATION MODAL -->
+<div class="delete-modal-backdrop" id="deleteModalBackdrop">
+  <div class="delete-modal">
+    <div class="delete-modal-title">Delete this ad?</div>
+    <div class="delete-modal-text">
+      This action cannot be undone. The ad will be permanently deleted.
+    </div>
+    <div class="delete-modal-buttons">
+      <button class="delete-modal-btn cancel" id="cancelDeleteBtn">Cancel</button>
+      <button class="delete-modal-btn delete" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
 
 <script>
 
@@ -429,9 +596,15 @@
       () => {
         const returnUrl =
           sessionStorage.getItem("adDetailsReturnUrl");
+        const fromIframe =
+          sessionStorage.getItem("fromIframe") === "true";
+
+        sessionStorage.removeItem("adDetailsFromMyAds");
+        sessionStorage.removeItem("adDetailsIsApproved");
 
         if (returnUrl) {
           sessionStorage.removeItem("adDetailsReturnUrl");
+          sessionStorage.removeItem("fromIframe");
           window.location.href = returnUrl;
           return;
         }
@@ -672,56 +845,110 @@
         ? new Date(ad.created_at)
         : null;
 
+    const fromMyAds = sessionStorage.getItem("adDetailsFromMyAds") === "true";
+    const isApproved = sessionStorage.getItem("adDetailsIsApproved") === "true";
+    const showActionButtons = fromMyAds && isApproved;
 
     details.innerHTML = `
 
-      <div class="price">
-        Rs ${Number(
-          ad.price || 0
-        ).toLocaleString()}
+      <div class="details-header">
+        <div class="title">
+          ${escapeHTML(ad.title)}
+        </div>
+
+        <div class="price">
+          Rs ${Number(
+            ad.price || 0
+          ).toLocaleString()}
+        </div>
       </div>
 
-      <div class="title">
-        ${escapeHTML(ad.title)}
+      <div class="details-section">
+        <div class="description-title">
+          Description
+        </div>
+
+        <div class="description"></div>
+
+        ${
+          createdDate
+            ? `
+              <div class="date">
+                Posted ${createdDate.toLocaleDateString(
+                  "en-US",
+                  {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric"
+                  }
+                )}
+              </div>
+            `
+            : ""
+        }
+
+        ${
+          showActionButtons
+            ? `
+              <div class="action-buttons">
+                <button class="action-btn edit-btn" id="editAdBtn">Edit</button>
+                <button class="action-btn delete-btn" id="deleteAdBtn">Delete</button>
+              </div>
+            `
+            : ""
+        }
       </div>
-
-      <div class="type">
-        ${escapeHTML(
-          ad.type
-            ? ad.type.toUpperCase()
-            : "AD"
-        )}
-      </div>
-
-      <div class="divider"></div>
-
-      <div class="description-title">
-        Description
-      </div>
-
-      <div class="description"></div>
-
-      ${
-        createdDate
-          ? `
-            <div class="date">
-              Posted ${createdDate.toLocaleDateString(
-                "en-US",
-                {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric"
-                }
-              )}
-            </div>
-          `
-          : ""
-      }
 
     `;
 
     details.querySelector(".description").textContent =
       ad.description || "";
+
+    if (showActionButtons) {
+      const editBtn = document.getElementById("editAdBtn");
+      const deleteBtn = document.getElementById("deleteAdBtn");
+
+      if (editBtn) {
+        editBtn.addEventListener("click", () => {
+          console.log("Edit ad:", ad.id);
+          // TODO: Implement edit functionality
+        });
+      }
+
+      if (deleteBtn) {
+        deleteBtn.addEventListener("click", async () => {
+          const deleteModalBackdrop = document.getElementById("deleteModalBackdrop");
+          const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+          const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
+
+          deleteModalBackdrop.classList.add("open");
+
+          cancelDeleteBtn.onclick = () => {
+            deleteModalBackdrop.classList.remove("open");
+          };
+
+          confirmDeleteBtn.onclick = async () => {
+            deleteModalBackdrop.classList.remove("open");
+            confirmDeleteBtn.disabled = true;
+
+            try {
+              const { error } = await supabaseClient
+                .from("ads")
+                .delete()
+                .eq("id", ad.id);
+
+              if (error) throw error;
+
+              window.location.href = "seller-dashboard.html?tab=my-ads";
+            } catch (error) {
+              console.error("Delete error:", error);
+              alert("Failed to delete ad");
+              confirmDeleteBtn.disabled = false;
+            }
+          };
+        });
+      }
+    }
 
   }
 
