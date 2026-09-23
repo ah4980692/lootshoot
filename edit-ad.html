@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Edit Ad - LootShoot</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --primary: #0c4b32;
+      --primary-hover: #08603c;
+      --accent: #25a56a;
+      --accent-dark: #1c9560;
+      --bg: #f4faf6;
+      --text: #123c2a;
+      --muted: #718078;
+      --muted-2: #7b8982;
+      --border: #d8e7de;
+      --light-green: #d9f5e5;
+      --light-green-2: #eef9f2;
+      --red: #a83232;
+      --red-bg: #f8e5e5;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    button, input, textarea {
+      font-family: inherit;
+    }
+
+    button:focus-visible,
+    input:focus-visible,
+    textarea:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+    }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      background: var(--bg);
+      padding-bottom: 32px;
+    }
+
+    .topbar {
+      height: 64px;
+      background: white;
+      border-bottom: 1px solid #e7ecf2;
+      display: flex;
+      align-items: center;
+      padding: 0 18px;
+      gap: 14px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: #eef4ff;
+      border-radius: 12px;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: var(--primary);
+    }
+
+    .topbar-title {
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 20px 18px 24px;
+    }
+
+    .section-title {
+      font-size: 1.7rem;
+      font-weight: 800;
+      margin-bottom: 6px;
+      color: var(--primary);
+    }
+
+    .section-subtitle {
+      color: var(--muted);
+      font-size: 0.9rem;
+      margin-bottom: 20px;
+    }
+
+    .form-card {
+      background: white;
+      border-radius: 18px;
+      padding: 20px;
+      box-shadow: 0 8px 30px rgba(12, 75, 50, 0.07);
+    }
+
+    .message {
+      display: none;
+      margin-bottom: 18px;
+      padding: 12px 14px;
+      border-radius: 9px;
+      font-size: 14px;
+    }
+
+    .message.error {
+      display: block;
+      background: var(--red-bg);
+      color: var(--red);
+    }
+
+    .message.success {
+      display: block;
+      background: var(--light-green);
+      color: #17633f;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group > label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px;
+      font-size: 15px;
+      outline: none;
+      background: #fbfefc;
+      color: var(--text);
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+    }
+
+    .form-group textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    .type-select {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .type-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 14px 8px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--light-green-2);
+      color: var(--muted);
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .type-option.selected {
+      background: var(--light-green);
+      border-color: var(--accent);
+      color: var(--primary);
+    }
+
+    .type-icon {
+      font-size: 1.3rem;
+    }
+
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .photo-thumb {
+      position: relative;
+      aspect-ratio: 1 / 1;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      background: #f5faf7;
+    }
+
+    .photo-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .photo-remove {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      width: 22px;
+      height: 22px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.55);
+      color: white;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .photo-add {
+      aspect-ratio: 1 / 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      background: var(--light-green-2);
+      color: var(--muted);
+      font-size: 0.68rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .photo-add-icon {
+      font-size: 1.3rem;
+      color: var(--accent);
+    }
+
+    .image-note {
+      font-size: 13px;
+      color: var(--muted-2);
+      margin-top: 7px;
+    }
+
+    .publish-button {
+      width: 100%;
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 4px;
+    }
+
+    .publish-button:hover {
+      background: var(--primary-hover);
+    }
+
+    .publish-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .review-note {
+      margin-top: 15px;
+      background: var(--light-green-2);
+      padding: 13px;
+      border-radius: 10px;
+      font-size: 13px;
+      color: #42715b;
+    }
+
+    @media (min-width: 600px) {
+      body {
+        padding: 20px;
+        background: #edf3f7;
+      }
+
+      .page {
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 20px 50px rgba(25, 40, 60, 0.1);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <button class="back-btn" type="button" aria-label="Go back">←</button>
+      <div class="topbar-title">Edit Ad</div>
+    </div>
+
+    <div class="content">
+      <div class="section-title">Update your listing</div>
+      <div class="section-subtitle">Edit the details and save your changes.</div>
+
+      <div id="formMessage" class="message"></div>
+
+      <div class="form-card">
+        <form id="editAdForm" novalidate>
+          <div class="form-group">
+            <label>What are you selling?</label>
+            <div class="type-select">
+              <button type="button" class="type-option" data-type="pop">
+                <span class="type-icon">🔥</span>
+                <span>POP</span>
+              </button>
+
+              <button type="button" class="type-option" data-type="account">
+                <span class="type-icon">🎮</span>
+                <span>Account</span>
+              </button>
+
+              <button type="button" class="type-option" data-type="other">
+                <span class="type-icon">📦</span>
+                <span>Other</span>
+              </button>
+            </div>
+            <input type="hidden" id="offerType" />
+          </div>
+
+          <div class="form-group">
+            <label for="offerTitle">Title</label>
+            <input type="text" id="offerTitle" placeholder="Enter your offer title" />
+          </div>
+
+          <div class="form-group">
+            <label for="offerPrice">Price (PKR)</label>
+            <input type="text" id="offerPrice" inputmode="numeric" placeholder="Enter price" />
+          </div>
+
+          <div class="form-group">
+            <label for="offerDescription">Description</label>
+            <textarea id="offerDescription" placeholder="Describe your offer..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label>Photos</label>
+            <input type="file" id="offerPhotos" accept="image/jpeg,image/png,image/webp" multiple hidden />
+
+            <div class="photo-grid" id="photoGrid">
+              <button type="button" class="photo-add" id="photoAddBtn">
+                <span class="photo-add-icon">+</span>
+                <span>Add photo</span>
+              </button>
+            </div>
+
+            <div class="image-note">Up to 10 photos, JPG or PNG.</div>
+          </div>
+
+          <button type="submit" class="publish-button" id="saveButton">Save Changes</button>
+
+          <div class="review-note">
+            Your updated ad will be reviewed again before it is shown to buyers.
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://saguwhkijrdiwiabxvyv.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const params = new URLSearchParams(window.location.search);
+    const adId = params.get("id");
+
+    const typeButtons = document.querySelectorAll(".type-option");
+    const typeInput = document.getElementById("offerType");
+    const form = document.getElementById("editAdForm");
+    const titleInput = document.getElementById("offerTitle");
+    const priceInput = document.getElementById("offerPrice");
+    const descriptionInput = document.getElementById("offerDescription");
+    const saveButton = document.getElementById("saveButton");
+    const messageBox = document.getElementById("formMessage");
+    const backBtn = document.querySelector(".back-btn");
+    const photoGrid = document.getElementById("photoGrid");
+    const photoAddBtn = document.getElementById("photoAddBtn");
+    const offerPhotosInput = document.getElementById("offerPhotos");
+
+    const MAX_OFFER_PHOTOS = 10;
+    let currentImageUrls = [];
+    let newImageFiles = [];
+
+    typeButtons.forEach(button => {
+      button.addEventListener("click", () => {
+        typeButtons.forEach(btn => btn.classList.remove("selected"));
+        button.classList.add("selected");
+        typeInput.value = button.dataset.type;
+      });
+    });
+
+    function renderPhotoGrid() {
+      photoGrid.querySelectorAll(".photo-thumb").forEach(thumb => thumb.remove());
+
+      const allImages = [
+        ...currentImageUrls.map(url => ({ kind: "existing", url })),
+        ...newImageFiles.map(file => ({ kind: "new", file, src: URL.createObjectURL(file) }))
+      ];
+
+      allImages.forEach((item, index) => {
+        const thumb = document.createElement("div");
+        thumb.className = "photo-thumb";
+
+        const img = document.createElement("img");
+        img.alt = "Ad photo";
+        img.src = item.kind === "existing" ? item.url : item.src;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "photo-remove";
+        removeBtn.textContent = "×";
+
+        removeBtn.addEventListener("click", () => {
+          if (item.kind === "existing") {
+            currentImageUrls = currentImageUrls.filter(url => url !== item.url);
+          } else {
+            newImageFiles = newImageFiles.filter(file => file !== item.file);
+          }
+          renderPhotoGrid();
+        });
+
+        thumb.appendChild(img);
+        thumb.appendChild(removeBtn);
+        photoGrid.insertBefore(thumb, photoAddBtn);
+      });
+
+      photoAddBtn.style.display = allImages.length >= MAX_OFFER_PHOTOS ? "none" : "flex";
+    }
+
+    photoAddBtn.addEventListener("click", () => offerPhotosInput.click());
+
+    offerPhotosInput.addEventListener("change", () => {
+      const newFiles = Array.from(offerPhotosInput.files || []);
+      const imageFiles = newFiles.filter(file => file.type.startsWith("image/"));
+      const room = MAX_OFFER_PHOTOS - (currentImageUrls.length + newImageFiles.length);
+
+      newImageFiles = newImageFiles.concat(imageFiles.slice(0, room));
+      offerPhotosInput.value = "";
+      renderPhotoGrid();
+    });
+
+    if (backBtn) {
+      backBtn.addEventListener("click", () => {
+        const returnUrl = sessionStorage.getItem("editAdReturnUrl") || sessionStorage.getItem("adDetailsReturnUrl") || sessionStorage.getItem("editAdPreviousPage") || "seller-dashboard.html?tab=my-ads";
+        sessionStorage.removeItem("editAdReturnUrl");
+        sessionStorage.removeItem("editAdPreviousPage");
+        window.location.href = returnUrl;
+      });
+    }
+
+    function showMessage(text, isError = false) {
+      messageBox.textContent = text;
+      messageBox.classList.remove("error", "success");
+      messageBox.classList.add(isError ? "error" : "success");
+    }
+
+    async function loadAd() {
+      if (!adId) {
+        showMessage("Ad id is missing.", true);
+        saveButton.disabled = true;
+        return;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("ads")
+        .select("id, title, price, description, type, images")
+        .eq("id", adId)
+        .single();
+
+      if (error || !data) {
+        showMessage("This ad could not be loaded.", true);
+        saveButton.disabled = true;
+        return;
+      }
+
+      currentImageUrls = Array.isArray(data.images) ? data.images : [];
+
+      titleInput.value = data.title || "";
+      priceInput.value = data.price || "";
+      descriptionInput.value = data.description || "";
+      typeInput.value = data.type || "other";
+
+      const selectedTypeButton = document.querySelector(`.type-option[data-type="${data.type || "other"}"]`);
+      if (selectedTypeButton) {
+        typeButtons.forEach(btn => btn.classList.remove("selected"));
+        selectedTypeButton.classList.add("selected");
+      }
+
+      renderPhotoGrid();
+    }
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      if (!adId) {
+        showMessage("Ad id is missing.", true);
+        return;
+      }
+
+      const type = typeInput.value || "other";
+      const title = titleInput.value.trim();
+      const price = priceInput.value.trim();
+      const description = descriptionInput.value.trim();
+
+      if (!title || !price || !description) {
+        showMessage("Please fill in title, price, and description.", true);
+        return;
+      }
+
+      if (currentImageUrls.length + newImageFiles.length === 0) {
+        showMessage("Please add at least one photo.", true);
+        return;
+      }
+
+      saveButton.disabled = true;
+      saveButton.textContent = "Saving...";
+
+      try {
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+        if (userError || !userData?.user) {
+          throw new Error("You must be signed in to update this ad.");
+        }
+
+        const finalImageUrls = [...currentImageUrls];
+        const uploadedPaths = [];
+
+        for (let index = 0; index < newImageFiles.length; index++) {
+          const file = newImageFiles[index];
+          const extension = file.name.includes(".") ? file.name.split(".").pop().toLowerCase() : "jpg";
+          const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(0, 80) || `image.${extension}`;
+          const filePath = `${userData.user.id}/${adId}/${Date.now()}-${index}-${safeName}`;
+
+          const { error: uploadError } = await supabaseClient
+            .storage
+            .from("ad-images")
+            .upload(filePath, file, {
+              cacheControl: "3600",
+              upsert: false,
+              contentType: file.type
+            });
+
+          if (uploadError) throw uploadError;
+
+          uploadedPaths.push(filePath);
+
+          const { data: publicUrlData } = supabaseClient
+            .storage
+            .from("ad-images")
+            .getPublicUrl(filePath);
+
+          finalImageUrls.push(publicUrlData.publicUrl);
+        }
+
+        const { error } = await supabaseClient
+          .from("ads")
+          .update({
+            type,
+            title,
+            price: Number(price.replace(/[^\d.]/g, "")) || 0,
+            description,
+            images: finalImageUrls,
+            status: "pending"
+          })
+          .eq("id", adId);
+
+        if (error) throw error;
+
+        showMessage("Ad updated successfully.");
+        setTimeout(() => {
+          const returnUrl = sessionStorage.getItem("editAdReturnUrl") || sessionStorage.getItem("adDetailsReturnUrl") || sessionStorage.getItem("editAdPreviousPage") || "seller-dashboard.html?tab=my-ads";
+          sessionStorage.removeItem("editAdReturnUrl");
+          sessionStorage.removeItem("editAdPreviousPage");
+          sessionStorage.removeItem("adDetailsReturnUrl");
+          window.location.href = "offer-submitted.html?type=changes";
+        }, 900);
+      } catch (error) {
+        console.error("Update error:", error);
+        showMessage("Could not update the ad. Please try again.", true);
+        saveButton.disabled = false;
+        saveButton.textContent = "Save Changes";
+      }
+    });
+
+    renderPhotoGrid();
+    loadAd();
+  </script>
+</body>
+</html>
