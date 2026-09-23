@@ -1685,6 +1685,15 @@
         return userData.user;
       }
 
+      if (sessionData?.session?.user?.id) {
+        console.log("Using authenticated Supabase session user:", sessionData.session.user.id);
+        return {
+          id: sessionData.session.user.id,
+          email: sessionData.session.user.email || "",
+          user_metadata: sessionData.session.user.user_metadata || {}
+        };
+      }
+
     } catch (error) {
 
       console.warn("Supabase authentication could not be restored:", error);
@@ -1947,6 +1956,8 @@
       .from("ads")
       .select("*")
       .eq("seller_id", user.id)
+      // My Ads must show all ads for the current seller, regardless of review status.
+      // Explore remains approved-only in explore.html.
       .order("created_at", { ascending: false });
 
     if (error) {
