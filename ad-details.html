@@ -910,8 +910,11 @@
 
       if (editBtn) {
         editBtn.addEventListener("click", () => {
-          console.log("Edit ad:", ad.id);
-          // TODO: Implement edit functionality
+          sessionStorage.setItem("adDetailsFromMyAds", "true");
+          sessionStorage.setItem("adDetailsIsApproved", "true");
+          sessionStorage.setItem("editAdReturnUrl", window.location.href);
+          sessionStorage.setItem("editAdPreviousPage", sessionStorage.getItem("adDetailsReturnUrl") || "seller-dashboard.html?tab=my-ads");
+          window.location.href = "edit-ad.html?id=" + encodeURIComponent(ad.id);
         });
       }
 
