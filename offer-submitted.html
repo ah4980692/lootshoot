@@ -137,18 +137,33 @@
       </svg>
     </div>
 
-    <h1>Listing submitted</h1>
+    <h1 id="statusTitle">Listing submitted</h1>
 
-    <p>
+    <p id="statusText">
       Your listing has been submitted for review. Once approved, it
       will go live on LootShoot.
     </p>
 
-    <a class="back-button" href="seller-dashboard.html?tab=my-ads">
+    <a id="statusButton" class="back-button" href="seller-dashboard.html?tab=my-ads">
       Back to My Ads →
     </a>
 
   </div>
 
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("type") === "changes" ? "changes" : "listing";
+
+    const titleEl = document.getElementById("statusTitle");
+    const textEl = document.getElementById("statusText");
+    const buttonEl = document.getElementById("statusButton");
+
+    if (mode === "changes") {
+      document.title = "LootShoot — Changes Submitted";
+      titleEl.textContent = "Changes submitted";
+      textEl.textContent = "Your changes have been submitted successfully and are being reviewed.";
+      buttonEl.textContent = "Back to My Ads →";
+    }
+  </script>
 </body>
 </html>
