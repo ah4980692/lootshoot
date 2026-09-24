@@ -39,7 +39,8 @@
       margin: 0 auto;
       min-height: 100vh;
       background: #f4f7fb;
-      padding-bottom: 40px;
+      padding-bottom: 90px;
+      position: relative;
     }
 
     .topbar {
@@ -230,7 +231,7 @@
     /* DETAILS */
 
     .details {
-      padding: 0;
+      padding-bottom: 10px;
     }
 
     .details-header {
@@ -240,7 +241,7 @@
     }
 
     .price {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: 700;
       color: #25a56a;
       margin-bottom: 14px;
@@ -326,7 +327,27 @@
       border-top: 1px solid #e7ecf2;
     }
 
-    .action-btn {
+    .purchase-buttons {
+      display: flex;
+      gap: 12px;
+      margin-top: 20px;
+      padding: 12px 16px 18px;
+      border-top: 1px solid #e7ecf2;
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: min(100%, 480px);
+      max-width: 480px;
+      background: rgba(251, 254, 252, 0.98);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 30;
+      box-shadow: 0 -8px 20px rgba(17, 24, 39, 0.08);
+    }
+
+    .action-btn,
+    .purchase-btn {
       flex: 1;
       padding: 12px 16px;
       border: none;
@@ -354,6 +375,26 @@
 
     .delete-btn:hover {
       background: #fce0e0;
+    }
+
+    .make-offer-btn {
+      background: #e9f8ef;
+      color: #176e46;
+      border: 1px solid #cfeedd;
+    }
+
+    .make-offer-btn:hover {
+      background: #ddf3e8;
+    }
+
+    .buy-now-btn {
+      background: #25a56a;
+      color: white;
+    }
+
+    .buy-now-btn:hover {
+      background: #1f8556;
+      box-shadow: 0 4px 12px rgba(37, 165, 106, 0.3);
     }
 
     /* DELETE MODAL */
@@ -619,6 +660,29 @@
      LOAD AD FROM SUPABASE
   ========================================= */
 
+  async function getCurrentSellerId() {
+    try {
+      const { data: sessionData } = await supabaseClient.auth.getSession();
+      const sessionUserId = sessionData?.session?.user?.id;
+      if (sessionUserId) {
+        return sessionUserId;
+      }
+    } catch (error) {
+      console.warn("Could not read current seller session:", error);
+    }
+
+    return (
+      sessionStorage.getItem("sellerSessionUserId") ||
+      localStorage.getItem("sellerSessionUserId") ||
+      null
+    );
+  }
+
+
+  /* =========================================
+     LOAD AD FROM SUPABASE
+  ========================================= */
+
   async function loadAd() {
 
     if (!adId) {
@@ -637,7 +701,7 @@
     } = await supabaseClient
       .from("ads")
       .select(
-        "id, type, title, price, description, images, created_at"
+        "id, type, title, price, description, images, created_at, seller_id"
       )
       .eq("id", adId);
 
@@ -655,7 +719,7 @@
       return;
     }
 
-    renderAd(ad);
+    await renderAd(ad);
 
   }
 
@@ -690,12 +754,7 @@
      RENDER AD
   ========================================= */
 
-  function renderAd(ad) {
-
-
-    /* =====================================
-       IMAGES
-    ===================================== */
+  async function renderAd(ad) {
 
     const images =
       Array.isArray(ad.images)
@@ -759,7 +818,7 @@
             <img
               class="slide-image"
               src="${escapeHTML(image)}"
-              alt="${escapeHTML(ad.title)}"
+              alt="${escapeHTML(ad.title || "Ad image") }"
             >
           `;
 
@@ -846,18 +905,27 @@
         : null;
 
     const fromMyAds = sessionStorage.getItem("adDetailsFromMyAds") === "true";
-    const isApproved = sessionStorage.getItem("adDetailsIsApproved") === "true";
-    const showActionButtons = fromMyAds && isApproved;
+    const currentSellerId = await getCurrentSellerId();
+    const isSellerOwner = Boolean(
+      currentSellerId &&
+      ad.seller_id &&
+      String(currentSellerId) === String(ad.seller_id)
+    );
+
+    // My Ads flow should show Edit/Delete only for the seller's own listings.
+    // If the same seller opens their ad from Explore, there should be no action buttons.
+    const showSellerActions = fromMyAds && isSellerOwner;
+    const showPurchaseButtons = !isSellerOwner && !fromMyAds;
 
     details.innerHTML = `
 
       <div class="details-header">
         <div class="title">
-          ${escapeHTML(ad.title)}
+          ${escapeHTML(ad.title || "Untitled Ad")}
         </div>
 
         <div class="price">
-          Rs ${Number(
+          Rs. ${Number(
             ad.price || 0
           ).toLocaleString()}
         </div>
@@ -888,14 +956,21 @@
         }
 
         ${
-          showActionButtons
+          showSellerActions
             ? `
               <div class="action-buttons">
                 <button class="action-btn edit-btn" id="editAdBtn">Edit</button>
                 <button class="action-btn delete-btn" id="deleteAdBtn">Delete</button>
               </div>
             `
-            : ""
+            : showPurchaseButtons
+              ? `
+                <div class="purchase-buttons">
+                  <button class="purchase-btn make-offer-btn" id="makeOfferBtn">Make an Offer</button>
+                  <button class="purchase-btn buy-now-btn" id="buyNowBtn">Buy Now</button>
+                </div>
+              `
+              : ""
         }
       </div>
 
@@ -904,7 +979,7 @@
     details.querySelector(".description").textContent =
       ad.description || "";
 
-    if (showActionButtons) {
+    if (showSellerActions) {
       const editBtn = document.getElementById("editAdBtn");
       const deleteBtn = document.getElementById("deleteAdBtn");
 
@@ -949,6 +1024,27 @@
               confirmDeleteBtn.disabled = false;
             }
           };
+        });
+      }
+    }
+
+    if (showPurchaseButtons) {
+      const makeOfferBtn = document.getElementById("makeOfferBtn");
+      const buyNowBtn = document.getElementById("buyNowBtn");
+
+      if (makeOfferBtn) {
+        makeOfferBtn.addEventListener("click", () => {
+          // Intentionally left empty for later implementation.
+        });
+      }
+
+      if (buyNowBtn) {
+        buyNowBtn.addEventListener("click", () => {
+          sessionStorage.setItem("buyAdId", String(ad.id));
+          sessionStorage.setItem("buyAdTitle", ad.title || "Untitled Ad");
+          sessionStorage.setItem("buyAdPrice", String(ad.price || 0));
+          sessionStorage.setItem("buyNowReturnUrl", window.location.href);
+          window.location.href = "buy-now.html?id=" + encodeURIComponent(ad.id) + "&price=" + encodeURIComponent(String(ad.price || 0));
         });
       }
     }
