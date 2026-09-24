@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buy Now</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #10281b;
+      --green: #15965a;
+      --green-dark: #0f7a48;
+      --green-soft: #e7f4ed;
+      --bg: #f3f6f4;
+      --card: #ffffff;
+      --line: #dde6e0;
+      --muted: #5d6e64;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: 120px;
+    }
+
+    .topbar {
+      height: 64px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+    }
+
+    .topbar-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 6px;
+    }
+
+    .title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+      overflow-wrap: anywhere;
+    }
+
+    .price {
+      font-size: 1.9rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .summary-heading {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .summary-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      padding: 12px 0;
+      font-size: 0.95rem;
+    }
+
+    .summary-row + .summary-row {
+      border-top: 1px solid var(--line);
+    }
+
+    .summary-row .muted { color: var(--muted); }
+
+    .summary-row .value {
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+
+    .summary-row.total {
+      padding-top: 16px;
+      font-weight: 700;
+      font-size: 1.05rem;
+    }
+
+    .summary-row.total .muted { color: var(--ink); }
+
+    .summary-row .value.total-value {
+      color: var(--green-dark);
+      font-size: 1.3rem;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.85rem;
+      padding: 0 4px;
+    }
+
+    .bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .bar-inner { max-width: 480px; margin: 0 auto; }
+
+    .checkout-btn {
+      width: 100%;
+      height: 52px;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: background 0.15s;
+    }
+
+    .checkout-btn:hover { background: var(--green-dark); }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <button class="back-btn" aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="topbar-title">Buy Now</div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="label">You're buying</div>
+        <h1 class="title" id="adTitle">Loading...</h1>
+        <div class="price" id="adPrice">Rs. 0</div>
+      </div>
+
+      <div class="card">
+        <h2 class="summary-heading">Order summary</h2>
+        <div class="summary-row">
+          <span class="muted">Price</span>
+          <span class="value" id="summaryPrice">Rs. 0</span>
+        </div>
+        <div class="summary-row">
+          <span class="muted">LootShoot commission (5%)</span>
+          <span class="value" id="summaryCommission">Rs. 0</span>
+        </div>
+        <div class="summary-row total">
+          <span class="muted">Total</span>
+          <span class="value total-value" id="summaryTotal">Rs. 0</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="bar-inner">
+      <button type="button" class="checkout-btn" onclick="goToPayment()">
+        Continue to payment
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const backBtn = document.querySelector('.back-btn');
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        const returnUrl = sessionStorage.getItem('buyNowReturnUrl') || sessionStorage.getItem('adDetailsReturnUrl') || 'explore.html';
+        sessionStorage.removeItem('buyAdId');
+        sessionStorage.removeItem('buyAdTitle');
+        sessionStorage.removeItem('buyAdPrice');
+        window.location.href = returnUrl;
+      });
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const adId = params.get('id');
+    const urlPrice = params.get('price');
+
+    const adTitle = sessionStorage.getItem('buyAdTitle') || 'Ad';
+    const storedPrice = sessionStorage.getItem('buyAdPrice');
+    const adPrice = urlPrice || storedPrice || '0';
+
+    function setPriceUI(priceValue) {
+      const price = Number(priceValue || 0);
+      const commission = price * 0.05;
+      const total = price + commission;
+
+      document.getElementById('adTitle').textContent = adTitle;
+      document.getElementById('adPrice').textContent = 'Rs. ' + price.toLocaleString();
+      document.getElementById('summaryPrice').textContent = 'Rs. ' + price.toLocaleString();
+      document.getElementById('summaryCommission').textContent = 'Rs. ' + commission.toLocaleString();
+      document.getElementById('summaryTotal').textContent = 'Rs. ' + total.toLocaleString();
+    }
+
+    async function loadPriceFromSupabase() {
+      if (!adId) {
+        return;
+      }
+
+      try {
+        const supabaseUrl = 'https://saguwhkijrdiwiabxvyv.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+        const { data, error } = await supabaseClient
+          .from('ads')
+          .select('title, price')
+          .eq('id', adId)
+          .single();
+
+        if (!error && data) {
+          const liveTitle = data.title || adTitle;
+          const livePrice = data.price || 0;
+          sessionStorage.setItem('buyAdTitle', liveTitle);
+          sessionStorage.setItem('buyAdPrice', String(livePrice));
+          document.getElementById('adTitle').textContent = liveTitle;
+          setPriceUI(livePrice);
+        }
+      } catch (error) {
+        console.warn('Could not load price from Supabase:', error);
+      }
+    }
+
+    setPriceUI(adPrice);
+
+    if (!urlPrice && !storedPrice && adId) {
+      loadPriceFromSupabase();
+    }
+
+    function goToPayment() {
+      sessionStorage.setItem('paymentReturnUrl', 'buy-now.html');
+      window.location.href = 'payment.html';
+    }
+  </script>
+</body>
+</html>
