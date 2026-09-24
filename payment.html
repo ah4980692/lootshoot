@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payment</title>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #10281b;
+      --green: #15965a;
+      --green-dark: #0f7a48;
+      --green-soft: #e7f4ed;
+      --bg: #f3f6f4;
+      --card: #ffffff;
+      --line: #dde6e0;
+      --muted: #5d6e64;
+      --error: #c0392b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button { font: inherit; color: inherit; cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+    .page { max-width: 480px; margin: 0 auto; padding: 16px 16px 120px; }
+    .topbar { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+
+    .back-btn {
+      width: 40px; height: 40px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      border-radius: 12px;
+      display: grid; place-items: center;
+    }
+
+    .topbar-title { font-size: 1.25rem; font-weight: 700; }
+    .step { margin-bottom: 28px; }
+    .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+
+    .step-number {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--green);
+      color: #fff;
+      display: grid; place-items: center;
+      font-size: 0.85rem; font-weight: 700;
+      flex: none;
+    }
+
+    .step-title { font-size: 1rem; font-weight: 700; }
+    .step-block { display: grid; gap: 12px; }
+
+    /* Payment methods */
+    .method-option {
+      width: 100%;
+      background: var(--card);
+      border: 2px solid var(--line);
+      border-radius: 14px;
+      padding: 14px 16px;
+      display: flex; align-items: center; justify-content: space-between;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .method-option.selected { border-color: var(--green); background: var(--green-soft); }
+    .method-meta { display: flex; align-items: center; gap: 12px; font-weight: 600; }
+
+    .wallet-icon {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: inline-grid; place-items: center;
+      font-size: 1.05rem; font-weight: 700;
+      background: #e2f5ea;
+      color: var(--green-dark);
+      flex: none;
+    }
+
+    .wallet-icon.jazz { background: #fff1e0; color: #c2410c; }
+
+    .checkmark {
+      width: 24px; height: 24px;
+      border-radius: 50%;
+      border: 2px solid #b9c7be;
+      display: grid; place-items: center;
+      flex: none;
+      transition: all 0.15s;
+    }
+
+    .method-option.selected .checkmark { background: var(--green); border-color: var(--green); }
+
+    .method-option.selected .checkmark::after {
+      content: "";
+      width: 6px; height: 11px;
+      border: solid #fff;
+      border-width: 0 2.5px 2.5px 0;
+      transform: translateY(-1px) rotate(45deg);
+    }
+
+    /* Account details */
+    .details-box {
+      display: none;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px;
+    }
+
+    .details-box.show { display: block; }
+
+    .details-head {
+      display: flex; align-items: center;
+      font-weight: 700;
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      row-gap: 14px; column-gap: 16px;
+      align-items: baseline;
+    }
+
+    .label { color: var(--muted); font-size: 0.9rem; }
+    .value { font-weight: 600; text-align: right; }
+
+    .details-grid .value:last-child {
+      font-size: 1.05rem;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Upload */
+    .upload-box {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      text-align: center;
+      height: 170px;
+      padding: 16px;
+      background: var(--card);
+      border: 2px dashed #b9c7be;
+      border-radius: 14px;
+      transition: border-color 0.15s, background 0.15s;
+    }
+
+    .upload-box:hover { border-color: var(--green); background: var(--green-soft); }
+
+    .upload-box input[type="file"] {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      opacity: 0;
+      cursor: pointer;
+    }
+
+    .upload-inner { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .upload-inner.hidden { display: none; }
+
+    .preview-image {
+      display: none;
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      padding: 6px;
+      align-items: center; justify-content: center;
+      flex-direction: column;
+    }
+
+    .preview-image.show { display: flex; }
+    .preview-thumb { position: relative; line-height: 0; flex: none; }
+
+    .preview-image img {
+      display: block;
+      height: 154px;
+      width: auto;
+      max-width: calc(100vw - 56px);
+      border-radius: 8px;
+      object-fit: contain;
+    }
+
+    .preview-remove-btn {
+      position: absolute; top: -6px; right: -6px;
+      width: 24px; height: 24px;
+      border: none;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fff;
+      display: grid; place-items: center;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+      cursor: pointer;
+    }
+
+    .preview-remove-btn:hover { background: var(--error); }
+
+    .upload-icon { color: var(--green); margin-bottom: 6px; }
+    .upload-text { font-size: 0.95rem; font-weight: 700; }
+    .upload-sub { color: var(--muted); font-size: 0.85rem; }
+
+    .drag-note { display: none; }
+    @media (hover: hover) { .drag-note { display: block; } }
+
+    /* Message */
+    .message {
+      display: none;
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.88rem; font-weight: 600;
+      margin-top: 12px;
+    }
+
+    .message.show { display: block; }
+    .message.error { background: #fbeae8; color: var(--error); border: 1px solid #efc7c2; }
+    .message.success { background: var(--green-soft); color: var(--green-dark); border: 1px solid #b9dfca; }
+
+    /* Submit */
+    .bar {
+      position: fixed; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .bar-inner { max-width: 480px; margin: 0 auto; }
+
+    .submit-btn {
+      width: 100%; height: 52px;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      font-size: 1rem; font-weight: 700;
+      transition: background 0.15s;
+    }
+
+    .submit-btn:hover { background: var(--green-dark); }
+    .submit-btn:disabled { opacity: 0.65; cursor: not-allowed; }
+
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+</head>
+
+<body>
+  <div class="page">
+
+    <div class="topbar">
+      <button class="back-btn" aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="topbar-title">Payment</div>
+    </div>
+
+    <!-- STEP 1 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number">1</div>
+        <h2 class="step-title">Choose payment method</h2>
+      </div>
+
+      <div class="step-block" id="methodList">
+        <button type="button" class="method-option selected" data-method="easypaisa">
+          <span class="method-meta">
+            <span class="wallet-icon">e</span>
+            <span>Easypaisa</span>
+          </span>
+          <span class="checkmark" aria-hidden="true"></span>
+        </button>
+
+        <button type="button" class="method-option" data-method="jazzcash">
+          <span class="method-meta">
+            <span class="wallet-icon jazz">J</span>
+            <span>Jazzcash</span>
+          </span>
+          <span class="checkmark" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number">2</div>
+        <h2 class="step-title">Send the payment</h2>
+      </div>
+
+      <div class="step-block">
+        <div class="details-box show" id="detailsBox"></div>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step">
+      <div class="step-header">
+        <div class="step-number">3</div>
+        <h2 class="step-title">Upload your screenshot</h2>
+      </div>
+
+      <div class="step-block">
+        <div class="upload-box" id="uploadBox">
+          <input type="file" id="paymentFile" accept="image/jpeg,.jpg,.jpeg" />
+
+          <div class="upload-inner" id="uploadInner">
+            <svg class="upload-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 16V4M7 9l5-5 5 5"/>
+              <path d="M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/>
+            </svg>
+            <div class="upload-text">Choose screenshot</div>
+            <div class="upload-sub drag-note">or drag and drop</div>
+            <div class="upload-sub">JPG, up to 5 MB</div>
+          </div>
+
+          <div class="preview-image" id="previewImage">
+            <div class="preview-thumb">
+              <img id="previewImg" src="" alt="Payment screenshot preview" />
+              <button type="button" class="preview-remove-btn" id="previewRemoveBtn" aria-label="Remove screenshot">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="message" id="message"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SUBMIT BAR -->
+  <div class="bar">
+    <div class="bar-inner">
+      <button type="button" class="submit-btn" id="submitBtn">Submit payment</button>
+    </div>
+  </div>
+
+  <script>
+    /* ===== SUPABASE CONFIGURATION ===== */
+    const SUPABASE_URL = 'https://saguwhkijrdiwiabxvyv.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
+
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    /* ===== PAYMENT METHODS ===== */
+    const paymentMethods = {
+      easypaisa: {
+        name: 'Easypaisa',
+        short: 'Easypaisa',
+        accountTitle: 'M.Ameer Hamza',
+        accountNumber: '03452584965'
+      },
+      jazzcash: {
+        name: 'Jazzcash',
+        short: 'Jazzcash',
+        accountTitle: 'M.Ameer Hamza',
+        accountNumber: '03452584965'
+      }
+    };
+
+    const methodButtons = document.querySelectorAll('.method-option');
+    const detailsBox = document.getElementById('detailsBox');
+    let selectedMethod = 'easypaisa';
+
+    function renderSelectedMethod(methodName) {
+      const method = paymentMethods[methodName];
+      if (!method) return;
+
+      selectedMethod = methodName;
+
+      methodButtons.forEach(button => {
+        button.classList.toggle('selected', button.dataset.method === methodName);
+      });
+
+      detailsBox.className = 'details-box show';
+      detailsBox.innerHTML = `
+        <div class="details-head">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span class="wallet-icon ${methodName === 'jazzcash' ? 'jazz' : ''}">${methodName === 'jazzcash' ? 'J' : 'e'}</span>
+            <span>${method.name}</span>
+          </div>
+        </div>
+
+        <div class="details-grid">
+          <span class="label">Account Title</span>
+          <span class="value">${method.accountTitle}</span>
+
+          <span class="label">Account Number</span>
+          <span class="value">${method.accountNumber}</span>
+        </div>
+      `;
+    }
+
+    methodButtons.forEach(button => {
+      button.addEventListener('click', () => renderSelectedMethod(button.dataset.method));
+    });
+
+    renderSelectedMethod('easypaisa');
+
+    /* ===== FILE / PREVIEW ===== */
+    const fileInput = document.getElementById('paymentFile');
+    const uploadInner = document.getElementById('uploadInner');
+    const previewImage = document.getElementById('previewImage');
+    const previewImg = document.getElementById('previewImg');
+    const previewRemoveBtn = document.getElementById('previewRemoveBtn');
+
+    const MAX_FILE_SIZE = 5 * 1024 * 1024;
+
+    fileInput.addEventListener('change', event => {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      if (file.type !== 'image/jpeg') {
+        showMessage('Please select a JPG/JPEG image.', 'error');
+        fileInput.value = '';
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        showMessage('Screenshot must be 5 MB or smaller.', 'error');
+        fileInput.value = '';
+        return;
+      }
+
+      hideMessage();
+
+      const reader = new FileReader();
+      reader.onload = e => {
+        previewImg.src = e.target.result;
+        uploadInner.classList.add('hidden');
+        previewImage.classList.add('show');
+      };
+      reader.readAsDataURL(file);
+    });
+
+    previewRemoveBtn.addEventListener('click', event => {
+      event.preventDefault();
+      event.stopPropagation();
+      fileInput.value = '';
+      previewImage.classList.remove('show');
+      uploadInner.classList.remove('hidden');
+      previewImg.src = '';
+      hideMessage();
+    });
+
+    /* ===== MESSAGES ===== */
+    const message = document.getElementById('message');
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = `message show ${type}`;
+    }
+
+    function hideMessage() {
+      message.textContent = '';
+      message.className = 'message';
+    }
+
+    /* ===== SUBMIT PAYMENT ===== */
+    const submitBtn = document.getElementById('submitBtn');
+
+    submitBtn.addEventListener('click', async () => {
+      hideMessage();
+
+      const file = fileInput.files && fileInput.files[0];
+
+      if (!file) {
+        showMessage('Please upload your payment screenshot first.', 'error');
+        return;
+      }
+
+      if (file.type !== 'image/jpeg') {
+        showMessage('Please select a JPG/JPEG screenshot.', 'error');
+        return;
+      }
+
+      if (file.size > MAX_FILE_SIZE) {
+        showMessage('Screenshot must be 5 MB or smaller.', 'error');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Uploading screenshot...';
+
+      try {
+        /* 1. Check login */
+        const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+        if (userError) throw userError;
+        if (!user) throw new Error('You must be signed in to submit a payment.');
+
+        /* 2. Upload screenshot to the private bucket */
+        const filePath = `${user.id}/${crypto.randomUUID()}.jpg`;
+
+        const { error: uploadError } = await supabaseClient
+          .storage
+          .from('payment-screenshots')
+          .upload(filePath, file, {
+            cacheControl: '3600',
+            contentType: 'image/jpeg',
+            upsert: false
+          });
+
+        if (uploadError) throw uploadError;
+
+        /* 3. Create the payment record.
+           No .select().single() here: asking Supabase to return the new row
+           requires a SELECT policy on payments, and its absence caused the
+           42501 "new row violates row-level security policy" error. */
+        submitBtn.textContent = 'Saving payment...';
+
+        const { error: paymentError } = await supabaseClient
+          .from('payments')
+          .insert({
+            buyer_id: user.id,
+            payment_method: selectedMethod,
+            screenshot_path: filePath,
+            status: 'pending'
+          });
+
+        if (paymentError) {
+          console.error('PAYMENTS INSERT ERROR:', paymentError);
+
+          /* Remove the uploaded file if the database insert failed */
+          await supabaseClient.storage.from('payment-screenshots').remove([filePath]);
+
+          throw paymentError;
+        }
+
+        /* 4. Success */
+        showMessage('Payment submitted successfully. We will review your payment shortly and will contact you at your WhatsApp number.', 'success');
+        submitBtn.textContent = 'Payment submitted';
+
+      } catch (error) {
+        console.error('Payment submission error:', error);
+
+        showMessage(
+          error.message || 'Something went wrong while submitting your payment.',
+          'error'
+        );
+
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Submit payment';
+      }
+    });
+
+    /* ===== BACK BUTTON ===== */
+    const backBtn = document.querySelector('.back-btn');
+
+    if (backBtn) {
+      backBtn.addEventListener('click', () => {
+        const returnUrl = sessionStorage.getItem('paymentReturnUrl') || 'buy-now.html';
+        window.location.href = returnUrl;
+      });
+    }
+  </script>
+</body>
+</html>
