@@ -2035,11 +2035,16 @@
 
   loadProfileAfterLogin();
 
+  setTimeout(() => {
+    refreshGlobalUnreadNotificationBadge();
+  }, 500);
+
   supabaseClient.auth.onAuthStateChange((event, session) => {
 
     if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
       setTimeout(async () => {
         await syncProfileFromSupabase();
+        await refreshGlobalUnreadNotificationBadge();
       }, 500);
     }
 
@@ -2609,6 +2614,41 @@
 
 
   /* =========================================================
+     NOTIFICATION BADGE GLOBAL REFRESH
+  ========================================================= */
+
+  async function refreshGlobalUnreadNotificationBadge() {
+    const user = await getAuthenticatedUser();
+
+    if (!user) {
+      updateBottomNavNotificationBadge(0);
+      updateOfficialTabBadge(0);
+      return;
+    }
+
+    try {
+      const { data: notifications, error } = await supabaseClient
+        .from("notifications")
+        .select("id, is_read")
+        .eq("user_id", user.id);
+
+      if (error) {
+        throw error;
+      }
+
+      const unreadCount = (notifications || []).filter(item => !item.is_read).length;
+
+      updateBottomNavNotificationBadge(unreadCount);
+      updateOfficialTabBadge(unreadCount);
+
+    } catch (error) {
+      console.warn("Could not refresh global notification badge:", error);
+      updateBottomNavNotificationBadge(0);
+      updateOfficialTabBadge(0);
+    }
+  }
+
+  /* =========================================================
      OFFICIAL LOOTSHOOT NOTIFICATIONS
   ========================================================= */
 
@@ -2696,6 +2736,7 @@
       updateOfficialTabBadge(unreadCount);
       updateBottomNavNotificationBadge(unreadCount);
 
+
       const list = document.createElement("div");
       list.className = "official-notification-list";
 
@@ -2774,8 +2815,6 @@
 
       container.innerHTML = "";
       container.appendChild(list);
-
-   
 
     } catch (error) {
 
