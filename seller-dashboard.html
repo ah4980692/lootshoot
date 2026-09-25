@@ -170,6 +170,12 @@
     margin-bottom: 8px;
   }
 
+  #notificationsSection .section-title {
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 24px;
+    letter-spacing: -0.02em;
+  }
+
   .section-subtitle {
     color: var(--muted);
     margin-bottom: 25px;
@@ -688,9 +694,9 @@
     border: none;
     border-right: 1px solid var(--border-2);
     background: transparent;
-    font-size: 16px;
-    font-family: "DM Sans", sans-serif;
-    font-weight: 500;
+    font-size: 14px;
+    font-family: "Space Grotesk", sans-serif;
+    font-weight: 600;
     color: var(--muted);
     cursor: pointer;
     position: relative;
@@ -710,8 +716,8 @@
   }
 
   .notification-tab.active {
-    color: var(--text);
-    font-weight: 600;
+    color: var(--accent);
+    font-weight: 700;
     background: rgba(22, 140, 80, 0.04);
   }
 
@@ -723,6 +729,32 @@
     right: 0;
     height: 3px;
     background: var(--accent);
+  }
+
+  .tab-badge {
+    display: none;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 5px;
+    margin-left: 5px;
+    border-radius: 999px;
+    background: var(--light-green);
+    color: var(--primary);
+    font-size: 10.5px;
+    font-weight: 800;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    vertical-align: middle;
+  }
+
+  .tab-badge.show {
+    display: inline-flex;
+  }
+
+  .notification-tab.active .tab-badge {
+    background: var(--accent);
+    color: white;
   }
 
   .notification-content {
@@ -745,28 +777,53 @@
   }
 
   .official-notification {
+    display: flex;
+    gap: 11px;
     background: white;
     border: 1px solid var(--border-2);
     border-radius: 14px;
-    padding: 12px 16px 10px;
+    padding: 13px;
     box-shadow: 0 5px 18px rgba(12, 75, 50, 0.05);
     position: relative;
     cursor: pointer;
   }
 
   .official-notification.unread {
-    border-left: 4px solid var(--accent);
-    background: #fbfffc;
+    background: #f7faf8;
+    border-color: #d5ebe2;
+  }
+
+  .official-notification-icon {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 9px;
+    background: var(--light-green);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .official-notification-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .official-notification-title-row {
+    display: flex;
+    align-items: center;
+    gap: 7px;
   }
 
   .official-notification-title {
     font-family: "Space Grotesk", sans-serif;
-    font-size: 16px;
+    font-size: 14.5px;
     font-weight: 700;
-    color: var(--primary);
-    margin: 0 0 8px;
+    color: var(--text);
+    margin: 0;
     padding: 0;
-    padding-right: 10px;
     display: -webkit-box;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 1;
@@ -775,11 +832,19 @@
     text-overflow: ellipsis;
   }
 
+  .official-unread-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+
   .official-notification-message {
-    color: #50655c;
-    font-size: 14px;
+    color: var(--muted);
+    font-size: 12.5px;
     line-height: 1.55;
-    margin: 0 0 9px;
+    margin: 5px 0 6px;
     padding: 0;
     display: -webkit-box;
     -webkit-box-orient: vertical;
@@ -956,11 +1021,35 @@
     font-size: 0.62rem;
     font-weight: 700;
     cursor: pointer;
+    position: relative;
   }
 
   .nav-item .icon {
     font-size: 1.12rem;
     line-height: 1;
+  }
+
+  .nav-badge {
+    position: absolute;
+    top: 4px;
+    right: 18px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--primary);
+    color: white;
+    font-size: 9px;
+    font-weight: 800;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 4px 10px rgba(21, 150, 90, 0.25);
+  }
+
+  .nav-badge.show {
+    display: inline-flex;
   }
 
   .nav-item.active {
@@ -1222,9 +1311,9 @@
       <div class="section-title">Notifications</div>
 
       <div class="notifications-tabs">
-        <button class="notification-tab active" data-tab="official">LootShoot</button>
-        <button class="notification-tab" data-tab="buying">Buying</button>
-        <button class="notification-tab" data-tab="selling">Selling</button>
+        <button class="notification-tab active" data-tab="official">LootShoot<span class="tab-badge" id="officialTabBadge"></span></button>
+        <button class="notification-tab" data-tab="buying">Buying<span class="tab-badge" id="buyingTabBadge"></span></button>
+        <button class="notification-tab" data-tab="selling">Selling<span class="tab-badge" id="sellingTabBadge"></span></button>
       </div>
 
       <div class="notification-content" id="official-tab" style="display: block;">
@@ -1407,6 +1496,7 @@
 
     <button class="nav-item" type="button" data-target="notificationsSection">
       <span class="icon">🔔</span>
+      <span class="nav-badge" id="bottomNavNotificationBadge" aria-label="Unread notifications">0</span>
       <span>Notifications</span>
     </button>
 
@@ -1745,6 +1835,22 @@
     }
 
     return name.split(" ").map(part => part[0]).join("").slice(0, 2).toUpperCase();
+
+  }
+
+  function getNotificationIcon(title) {
+
+    const normalized = String(title || "").toLowerCase();
+
+    if (normalized.includes("approved") || normalized.includes("live")) {
+      return "✓";
+    }
+
+    if (normalized.includes("reject") || normalized.includes("removed")) {
+      return "!";
+    }
+
+    return "🔔";
 
   }
 
@@ -2530,6 +2636,35 @@
 
       }
 
+      // First, attempt to sync any locally queued "read" actions so the
+      // server state is up-to-date before we fetch notifications and compute
+      // unread counts.
+      try {
+        const pendingKey = "pendingReadNotifications";
+        const pending = JSON.parse(localStorage.getItem(pendingKey) || "[]");
+
+        if (Array.isArray(pending) && pending.length > 0) {
+          console.log("Syncing pending notification reads:", pending);
+
+          const { error: batchError } = await supabaseClient
+            .from("notifications")
+            .update({ is_read: true })
+            .in("id", pending)
+            .eq("user_id", user.id);
+
+          if (!batchError) {
+            console.log("Pending notification reads synced successfully");
+            localStorage.removeItem(pendingKey);
+          } else {
+            console.warn("Could not sync pending notification reads:", batchError);
+          }
+
+        }
+
+      } catch (syncErr) {
+        console.warn("Pending notification sync failed:", syncErr);
+      }
+
       const { data: notifications, error } = await supabaseClient
         .from("notifications")
         .select("id, user_id, title, message, is_read, created_at")
@@ -2550,9 +2685,16 @@
         container.innerHTML =
           `<div class="empty-notification">No notifications yet</div>`;
 
+        updateOfficialTabBadge(0);
+        updateBottomNavNotificationBadge(0);
+
         return;
 
       }
+
+      const unreadCount = notifications.filter(n => !n.is_read).length;
+      updateOfficialTabBadge(unreadCount);
+      updateBottomNavNotificationBadge(unreadCount);
 
       const list = document.createElement("div");
       list.className = "official-notification-list";
@@ -2564,6 +2706,7 @@
         item.className =
           "official-notification" +
           (notification.is_read ? "" : " unread");
+        item.dataset.notificationId = String(notification.id);
 
         const title = escapeHTML(
           (notification.title || "LootShoot Notification").trim()
@@ -2584,27 +2727,45 @@
           : "";
 
         item.innerHTML = `
-          ${
-            notification.is_read
-              ? ""
-              : `<span class="official-unread-dot" aria-label="Unread notification"></span>`
-          }
+          <div class="official-notification-icon">${getNotificationIcon(notification.title)}</div>
+          <div class="official-notification-body">
+            <div class="official-notification-title-row">
+              <div class="official-notification-title">
+                ${title}
+              </div>
+              ${
+                notification.is_read
+                  ? ""
+                  : `<span class="official-unread-dot" aria-label="Unread notification"></span>`
+              }
+            </div>
 
-          <div class="official-notification-title">
-            ${title}
-          </div>
+            <div class="official-notification-message">
+              ${message}
+            </div>
 
-          <div class="official-notification-message">
-            ${message}
-          </div>
-
-          <div class="official-notification-date">
-            ${escapeHTML(date)}
+            <div class="official-notification-date">
+              ${escapeHTML(date)}
+            </div>
           </div>
         `;
 
-        item.addEventListener("click", () => {
+        item.addEventListener("click", async () => {
           item.classList.toggle("expanded");
+
+          if (notification.is_read) {
+            return;
+          }
+
+          notification.is_read = true;
+          item.classList.remove("unread");
+
+          const unreadDot = item.querySelector(".official-unread-dot");
+          if (unreadDot) {
+            unreadDot.remove();
+          }
+
+          await markNotificationAsRead(notification.id);
         });
 
         list.appendChild(item);
@@ -2614,6 +2775,8 @@
       container.innerHTML = "";
       container.appendChild(list);
 
+   
+
     } catch (error) {
 
       console.error("Unexpected notification error:", error);
@@ -2622,6 +2785,117 @@
         `<div class="empty-notification">Could not load notifications. Please try again.</div>`;
 
     }
+
+  }
+
+  async function markNotificationAsRead(notificationId) {
+    if (!notificationId) {
+      return;
+    }
+
+    try {
+      const user = await getAuthenticatedUser();
+      console.log("markNotificationAsRead called for", notificationId, "user:", user?.id || null);
+
+      // If we don't have a working authenticated user/session right now,
+      // queue the change locally and try to sync it later when the user
+      // next opens the notifications tab (see loadOfficialNotifications).
+      if (!user) {
+        console.log("No authenticated user — queuing read for later:", notificationId);
+        const key = "pendingReadNotifications";
+        const pending = JSON.parse(localStorage.getItem(key) || "[]");
+        if (!pending.includes(notificationId)) {
+          pending.push(notificationId);
+          localStorage.setItem(key, JSON.stringify(pending));
+        }
+
+        updateOfficialTabBadge(document.querySelectorAll(".official-notification.unread").length);
+        updateBottomNavNotificationBadge(document.querySelectorAll(".official-notification.unread").length);
+
+        return;
+      }
+
+      console.log("Updating notification on server:", notificationId);
+      const { error } = await supabaseClient
+        .from("notifications")
+        .update({ is_read: true })
+        .eq("id", notificationId)
+        .eq("user_id", user.id);
+
+      if (!error) {
+        console.log("Server updated notification as read:", notificationId);
+      }
+
+      if (error) {
+        console.warn("Server update failed, queuing:", error);
+        // If update fails, queue locally for retry.
+        const key = "pendingReadNotifications";
+        const pending = JSON.parse(localStorage.getItem(key) || "[]");
+        if (!pending.includes(notificationId)) {
+          pending.push(notificationId);
+          localStorage.setItem(key, JSON.stringify(pending));
+        }
+
+        throw error;
+      }
+
+      // If the update succeeded, remove it from any pending queue.
+      try {
+        const key = "pendingReadNotifications";
+        const pending = JSON.parse(localStorage.getItem(key) || "[]");
+        const idx = pending.indexOf(notificationId);
+        if (idx !== -1) {
+          pending.splice(idx, 1);
+          localStorage.setItem(key, JSON.stringify(pending));
+        }
+      } catch (e) {
+        // ignore local cleanup errors
+      }
+
+      updateOfficialTabBadge(document.querySelectorAll(".official-notification.unread").length);
+      updateBottomNavNotificationBadge(document.querySelectorAll(".official-notification.unread").length);
+
+    } catch (error) {
+      console.error("Could not mark notification as read:", error);
+    }
+
+  }
+
+  function updateBottomNavNotificationBadge(count) {
+
+    const badge = document.getElementById("bottomNavNotificationBadge");
+
+    if (!badge) {
+      return;
+    }
+
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : String(count);
+      badge.classList.add("show");
+    } else {
+      badge.textContent = "";
+      badge.classList.remove("show");
+    }
+
+  }
+
+  function updateOfficialTabBadge(count) {
+
+    const badge = document.getElementById("officialTabBadge");
+
+    if (!badge) {
+      return;
+    }
+
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : String(count);
+      badge.classList.add("show");
+    } else {
+      badge.textContent = "";
+      badge.classList.remove("show");
+    }
+
+    updateBottomNavNotificationBadge(count);
 
   }
 
