@@ -298,6 +298,33 @@
 
     /* SELLER ROW */
 
+    .contact-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 12px;
+      color: #4b5a52;
+      font-size: 13px;
+      text-decoration: none;
+    }
+
+    .contact-line b {
+      color: var(--green);
+      font-weight: 700;
+    }
+
+    .contact-line-icon {
+      width: 30px;
+      height: 30px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: #e7faee;
+      color: #15965a;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
     .seller-row {
       display: flex;
       align-items: center;
@@ -472,6 +499,135 @@
       box-shadow: 0 4px 12px rgba(37, 165, 106, 0.3);
     }
 
+    /* SIGN IN REQUIRED POPUP */
+
+    .auth-modal-backdrop {
+      position: fixed;
+      inset: 0;
+      z-index: 2000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      background: rgba(16, 40, 27, 0.55);
+      backdrop-filter: blur(4px);
+      -webkit-backdrop-filter: blur(4px);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .auth-modal-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .auth-modal {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      padding: 32px 24px 24px;
+      background: #ffffff;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 20px 50px rgba(16, 40, 27, 0.25);
+      transform: translateY(10px) scale(0.98);
+      transition: transform 0.2s;
+    }
+
+    .auth-modal-backdrop.open .auth-modal {
+      transform: none;
+    }
+
+    .auth-modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      width: 36px;
+      height: 36px;
+      border: none;
+      border-radius: 50%;
+      background: #f3f6f4;
+      color: #10281b;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .auth-modal-close:hover {
+      background: #dde6e0;
+    }
+
+    .auth-modal-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: #e7f4ed;
+      color: #15965a;
+      display: grid;
+      place-items: center;
+    }
+
+    .auth-modal-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #10281b;
+      margin-bottom: 6px;
+    }
+
+    .auth-modal-subtitle {
+      color: #5d6e64;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .auth-modal-buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .auth-modal-btn {
+      flex: 1;
+      height: 48px;
+      border-radius: 14px;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
+    }
+
+    .auth-modal-btn.secondary {
+      border: 2px solid #15965a;
+      background: transparent;
+      color: #0f7a48;
+    }
+
+    .auth-modal-btn.secondary:hover {
+      background: #e7f4ed;
+    }
+
+    .auth-modal-btn.primary {
+      border: 2px solid #15965a;
+      background: #15965a;
+      color: white;
+    }
+
+    .auth-modal-btn.primary:hover {
+      background: #0f7a48;
+      border-color: #0f7a48;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .auth-modal-backdrop,
+      .auth-modal {
+        transition: none;
+      }
+    }
+
     /* DELETE MODAL */
 
     .delete-modal-backdrop {
@@ -621,6 +777,27 @@
 
   </div>
 
+</div>
+
+<!-- SIGN IN REQUIRED POPUP -->
+<div class="auth-modal-backdrop" id="signInModal">
+  <div class="auth-modal" role="dialog" aria-modal="true" aria-labelledby="authModalTitle">
+    <button type="button" class="auth-modal-close" aria-label="Close" onclick="document.getElementById('signInModal').classList.remove('open');">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+
+    <div class="auth-modal-icon">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+    </div>
+
+    <div class="auth-modal-title" id="authModalTitle">Sign In Required</div>
+    <div class="auth-modal-subtitle" id="authModalSubtitle">You must sign in or create an account to buy.</div>
+
+    <div class="auth-modal-buttons">
+      <button type="button" class="auth-modal-btn secondary" onclick="window.location.href='index.html';">Sign Up</button>
+      <button type="button" class="auth-modal-btn primary" onclick="window.location.href='index.html';">Sign In</button>
+    </div>
+  </div>
 </div>
 
 <!-- DELETE CONFIRMATION MODAL -->
@@ -1058,6 +1235,11 @@
         ? `<img src="${escapeHTML(seller.avatar_url)}" alt="${escapeHTML(sellerName)}">`
         : escapeHTML(getInitials(sellerName));
 
+    const whatsappMessage =
+      `Hi, I'd like more information about this ad: "${ad.title || "Untitled Ad"}" (ID: ${ad.id})`;
+    const whatsappLink =
+      "https://wa.me/923411444759?text=" + encodeURIComponent(whatsappMessage);
+
     details.innerHTML = `
 
       <div class="details-header">
@@ -1105,6 +1287,13 @@
             `
             : ""
         }
+
+        <a class="contact-line" href="${whatsappLink}" target="_blank" rel="noopener">
+          <span class="contact-line-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.39 1.26 4.82L2 22l5.42-1.36a9.9 9.9 0 0 0 4.62 1.14h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2zm5.6 14.01c-.24.66-1.38 1.26-1.9 1.33-.49.07-1.09.1-1.76-.11-.4-.13-.93-.3-1.6-.59-2.82-1.22-4.66-4.05-4.8-4.24-.14-.19-1.15-1.53-1.15-2.92 0-1.39.73-2.07.99-2.35.26-.28.57-.35.76-.35.19 0 .38 0 .55.01.18.01.41-.07.64.49.24.57.81 1.97.88 2.11.07.14.12.31.02.5-.1.19-.15.31-.29.48-.14.17-.3.38-.43.51-.14.14-.29.29-.13.57.17.28.75 1.24 1.61 2.01 1.11.99 2.04 1.3 2.33 1.44.29.14.46.12.63-.07.17-.19.72-.84.91-1.13.19-.29.38-.24.64-.14.26.1 1.65.78 1.93.92.29.14.48.21.55.33.07.12.07.68-.17 1.34z"/></svg>
+          </span>
+          <span>Need more information? <b>Contact us</b></span>
+        </a>
 
         ${
           showSellerActions
@@ -1184,13 +1373,27 @@
       const buyNowBtn = document.getElementById("buyNowBtn");
 
       if (makeOfferBtn) {
-        makeOfferBtn.addEventListener("click", () => {
+        makeOfferBtn.addEventListener("click", async () => {
+          const user = await getCurrentSellerId();
+
+          if (!user) {
+            showSignInPopup("You must sign in or create an account to make an offer.");
+            return;
+          }
+
           // Intentionally left empty for later implementation.
         });
       }
 
       if (buyNowBtn) {
-        buyNowBtn.addEventListener("click", () => {
+        buyNowBtn.addEventListener("click", async () => {
+          const user = await getCurrentSellerId();
+
+          if (!user) {
+            showSignInPopup("You must sign in or create an account to buy.");
+            return;
+          }
+
           sessionStorage.setItem("buyAdId", String(ad.id));
           sessionStorage.setItem("buyAdTitle", ad.title || "Untitled Ad");
           sessionStorage.setItem("buyAdPrice", String(ad.price || 0));
@@ -1201,6 +1404,39 @@
     }
 
   }
+
+
+  /* =========================================
+     SIGN IN POPUP: open with a custom message
+  ========================================= */
+
+  function showSignInPopup(message) {
+    const modal = document.getElementById("signInModal");
+    const subtitle = document.getElementById("authModalSubtitle");
+
+    if (subtitle && message) {
+      subtitle.textContent = message;
+    }
+
+    if (modal) {
+      modal.classList.add("open");
+    }
+  }
+
+
+  /* =========================================
+     SIGN IN POPUP: close on outside tap or Esc
+  ========================================= */
+
+  const signInModalEl = document.getElementById("signInModal");
+
+  signInModalEl.addEventListener("click", (e) => {
+    if (e.target === signInModalEl) signInModalEl.classList.remove("open");
+  });
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") signInModalEl.classList.remove("open");
+  });
 
 
   /* =========================================
