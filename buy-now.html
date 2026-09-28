@@ -206,7 +206,7 @@
           <span class="value" id="summaryPrice">Rs. 0</span>
         </div>
         <div class="summary-row">
-          <span class="muted">LootShoot commission (5%)</span>
+          <span class="muted">LootShoot commission</span>
           <span class="value" id="summaryCommission">Rs. 0</span>
         </div>
         <div class="summary-row total">
@@ -247,7 +247,7 @@
 
     function setPriceUI(priceValue) {
       const price = Number(priceValue || 0);
-      const commission = price * 0.05;
+      const commission = 0;
       const total = price + commission;
 
       document.getElementById('adTitle').textContent = adTitle;
