@@ -1269,6 +1269,65 @@
     cursor: pointer;
   }
 
+  /* Auth Required Inline Card */
+
+  .auth-inline-card {
+    background: #f8faf9;
+    border: 1px solid var(--border-2);
+    border-radius: 12px;
+    padding: 18px 16px;
+    margin-top: 16px;
+    text-align: center;
+  }
+
+  .auth-inline-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .auth-inline-subtitle {
+    color: var(--muted);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+
+  .auth-inline-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .auth-inline-btn {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .auth-inline-btn.primary {
+    background: var(--primary);
+    color: white;
+  }
+
+  .auth-inline-btn.primary:hover {
+    background: var(--primary-hover);
+  }
+
+  .auth-inline-btn.secondary {
+    background: var(--light-green-2);
+    color: var(--primary);
+    border: 1px solid var(--accent);
+  }
+
+  .auth-inline-btn.secondary:hover {
+    background: var(--light-green);
+  }
+
 </style>
 </head>
 <body>
@@ -1576,7 +1635,81 @@
   const navButtons = document.querySelectorAll(".nav-item");
   const sections = document.querySelectorAll(".section");
 
-  function activateTab(target) {
+  function clearProfileDisplay() {
+    const emptyValue = "—";
+
+    if (sellerNameEl) {
+      sellerNameEl.textContent = "Seller";
+    }
+
+    if (headerAvatarInitials) {
+      headerAvatarInitials.textContent = "S";
+      headerAvatarInitials.style.display = "block";
+    }
+
+    if (headerAvatarImage) {
+      headerAvatarImage.removeAttribute("src");
+      headerAvatarImage.style.display = "none";
+    }
+
+    if (profileUsernameEl) {
+      profileUsernameEl.textContent = emptyValue;
+    }
+
+    if (profileEmailEl) {
+      profileEmailEl.textContent = emptyValue;
+    }
+
+    if (profileWhatsappEl) {
+      profileWhatsappEl.textContent = emptyValue;
+    }
+
+    if (profileMemberSinceEl) {
+      profileMemberSinceEl.textContent = emptyValue;
+    }
+
+    if (profileAvatarLetter) {
+      profileAvatarLetter.textContent = "S";
+      profileAvatarLetter.style.display = "block";
+    }
+
+    if (profileAvatarImage) {
+      profileAvatarImage.removeAttribute("src");
+      profileAvatarImage.style.display = "none";
+    }
+  }
+
+  function getAuthRequiredMarkup() {
+    return `
+      <div class="auth-inline-card">
+        <div class="auth-inline-title">Sign In Required</div>
+        <div class="auth-inline-subtitle">You must sign in or create an account to access this section.</div>
+
+        <div class="auth-inline-buttons">
+          <button type="button" class="auth-inline-btn secondary" onclick="window.location.href='index.html';">Sign Up</button>
+          <button type="button" class="auth-inline-btn primary" onclick="window.location.href='index.html';">Sign In</button>
+        </div>
+      </div>
+    `;
+  }
+
+  function clearProtectedSectionContent(target) {
+    const section = document.getElementById(target);
+
+    if (section) {
+      section.innerHTML = getAuthRequiredMarkup();
+      section.style.padding = "0";
+      section.style.background = "transparent";
+      section.style.border = "none";
+      section.style.boxShadow = "none";
+    }
+
+    if (target === "profileSection") {
+      clearProfileDisplay();
+    }
+  }
+
+  async function activateTab(target) {
 
     navButtons.forEach(btn => {
       btn.classList.toggle("active", btn.dataset.target === target);
@@ -1585,6 +1718,13 @@
     sections.forEach(sec => {
       sec.classList.toggle("active", sec.id === target);
     });
+
+    const user = await getAuthenticatedUser();
+
+    if (protectedSections.includes(target) && !user) {
+      clearProtectedSectionContent(target);
+      return;
+    }
 
     if (target === "profileSection") {
       syncProfileFromSupabase();
@@ -1608,28 +1748,16 @@
       const target = btn.dataset.target;
 
       if (target === "exploreSection") {
-        activateTab(target);
+        await activateTab(target);
         return;
       }
 
       if (protectedSections.includes(target)) {
-        const user = await getAuthenticatedUser();
-
-        if (!user) {
-          const signInModal = document.getElementById("signInModal");
-
-          if (signInModal) {
-            signInModal.classList.add("open");
-          }
-
-          return;
-        }
-
-        activateTab(target);
+        await activateTab(target);
         return;
       }
 
-      activateTab(target);
+      await activateTab(target);
     });
   });
 
@@ -1640,7 +1768,6 @@
   } else if (requestedTab === "my-ads") {
     activateTab("myAdsSection");
   }
-
 
   /* =========================================================
      RESTORE AUTH SESSION
@@ -1676,7 +1803,6 @@
     }
 
   }
-
 
   /* =========================================================
      GET AUTHENTICATED USER
@@ -1812,7 +1938,6 @@
     return null;
 
   }
-
 
   /* =========================================================
      PROFILE ELEMENTS
@@ -1952,6 +2077,7 @@
       const user = await getAuthenticatedUser();
 
       if (!user) {
+        clearProfileDisplay();
         return;
       }
 
@@ -2020,6 +2146,7 @@
     const user = await getAuthenticatedUser();
 
     if (!user) {
+      clearProfileDisplay();
       return;
     }
 
@@ -2067,8 +2194,6 @@
       .from("ads")
       .select("*")
       .eq("seller_id", user.id)
-      // My Ads must show all ads for the current seller, regardless of review status.
-      // Explore remains approved-only in explore.html.
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -2148,7 +2273,7 @@
       const container = document.getElementById("myAdsContainer");
 
       if (container) {
-        container.innerHTML = `<div class="empty-message">Please sign in to view your ads.</div>`;
+        container.innerHTML = "";
       }
 
       return;
@@ -2669,11 +2794,8 @@
 
       if (!user) {
 
-        container.innerHTML =
-          `<div class="empty-notification">Please sign in to view your notifications.</div>`;
-
+        container.innerHTML = "";
         return;
-
       }
 
       // First, attempt to sync any locally queued "read" actions so the
@@ -2690,6 +2812,7 @@
             .from("notifications")
             .update({ is_read: true })
             .in("id", pending)
+
             .eq("user_id", user.id);
 
           if (!batchError) {
