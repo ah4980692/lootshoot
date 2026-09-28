@@ -275,7 +275,7 @@
       <div class="step-block" id="methodList">
         <button type="button" class="method-option selected" data-method="easypaisa">
           <span class="method-meta">
-            <span class="wallet-icon">e</span>
+            <img src="easypaisa.jpg" alt="Easypaisa" style="width:36px; height:36px; border-radius:6px; object-fit:contain;">
             <span>Easypaisa</span>
           </span>
           <span class="checkmark" aria-hidden="true"></span>
@@ -283,7 +283,7 @@
 
         <button type="button" class="method-option" data-method="jazzcash">
           <span class="method-meta">
-            <span class="wallet-icon jazz">J</span>
+            <img src="jazzcash.png" alt="Jazzcash" style="width:36px; height:36px; border-radius:6px; object-fit:contain;">
             <span>Jazzcash</span>
           </span>
           <span class="checkmark" aria-hidden="true"></span>
@@ -388,7 +388,7 @@
       detailsBox.innerHTML = `
         <div class="details-head">
           <div style="display:flex; align-items:center; gap:12px;">
-            <span class="wallet-icon ${methodName === 'jazzcash' ? 'jazz' : ''}">${methodName === 'jazzcash' ? 'J' : 'e'}</span>
+            ${methodName === 'easypaisa' ? `<img src="easypaisa.jpg" alt="Easypaisa" style="width:40px; height:40px; border-radius:8px; object-fit:contain;">` : `<img src="jazzcash.png" alt="Jazzcash" style="width:40px; height:40px; border-radius:8px; object-fit:contain;">`}
             <span>${method.name}</span>
           </div>
         </div>
