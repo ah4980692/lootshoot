@@ -403,7 +403,9 @@
     const offerPhotosInput = document.getElementById("offerPhotos");
 
     const MAX_OFFER_PHOTOS = 10;
+    let originalImageUrls = [];
     let currentImageUrls = [];
+    let existingPendingDeleteImages = [];
     let newImageFiles = [];
 
     typeButtons.forEach(button => {
@@ -488,7 +490,7 @@
 
       const { data, error } = await supabaseClient
         .from("ads")
-        .select("id, title, price, description, type, images")
+        .select("id, title, price, description, type, images, pending_delete_images")
         .eq("id", adId)
         .single();
 
@@ -499,6 +501,8 @@
       }
 
       currentImageUrls = Array.isArray(data.images) ? data.images : [];
+      originalImageUrls = Array.isArray(data.images) ? [...data.images] : [];
+      existingPendingDeleteImages = Array.isArray(data.pending_delete_images) ? data.pending_delete_images : [];
 
       titleInput.value = data.title || "";
       priceInput.value = data.price || "";
@@ -576,6 +580,12 @@
           finalImageUrls.push(publicUrlData.publicUrl);
         }
 
+        const removedUrls = originalImageUrls.filter(url => !finalImageUrls.includes(url));
+        const pendingDeleteImages = existingPendingDeleteImages
+          .concat(removedUrls)
+          .filter(url => finalImageUrls.includes(url) === false);
+        const uniquePendingDeleteImages = [...new Set(pendingDeleteImages)];
+
         const { error } = await supabaseClient
           .from("ads")
           .update({
@@ -584,6 +594,7 @@
             price: Number(price.replace(/[^\d.]/g, "")) || 0,
             description,
             images: finalImageUrls,
+            pending_delete_images: uniquePendingDeleteImages.length > 0 ? uniquePendingDeleteImages : null,
             status: "pending"
           })
           .eq("id", adId);
