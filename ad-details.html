@@ -1350,6 +1350,57 @@
             confirmDeleteBtn.disabled = true;
 
             try {
+              console.log("Delete flow - original ad.images:", ad.images);
+
+              // Normalize images field: could be array, JSON string, or single URL string
+              let imagesField = ad.images;
+              let imagesArr = [];
+
+              if (Array.isArray(imagesField)) {
+                imagesArr = imagesField.slice();
+              } else if (typeof imagesField === "string" && imagesField.trim()) {
+                try {
+                  const parsed = JSON.parse(imagesField);
+                  if (Array.isArray(parsed)) {
+                    imagesArr = parsed;
+                  } else if (typeof parsed === "string") {
+                    imagesArr = [parsed];
+                  }
+                } catch (e) {
+                  imagesArr = [imagesField];
+                }
+              }
+
+              const marker = "/storage/v1/object/public/ad-images/";
+
+              const filePaths = imagesArr
+                .map(url => {
+                  if (!url || typeof url !== "string") return null;
+                  const idx = url.indexOf(marker);
+                  if (idx === -1) return null;
+                  return decodeURIComponent(url.substring(idx + marker.length));
+                })
+                .filter(Boolean);
+
+              console.log("Delete flow - extracted file paths:", filePaths);
+
+              if (filePaths.length) {
+                const { data: removeData, error: removeError } = await supabaseClient
+                  .storage
+                  .from("ad-images")
+                  .remove(filePaths);
+
+                console.log("Delete flow - storage remove result:", { data: removeData, error: removeError });
+
+                if (removeError) {
+                  throw removeError;
+                }
+              } else {
+                console.log("Delete flow - no storage file paths to remove for this ad");
+              }
+
+              console.log("Delete flow - storage deletion succeeded (or not required). Proceeding to DB deletion.");
+
               const { error } = await supabaseClient
                 .from("ads")
                 .delete()
