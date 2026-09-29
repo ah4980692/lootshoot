@@ -538,6 +538,7 @@ a { color: inherit; text-decoration: none; }
   background: transparent;
   color: #8a958f;
   font-size: 28px;
+  line-height: 1;
 }
 
 .modal h2 {
@@ -575,9 +576,13 @@ a { color: inherit; text-decoration: none; }
 }
 
 .seller-modal .modal-close {
-  top: 16px;
-  right: 18px;
-  font-size: 24px;
+  top: 6px;
+  right: 17px;
+  border: 0;
+  background: transparent;
+  color: #8a958f;
+  font-size: 28px;
+  line-height: 1;
 }
 
 .seller-modal label {
@@ -587,7 +592,8 @@ a { color: inherit; text-decoration: none; }
 }
 
 .seller-modal h2 {
-  margin: 8px 0 25px;
+  margin: 2px 0 25px;
+  padding-right: 24px;
   font-family: "Space Grotesk", sans-serif;
   font-size: clamp(28px, 5vw, 42px);
   line-height: 0.96;
