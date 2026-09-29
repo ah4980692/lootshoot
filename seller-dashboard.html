@@ -2392,35 +2392,72 @@
               throw new Error("You must be signed in.");
             }
 
-            if (Array.isArray(ad.images) && ad.images.length) {
+            try {
 
-              const filePaths = ad.images
-                .map(url => {
-                  const marker = "/storage/v1/object/public/ad-images/";
-                  const index = url.indexOf(marker);
+              console.log("Delete flow - original ad.images:", ad.images);
 
-                  if (index === -1) {
-                    return null;
+              // Normalize images field: it may be an array, a JSON string, or a single URL string.
+              let imagesField = ad.images;
+
+              let imagesArr = [];
+
+              if (Array.isArray(imagesField)) {
+                imagesArr = imagesField.slice();
+              } else if (typeof imagesField === "string" && imagesField.trim()) {
+                // Try JSON parse first (it might be a JSON string representing an array)
+                try {
+                  const parsed = JSON.parse(imagesField);
+                  if (Array.isArray(parsed)) {
+                    imagesArr = parsed;
+                  } else if (typeof parsed === "string") {
+                    imagesArr = [parsed];
                   }
+                } catch (e) {
+                  // Not JSON — treat as a single URL string
+                  imagesArr = [imagesField];
+                }
+              }
 
-                  return decodeURIComponent(url.substring(index + marker.length));
+              // Extract file paths after the marker
+              const marker = "/storage/v1/object/public/ad-images/";
+
+              const filePaths = imagesArr
+                .map(url => {
+                  if (!url || typeof url !== "string") return null;
+                  const idx = url.indexOf(marker);
+                  if (idx === -1) return null;
+                  return decodeURIComponent(url.substring(idx + marker.length));
                 })
                 .filter(Boolean);
 
+              console.log("Delete flow - extracted file paths:", filePaths);
+
+              // If there are file paths, attempt to remove them and ensure success before deleting DB row.
               if (filePaths.length) {
 
-                const { error: storageError } = await supabaseClient
+                const { data: removeData, error: removeError } = await supabaseClient
                   .storage
                   .from("ad-images")
                   .remove(filePaths);
 
-                if (storageError) {
-                  console.warn("Could not remove some images:", storageError);
+                console.log("Delete flow - storage remove result:", { data: removeData, error: removeError });
+
+                if (removeError) {
+                  // Stop — do not delete the DB row if storage removal failed.
+                  throw removeError;
                 }
 
+              } else {
+                console.log("Delete flow - no storage file paths to remove for this ad");
               }
 
+            } catch (err) {
+              console.error("Could not remove ad images from storage:", err);
+              // Let the outer catch handle UI feedback and re-enable the button; do NOT proceed to DB deletion.
+              throw err;
             }
+
+            console.log("Delete flow - storage deletion succeeded (or not required). Proceeding to DB deletion.");
 
             const { error: deleteError } = await supabaseClient
               .from("ads")
