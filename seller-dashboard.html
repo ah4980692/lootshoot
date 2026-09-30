@@ -548,6 +548,45 @@
     font-weight: 800;
   }
 
+  .my-ad-price-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin: 10px 0;
+  }
+
+  .ad-countdown-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 999px;
+    background: #eefaf3;
+    border: 1px solid #d7efdf;
+    color: #0e7b52;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    min-width: 74px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  }
+
+  .ad-countdown-pill svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+    stroke: currentColor;
+  }
+
+  .ad-countdown-pill.is-expired {
+    background: #fef2f2;
+    border-color: #f1d3d3;
+    color: #b42318;
+  }
+
   .my-ad-seller {
     display: flex;
     align-items: center;
@@ -621,9 +660,21 @@
       font-size: 10px;
     }
 
+    .my-ad-price-row {
+      margin: 8px 0;
+      gap: 8px;
+    }
+
     .my-ad-price {
-      margin: 7px 0;
+      margin: 0;
       font-size: 16px;
+    }
+
+    .ad-countdown-pill {
+      padding: 6px 8px;
+      gap: 5px;
+      font-size: 10px;
+      min-width: 64px;
     }
 
     .my-ad-seller {
@@ -779,7 +830,7 @@
   .official-notification {
     display: flex;
     gap: 11px;
-    background: white;
+    background: var(--light-green-2);
     border: 1px solid var(--border-2);
     border-radius: 14px;
     padding: 13px;
@@ -789,7 +840,7 @@
   }
 
   .official-notification.unread {
-    background: #f7faf8;
+    background: white;
     border-color: #d5ebe2;
   }
 
@@ -2265,6 +2316,114 @@
 
   }
 
+  function getAdExpiryTimestamp(expiresAt) {
+
+    if (expiresAt === null || expiresAt === undefined || expiresAt === "") {
+      return Number.NaN;
+    }
+
+    if (typeof expiresAt === "number") {
+      return expiresAt > 1000000000000 ? expiresAt : expiresAt * 1000;
+    }
+
+    const serialized = String(expiresAt).trim();
+
+    if (!serialized) {
+      return Number.NaN;
+    }
+
+    if (/^\d+$/.test(serialized)) {
+      const numeric = Number(serialized);
+      return numeric > 1000000000000 ? numeric : numeric * 1000;
+    }
+
+    const parsed = Date.parse(serialized);
+    return Number.isNaN(parsed) ? Number.NaN : parsed;
+
+  }
+
+  function getAdCountdownText(expiresAt) {
+
+    const expiryTimestamp = getAdExpiryTimestamp(expiresAt);
+
+    if (!Number.isFinite(expiryTimestamp)) {
+      return { expired: true, label: "Expired" };
+    }
+
+    const remainingMs = expiryTimestamp - Date.now();
+
+    if (remainingMs <= 0) {
+      return { expired: true, label: "Expired" };
+    }
+
+    const remainingDays = Math.floor(remainingMs / 86400000);
+
+    if (remainingDays <= 0) {
+      return { expired: false, label: "0d left" };
+    }
+
+    return { expired: false, label: `${remainingDays}d left` };
+
+  }
+
+  function renderClockIcon() {
+
+    return `
+      <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2" />
+        <path d="M12 7.5V12L15.5 14" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+    `;
+
+  }
+
+  function updateAdCountdownPill(pill) {
+
+    if (!pill) {
+      return false;
+    }
+
+    if (pill.dataset.expired === "true") {
+      return false;
+    }
+
+    const expiresAt = pill.dataset.expiresAt;
+    const countdownText = getAdCountdownText(expiresAt);
+
+    pill.classList.toggle("is-expired", countdownText.expired);
+    pill.innerHTML = `${renderClockIcon()}${escapeHTML(countdownText.label)}`;
+
+    if (countdownText.expired) {
+      pill.dataset.expired = "true";
+      return false;
+    }
+
+    return true;
+
+  }
+
+  function updateAllAdCountdowns() {
+
+    const pills = document.querySelectorAll(".ad-countdown-pill");
+
+    pills.forEach(pill => {
+      updateAdCountdownPill(pill);
+    });
+
+  }
+
+  function startAdCountdownLoop() {
+
+    if (window.__lootshootAdCountdownLoop) {
+      clearInterval(window.__lootshootAdCountdownLoop);
+    }
+
+    window.__lootshootAdCountdownLoop = setInterval(() => {
+      updateAllAdCountdowns();
+    }, 1000);
+
+  }
+
   async function renderMyAds() {
 
     const user = await getAuthenticatedUser();
@@ -2310,6 +2469,8 @@
 
     container.innerHTML = "";
     container.appendChild(grid);
+    updateAllAdCountdowns();
+    startAdCountdownLoop();
 
   }
 
@@ -2347,6 +2508,19 @@
       `
       : "";
 
+    const countdownText = getAdCountdownText(ad.expires_at);
+    const countdownLabel = countdownText.expired ? "Expired" : countdownText.label;
+    const countdownExpiredClass = countdownText.expired ? "is-expired" : "";
+    const countdownExpiredState = countdownText.expired ? "true" : "false";
+    const isApprovedAd = String(ad.status || "").toLowerCase() === "approved";
+    const countdownHTML = isApprovedAd
+      ? `
+        <div class="ad-countdown-pill ${countdownExpiredClass}" data-expires-at="${escapeHTML(String(ad.expires_at || ""))}" data-expired="${countdownExpiredState}" aria-label="Ad expiry countdown">
+          ${renderClockIcon()}${escapeHTML(countdownLabel)}
+        </div>
+      `
+      : "";
+
     card.innerHTML = `
       <div class="my-ad-image">
         ${imageHTML}
@@ -2356,7 +2530,10 @@
       <div class="my-ad-content">
         <h3 class="my-ad-title">${escapeHTML(ad.title || "Untitled Ad")}</h3>
         <p class="my-ad-desc">${escapeHTML(ad.description || "")}</p>
-        <div class="my-ad-price">${formatPrice(ad.price)}</div>
+        <div class="my-ad-price-row">
+          <div class="my-ad-price">${formatPrice(ad.price)}</div>
+          ${countdownHTML}
+        </div>
         <div class="my-ad-seller">${sellerAvatarHTML}${escapeHTML(sellerName)}</div>
         <button type="button" class="view-details-btn">View Details <span>→</span></button>
       </div>
@@ -2519,7 +2696,6 @@
     return card;
 
   }
-
 
   /* =========================================================
      CREATE OFFER — TYPE SELECT
