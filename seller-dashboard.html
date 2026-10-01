@@ -1472,6 +1472,128 @@
     cursor: pointer;
   }
 
+  /* Reject Offer Confirmation Modal */
+
+  .offer-reject-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 22, 18, 0.52);
+    z-index: 2100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .offer-reject-modal-overlay.open {
+    display: flex;
+  }
+
+  .offer-reject-modal-card {
+    background: white;
+    border-radius: 20px;
+    width: min(100%, 420px);
+    padding: 28px 24px 22px;
+    box-shadow: 0 22px 60px rgba(3, 11, 9, 0.2);
+    position: relative;
+  }
+
+  .offer-reject-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .offer-reject-modal-close:hover {
+    color: var(--text-primary);
+  }
+
+  .offer-reject-modal-header {
+    text-align: center;
+    margin: 0 0 16px;
+  }
+
+  .offer-reject-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #fff5f0;
+    color: #e74c3c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 14px;
+    font-weight: 800;
+  }
+
+  .offer-reject-modal-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a2a2a;
+  }
+
+  .offer-reject-modal-body {
+    text-align: center;
+    margin: 0 0 22px;
+  }
+
+  .offer-reject-modal-text {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .offer-reject-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .offer-reject-modal-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .offer-reject-modal-btn.cancel {
+    background: var(--light-green-2);
+    color: var(--primary);
+    border: 1px solid var(--accent);
+  }
+
+  .offer-reject-modal-btn.cancel:hover {
+    background: var(--light-green);
+  }
+
+  .offer-reject-modal-btn.reject {
+    background: #e74c3c;
+    color: white;
+  }
+
+  .offer-reject-modal-btn.reject:hover {
+    background: #d72638;
+  }
+
+  .offer-reject-modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   /* Auth Modal */
 
   .auth-modal-backdrop {
@@ -1897,6 +2019,27 @@
       <div class="delete-confirm-actions">
         <button type="button" class="delete-confirm-btn cancel" id="cancelDeleteBtn">Cancel</button>
         <button type="button" class="delete-confirm-btn delete" id="confirmDeleteBtn">Delete Ad</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- REJECT OFFER CONFIRMATION MODAL -->
+  <div class="offer-reject-modal-overlay" id="offerRejectModal">
+    <div class="offer-reject-modal-card">
+      <button type="button" class="offer-reject-modal-close" aria-label="Close" id="offerRejectModalCloseBtn">×</button>
+
+      <div class="offer-reject-modal-header">
+        <div class="offer-reject-modal-icon">!</div>
+        <h2 class="offer-reject-modal-title">Reject Offer?</h2>
+      </div>
+
+      <div class="offer-reject-modal-body">
+        <p class="offer-reject-modal-text">Are you sure you want to reject this offer?</p>
+      </div>
+
+      <div class="offer-reject-modal-actions">
+        <button type="button" class="offer-reject-modal-btn cancel" id="offerRejectCancelBtn">Cancel</button>
+        <button type="button" class="offer-reject-modal-btn reject" id="offerRejectConfirmBtn">Reject Offer</button>
       </div>
     </div>
   </div>
@@ -3216,8 +3359,8 @@
       }
 
       const allNotifications = notifications || [];
-      const officialUnreadCount = allNotifications.filter(item => !item.is_read && item.title !== "Offer Sent").length;
-      const buyingUnreadCount = allNotifications.filter(item => !item.is_read && item.title === "Offer Sent").length;
+      const officialUnreadCount = allNotifications.filter(item => !item.is_read && item.title !== "Offer Sent" && item.title !== "Offer Rejected").length;
+      const buyingUnreadCount = allNotifications.filter(item => !item.is_read && (item.title === "Offer Sent" || item.title === "Offer Rejected")).length;
       const totalUnreadCount = allNotifications.filter(item => !item.is_read).length;
 
       updateBottomNavNotificationBadge(totalUnreadCount);
@@ -3292,6 +3435,7 @@
         .select("id, user_id, title, message, is_read, created_at")
         .eq("user_id", user.id)
         .neq("title", "Offer Sent")
+        .neq("title", "Offer Rejected")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -3436,7 +3580,7 @@
         .from("notifications")
         .select("id, user_id, title, message, is_read, created_at")
         .eq("user_id", user.id)
-        .eq("title", "Offer Sent")
+        .or("title.eq.Offer Sent,title.eq.Offer Rejected")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -3682,7 +3826,7 @@
               ${buyerAvatarUrl ? `<img src="${escapeHTML(buyerAvatarUrl)}" alt="">` : ""}
             </div>
             <div class="selling-offer-headline">
-              <strong class="selling-offer-buyer">${escapeHTML(buyerUsername)}</strong> made an offer
+              <strong class="selling-offer-buyer">${escapeHTML(buyerUsername.length > 9 ? buyerUsername.substring(0, 9) + '...' : buyerUsername)}</strong> made an offer
             </div>
             <time class="selling-offer-time" datetime="${escapeHTML(offer.created_at || "")}">${escapeHTML(offerAgoLabel)}</time>
           </div>
@@ -3692,7 +3836,7 @@
               ${firstAdImage ? `<img src="${escapeHTML(firstAdImage)}" alt="${title}">` : "👕"}
             </div>
             <div class="selling-offer-details">
-              <div class="selling-offer-product-title">${title}</div>
+              <div class="selling-offer-product-title">${escapeHTML(title.length > 25 ? title.substring(0, 25) + '...' : title)}</div>
               <div class="selling-offer-price-row">
                 <span class="selling-offer-original-price">${escapeHTML(originalPriceText)}</span>
                 <span class="selling-offer-amount">${escapeHTML(offerAmountText)}</span>
@@ -3718,6 +3862,13 @@
           }, { once: true });
         }
 
+        const rejectButton = item.querySelector(".selling-offer-action-btn.reject");
+        if (rejectButton) {
+          rejectButton.addEventListener("click", () => {
+            handleRejectOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product");
+          });
+        }
+
         list.appendChild(item);
 
       });
@@ -3733,6 +3884,135 @@
 
     }
 
+  }
+
+  async function handleRejectOffer(offerId, buyerId, offerAmount, productTitle) {
+    // Show custom confirmation modal
+    const confirmed = await showOfferRejectConfirmation();
+    
+    if (!confirmed) {
+      return; // User clicked Cancel or closed modal
+    }
+
+    try {
+      const user = await getAuthenticatedUser();
+
+      if (!user) {
+        throw new Error("You must be signed in.");
+      }
+
+      // Update the offer status from "pending" to "rejected"
+      const { error: updateError } = await supabaseClient
+        .from("offers")
+        .update({ status: "rejected", updated_at: new Date().toISOString() })
+        .eq("id", offerId)
+        .eq("seller_id", user.id);
+
+      if (updateError) {
+        throw new Error("Failed to update offer: " + updateError.message);
+      }
+
+      // Create a notification for the buyer
+      const offerAmountText = Number.isFinite(offerAmount) 
+        ? `Rs. ${offerAmount.toLocaleString()}` 
+        : "the offer";
+      
+      const notificationMessage = `Your offer of ${offerAmountText} for the "${productTitle}" has been rejected by the seller.`;
+
+      const { error: notificationError } = await supabaseClient
+        .from("notifications")
+        .insert([
+          {
+            user_id: buyerId,
+            title: "Offer Rejected",
+            message: notificationMessage,
+            is_read: false,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (notificationError) {
+        // Offer was rejected but notification failed
+        console.error("Warning: Offer rejected but notification creation failed:", notificationError);
+        // Still continue to refresh the UI
+      }
+
+      // Remove the rejected offer from the seller's pending list
+      const offerElement = document.querySelector(`[data-offer-id="${offerId}"]`);
+      if (offerElement) {
+        offerElement.remove();
+      }
+
+      // Check if there are any pending offers left
+      const remainingOffers = document.querySelectorAll(".selling-offer-notification").length;
+      if (remainingOffers === 0) {
+        const sellingTab = document.getElementById("selling-tab");
+        if (sellingTab) {
+          sellingTab.innerHTML = `<div class="empty-notification">No pending offers.</div>`;
+        }
+      }
+
+      // Refresh the buying notifications for the buyer (if they switch to that tab)
+      // and refresh the global badge
+      await refreshGlobalUnreadNotificationBadge();
+
+    } catch (error) {
+      console.error("Could not reject offer:", error);
+      alert("Error rejecting offer: " + (error.message || "Please try again."));
+    }
+  }
+
+  function showOfferRejectConfirmation() {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("offerRejectModal");
+      const cancelBtn = document.getElementById("offerRejectCancelBtn");
+      const confirmBtn = document.getElementById("offerRejectConfirmBtn");
+      const closeBtn = document.getElementById("offerRejectModalCloseBtn");
+
+      if (!modal) {
+        console.error("Reject offer modal not found");
+        resolve(false);
+        return;
+      }
+
+      // Prevent double submission
+      confirmBtn.disabled = false;
+      cancelBtn.disabled = false;
+
+      // Close modal helper
+      const closeModal = () => {
+        modal.classList.remove("open");
+        cancelBtn.removeEventListener("click", onCancel);
+        confirmBtn.removeEventListener("click", onConfirm);
+        closeBtn.removeEventListener("click", onClose);
+      };
+
+      // Event handlers
+      const onCancel = () => {
+        closeModal();
+        resolve(false);
+      };
+
+      const onConfirm = () => {
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        closeModal();
+        resolve(true);
+      };
+
+      const onClose = () => {
+        closeModal();
+        resolve(false);
+      };
+
+      // Attach listeners
+      cancelBtn.addEventListener("click", onCancel);
+      confirmBtn.addEventListener("click", onConfirm);
+      closeBtn.addEventListener("click", onClose);
+
+      // Show modal
+      modal.classList.add("open");
+    });
   }
 
   async function markNotificationAsRead(notificationId) {
