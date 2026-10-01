@@ -4116,12 +4116,7 @@
         throw new Error("Failed to update offer: " + updateError.message);
       }
 
-      // Clear the buyer's cooldown for this specific ad
-      if (adId) {
-        const cooldownKey = `offerCooldown_${adId}`;
-        localStorage.removeItem(cooldownKey);
-        console.log('[OFFER COOLDOWN] cleared cooldown for rejected offer:', { adId, buyerId, offerId });
-      }
+      // Note: Cooldown clearing happens on the buyer's side when they detect the offer is no longer pending
 
       // Create a notification for the buyer
       const offerAmountText = Number.isFinite(offerAmount) 
@@ -4330,12 +4325,7 @@
         throw new Error("Failed to update offer: " + updateOfferError.message);
       }
 
-      // Clear the buyer's cooldown for this specific ad
-      if (adId) {
-        const cooldownKey = `offerCooldown_${adId}`;
-        localStorage.removeItem(cooldownKey);
-        console.log('[OFFER COOLDOWN] cleared cooldown for accepted offer:', { adId, buyerId, offerId });
-      }
+      // Note: Cooldown clearing happens on the buyer's side when they detect the offer is no longer pending
 
       // Update the ad price to the offer amount
       if (adId) {
