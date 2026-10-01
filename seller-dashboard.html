@@ -1594,6 +1594,158 @@
     cursor: not-allowed;
   }
 
+  /* Accept Offer Modal */
+
+  .offer-accept-modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 22, 18, 0.52);
+    z-index: 2100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .offer-accept-modal-overlay.open {
+    display: flex;
+  }
+
+  .offer-accept-modal-card {
+    background: white;
+    border-radius: 20px;
+    width: min(100%, 420px);
+    padding: 28px 24px 22px;
+    box-shadow: 0 22px 60px rgba(3, 11, 9, 0.2);
+    position: relative;
+  }
+
+  .offer-accept-modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: transparent;
+    font-size: 28px;
+    color: var(--muted);
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .offer-accept-modal-close:hover {
+    color: var(--text);
+  }
+
+  .offer-accept-modal-header {
+    text-align: center;
+    margin: 0 0 16px;
+  }
+
+  .offer-accept-modal-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    background: #e8f7f0;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 30px;
+    margin: 0 auto 14px;
+    font-weight: 800;
+  }
+
+  .offer-accept-modal-title {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 800;
+    color: #1a2a2a;
+  }
+
+  .offer-accept-modal-body {
+    text-align: center;
+    margin: 0 0 16px;
+  }
+
+  .offer-accept-modal-amount {
+    margin: 0 0 12px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--primary);
+  }
+
+  .offer-accept-modal-warning {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.6;
+    font-size: 14px;
+  }
+
+  .offer-accept-modal-checkbox {
+    display: flex;
+    gap: 10px;
+    margin: 16px 0 20px;
+    padding: 12px;
+    background: var(--light-green-2);
+    border-radius: 10px;
+  }
+
+  .offer-accept-modal-checkbox input[type="checkbox"] {
+    flex-shrink: 0;
+    margin-top: 3px;
+    cursor: pointer;
+  }
+
+  .offer-accept-modal-checkbox label {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+    cursor: pointer;
+  }
+
+  .offer-accept-modal-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .offer-accept-modal-btn {
+    border: none;
+    border-radius: 12px;
+    padding: 13px 16px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.2s ease;
+  }
+
+  .offer-accept-modal-btn.cancel {
+    background: var(--light-green-2);
+    color: var(--primary);
+    border: 1px solid var(--accent);
+  }
+
+  .offer-accept-modal-btn.cancel:hover {
+    background: var(--light-green);
+  }
+
+  .offer-accept-modal-btn.accept {
+    background: var(--accent);
+    color: white;
+  }
+
+  .offer-accept-modal-btn.accept:hover:not(:disabled) {
+    background: var(--accent-dark);
+  }
+
+  .offer-accept-modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
   /* Auth Modal */
 
   .auth-modal-backdrop {
@@ -2044,6 +2196,32 @@
     </div>
   </div>
 
+  <div class="offer-accept-modal-overlay" id="offerAcceptModal">
+    <div class="offer-accept-modal-card">
+      <button type="button" class="offer-accept-modal-close" aria-label="Close" id="offerAcceptModalCloseBtn">×</button>
+
+      <div class="offer-accept-modal-header">
+        <div class="offer-accept-modal-icon">✓</div>
+        <h2 class="offer-accept-modal-title">Accept Offer?</h2>
+      </div>
+
+      <div class="offer-accept-modal-body">
+        <p class="offer-accept-modal-amount" id="offerAcceptModalAmount"></p>
+        <p class="offer-accept-modal-warning">If you accept this offer, your product price will automatically be changed to Rs. <span id="offerAcceptModalWarningPrice"></span>.</p>
+      </div>
+
+      <div class="offer-accept-modal-checkbox">
+        <input type="checkbox" id="offerAcceptConfirmCheckbox" aria-label="I understand">
+        <label for="offerAcceptConfirmCheckbox">I understand that accepting this offer will change my product price to Rs. <span id="offerAcceptCheckboxPrice"></span>.</label>
+      </div>
+
+      <div class="offer-accept-modal-actions">
+        <button type="button" class="offer-accept-modal-btn cancel" id="offerAcceptCancelBtn">Cancel</button>
+        <button type="button" class="offer-accept-modal-btn accept" id="offerAcceptConfirmBtn" disabled>Accept Offer</button>
+      </div>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -2401,7 +2579,7 @@
 
     const normalized = String(title || "").toLowerCase();
 
-    if (normalized.includes("approved") || normalized.includes("live")) {
+    if (normalized.includes("approved") || normalized.includes("live") || normalized.includes("accepted")) {
       return "✓";
     }
 
@@ -3359,8 +3537,8 @@
       }
 
       const allNotifications = notifications || [];
-      const officialUnreadCount = allNotifications.filter(item => !item.is_read && item.title !== "Offer Sent" && item.title !== "Offer Rejected").length;
-      const buyingUnreadCount = allNotifications.filter(item => !item.is_read && (item.title === "Offer Sent" || item.title === "Offer Rejected")).length;
+      const officialUnreadCount = allNotifications.filter(item => !item.is_read && item.title !== "Offer Sent" && item.title !== "Offer Rejected" && item.title !== "Offer Accepted").length;
+      const buyingUnreadCount = allNotifications.filter(item => !item.is_read && (item.title === "Offer Sent" || item.title === "Offer Rejected" || item.title === "Offer Accepted")).length;
       const totalUnreadCount = allNotifications.filter(item => !item.is_read).length;
 
       updateBottomNavNotificationBadge(totalUnreadCount);
@@ -3436,6 +3614,7 @@
         .eq("user_id", user.id)
         .neq("title", "Offer Sent")
         .neq("title", "Offer Rejected")
+        .neq("title", "Offer Accepted")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -3580,7 +3759,7 @@
         .from("notifications")
         .select("id, user_id, title, message, is_read, created_at")
         .eq("user_id", user.id)
-        .or("title.eq.Offer Sent,title.eq.Offer Rejected")
+        .or("title.eq.Offer Sent,title.eq.Offer Rejected,title.eq.Offer Accepted")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -3624,9 +3803,10 @@
           (notification.title || "Offer Sent").trim()
         );
 
-        const message = escapeHTML(
-          (notification.message || "").trim()
-        );
+        const message =
+          notification.title === "Offer Accepted"
+            ? (notification.message || "").trim()
+            : escapeHTML((notification.message || "").trim());
 
         const date = notification.created_at
           ? new Date(notification.created_at).toLocaleString(
@@ -3869,6 +4049,13 @@
           });
         }
 
+        const acceptButton = item.querySelector(".selling-offer-action-btn.accept");
+        if (acceptButton) {
+          acceptButton.addEventListener("click", () => {
+            handleAcceptOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id);
+          });
+        }
+
         list.appendChild(item);
 
       });
@@ -3914,7 +4101,7 @@
 
       // Create a notification for the buyer
       const offerAmountText = Number.isFinite(offerAmount) 
-        ? `Rs. ${offerAmount.toLocaleString()}` 
+        ? `Rs. ${Number(offerAmount).toLocaleString()}` 
         : "the offer";
       
       const notificationMessage = `Your offer of ${offerAmountText} for the "${productTitle}" has been rejected by the seller. You can make a new offer with a higher price if you'd like.`;
@@ -4013,6 +4200,174 @@
       // Show modal
       modal.classList.add("open");
     });
+  }
+
+  function showOfferAcceptConfirmation(offerAmount) {
+    return new Promise((resolve) => {
+      const modal = document.getElementById("offerAcceptModal");
+      const cancelBtn = document.getElementById("offerAcceptCancelBtn");
+      const confirmBtn = document.getElementById("offerAcceptConfirmBtn");
+      const closeBtn = document.getElementById("offerAcceptModalCloseBtn");
+      const checkbox = document.getElementById("offerAcceptConfirmCheckbox");
+      const amountDisplay = document.getElementById("offerAcceptModalAmount");
+      const warningPrice = document.getElementById("offerAcceptModalWarningPrice");
+      const checkboxPrice = document.getElementById("offerAcceptCheckboxPrice");
+
+      if (!modal) {
+        console.error("Accept offer modal not found");
+        resolve(false);
+        return;
+      }
+
+      // Format and display offer amount
+      const formattedAmount = Number.isFinite(offerAmount)
+        ? `Rs. ${Number(offerAmount).toLocaleString()}`
+        : "the offer";
+      
+      amountDisplay.textContent = `Offer Amount: ${formattedAmount}`;
+      warningPrice.textContent = Number.isFinite(offerAmount)
+        ? Number(offerAmount).toLocaleString()
+        : "this amount";
+      checkboxPrice.textContent = Number.isFinite(offerAmount)
+        ? Number(offerAmount).toLocaleString()
+        : "this amount";
+
+      // Reset checkbox and button state
+      checkbox.checked = false;
+      confirmBtn.disabled = true;
+      cancelBtn.disabled = false;
+
+      // Close modal helper
+      const closeModal = () => {
+        modal.classList.remove("open");
+        cancelBtn.removeEventListener("click", onCancel);
+        confirmBtn.removeEventListener("click", onConfirm);
+        closeBtn.removeEventListener("click", onClose);
+        checkbox.removeEventListener("change", onCheckboxChange);
+      };
+
+      // Event handlers
+      const onCancel = () => {
+        closeModal();
+        resolve(false);
+      };
+
+      const onConfirm = () => {
+        confirmBtn.disabled = true;
+        cancelBtn.disabled = true;
+        closeModal();
+        resolve(true);
+      };
+
+      const onClose = () => {
+        closeModal();
+        resolve(false);
+      };
+
+      const onCheckboxChange = () => {
+        confirmBtn.disabled = !checkbox.checked;
+      };
+
+      // Attach listeners
+      cancelBtn.addEventListener("click", onCancel);
+      confirmBtn.addEventListener("click", onConfirm);
+      closeBtn.addEventListener("click", onClose);
+      checkbox.addEventListener("change", onCheckboxChange);
+
+      // Show modal
+      modal.classList.add("open");
+    });
+  }
+
+  async function handleAcceptOffer(offerId, buyerId, offerAmount, productTitle, adId) {
+    // Show custom confirmation modal
+    const confirmed = await showOfferAcceptConfirmation(offerAmount);
+    
+    if (!confirmed) {
+      return; // User clicked Cancel or closed modal
+    }
+
+    try {
+      const user = await getAuthenticatedUser();
+
+      if (!user) {
+        throw new Error("You must be signed in.");
+      }
+
+      // Update the offer status from "pending" to "accepted"
+      const { error: updateOfferError } = await supabaseClient
+        .from("offers")
+        .update({ status: "accepted", updated_at: new Date().toISOString() })
+        .eq("id", offerId)
+        .eq("seller_id", user.id)
+        .eq("status", "pending");
+
+      if (updateOfferError) {
+        throw new Error("Failed to update offer: " + updateOfferError.message);
+      }
+
+      // Update the ad price to the offer amount
+      if (adId) {
+        const { error: updateAdError } = await supabaseClient
+          .from("ads")
+          .update({ price: offerAmount })
+          .eq("id", adId);
+
+        if (updateAdError) {
+          console.error("Warning: Offer accepted but ad price update failed:", updateAdError);
+        }
+      }
+
+      // Create a notification for the buyer
+      const offerAmountText = Number.isFinite(offerAmount) 
+        ? `Rs. ${Number(offerAmount).toLocaleString()}` 
+        : "the offer";
+
+      const productTitleSafe = escapeHTML(String(productTitle || ""));
+      const acceptedOfferLink = `<a href="ad-details.html?id=${encodeURIComponent(String(adId || ""))}">here</a>`;
+      const notificationMessage = `Your offer of ${offerAmountText} for the "${productTitleSafe}" has been accepted by the seller. The product price has been updated to ${offerAmountText} and you can buy it from ${acceptedOfferLink}.`;
+
+      const { error: notificationError } = await supabaseClient
+        .from("notifications")
+        .insert([
+          {
+            user_id: buyerId,
+            title: "Offer Accepted",
+            message: notificationMessage,
+            is_read: false,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (notificationError) {
+        // Offer was accepted but notification failed
+        console.error("Warning: Offer accepted but notification creation failed:", notificationError);
+        // Still continue to refresh the UI
+      }
+
+      // Remove the accepted offer from the seller's pending list
+      const offerElement = document.querySelector(`[data-offer-id="${offerId}"]`);
+      if (offerElement) {
+        offerElement.remove();
+      }
+
+      // Check if there are any pending offers left
+      const remainingOffers = document.querySelectorAll(".selling-offer-notification").length;
+      if (remainingOffers === 0) {
+        const sellingTab = document.getElementById("selling-tab");
+        if (sellingTab) {
+          sellingTab.innerHTML = `<div class="empty-notification">No pending offers.</div>`;
+        }
+      }
+
+      // Refresh the buying notifications for the buyer (if they switch to that tab)
+      // and refresh the global badge
+      await refreshGlobalUnreadNotificationBadge();
+
+    } catch (error) {
+      console.error("Could not accept offer:", error);
+      alert("Error accepting offer: " + (error.message || "Please try again."));
+    }
   }
 
   async function markNotificationAsRead(notificationId) {
