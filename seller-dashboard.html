@@ -4062,7 +4062,7 @@
         const rejectButton = item.querySelector(".selling-offer-action-btn.reject");
         if (rejectButton) {
           rejectButton.addEventListener("click", () => {
-            handleRejectOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product");
+            handleRejectOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id);
           });
         }
 
@@ -4090,7 +4090,7 @@
 
   }
 
-  async function handleRejectOffer(offerId, buyerId, offerAmount, productTitle) {
+  async function handleRejectOffer(offerId, buyerId, offerAmount, productTitle, adId) {
     // Show custom confirmation modal
     const confirmed = await showOfferRejectConfirmation();
     
@@ -4114,6 +4114,13 @@
 
       if (updateError) {
         throw new Error("Failed to update offer: " + updateError.message);
+      }
+
+      // Clear the buyer's cooldown for this specific ad
+      if (adId) {
+        const cooldownKey = `offerCooldown_${adId}`;
+        localStorage.removeItem(cooldownKey);
+        console.log('[OFFER COOLDOWN] cleared cooldown for rejected offer:', { adId, buyerId, offerId });
       }
 
       // Create a notification for the buyer
@@ -4321,6 +4328,13 @@
 
       if (updateOfferError) {
         throw new Error("Failed to update offer: " + updateOfferError.message);
+      }
+
+      // Clear the buyer's cooldown for this specific ad
+      if (adId) {
+        const cooldownKey = `offerCooldown_${adId}`;
+        localStorage.removeItem(cooldownKey);
+        console.log('[OFFER COOLDOWN] cleared cooldown for accepted offer:', { adId, buyerId, offerId });
       }
 
       // Update the ad price to the offer amount
