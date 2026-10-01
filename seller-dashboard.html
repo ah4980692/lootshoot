@@ -923,6 +923,246 @@
     padding: 0;
   }
 
+  .official-notification.selling-offer-notification {
+    display: block;
+    height: auto;
+    min-height: 0;
+    background: white;
+    border-color: #d5ebe2;
+  }
+
+  .selling-offer-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .selling-offer-avatar {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--light-green);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 19px;
+    font-weight: 800;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .selling-offer-avatar img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+  }
+
+  .selling-offer-headline {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--text);
+    font-size: 16px;
+    line-height: 1.35;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .selling-offer-buyer {
+    font-weight: 800;
+  }
+
+  .selling-offer-time {
+    margin-left: auto;
+    color: var(--muted-2);
+    font-size: 12px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .selling-offer-product {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 14px;
+  }
+
+  .selling-offer-image {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    background: var(--light-green-2);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    flex-shrink: 0;
+    overflow: hidden;
+  }
+
+  .selling-offer-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .selling-offer-details {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .selling-offer-product-title {
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--text);
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.3;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .selling-offer-price-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-top: 5px;
+  }
+
+  .selling-offer-original-price {
+    color: var(--muted-2);
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: line-through;
+  }
+
+  .selling-offer-amount {
+    font-family: "Space Grotesk", sans-serif;
+    color: var(--accent-dark);
+    font-size: 17px;
+    font-weight: 800;
+  }
+
+  .selling-offer-actions {
+    display: flex;
+    gap: 16px;
+    width: 100%;
+    margin-top: 14px;
+    justify-content: space-between;
+  }
+
+  .selling-offer-action-btn {
+    flex: 0 0 calc(50% - 8px);
+    min-width: 0;
+    border-radius: 16px;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .selling-offer-action-btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .selling-offer-action-btn.reject {
+    background: #ffffff;
+    border: 1px solid #d8e7de;
+    color: var(--text);
+    box-shadow: 0 6px 16px rgba(12,75,50,0.04);
+  }
+
+  .selling-offer-action-btn.accept {
+    background: var(--accent);
+    border: 1px solid var(--accent);
+    color: white;
+    box-shadow: 0 12px 28px rgba(37,165,106,0.18);
+  }
+
+  @media (min-width: 600px) {
+    .official-notification.selling-offer-notification {
+      padding: 18px;
+    }
+
+    .selling-offer-header {
+      gap: 14px;
+    }
+
+    .selling-offer-avatar {
+      width: 54px;
+      height: 54px;
+      font-size: 23px;
+    }
+
+    .selling-offer-headline {
+      font-size: 19px;
+    }
+
+    .selling-offer-time {
+      font-size: 14px;
+    }
+
+    .selling-offer-product {
+      gap: 16px;
+      margin-top: 18px;
+    }
+
+    .selling-offer-image {
+      width: 92px;
+      height: 92px;
+      border-radius: 16px;
+      font-size: 32px;
+    }
+
+    .selling-offer-product-title {
+      font-size: 21px;
+    }
+
+    .selling-offer-original-price {
+      font-size: 17px;
+    }
+
+    .selling-offer-amount {
+      font-size: 21px;
+    }
+
+    .selling-offer-actions {
+      margin-top: 18px;
+    }
+
+    .selling-offer-action-btn {
+      height: 58px;
+      font-size: 18px;
+    }
+  }
+
+  @media (max-width: 360px) {
+    .selling-offer-actions {
+      gap: 8px;
+    }
+
+    .selling-offer-action-btn {
+      flex: 0 0 calc(50% - 6px);
+      padding: 10px 12px;
+      font-size: 14px;
+    }
+  }
+
   /* Profile */
 
   .profile-card {
@@ -2961,28 +3201,34 @@
     if (!user) {
       updateBottomNavNotificationBadge(0);
       updateOfficialTabBadge(0);
+      updateBuyingTabBadge(0);
       return;
     }
 
     try {
       const { data: notifications, error } = await supabaseClient
         .from("notifications")
-        .select("id, is_read")
+        .select("id, is_read, title")
         .eq("user_id", user.id);
 
       if (error) {
         throw error;
       }
 
-      const unreadCount = (notifications || []).filter(item => !item.is_read).length;
+      const allNotifications = notifications || [];
+      const officialUnreadCount = allNotifications.filter(item => !item.is_read && item.title !== "Offer Sent").length;
+      const buyingUnreadCount = allNotifications.filter(item => !item.is_read && item.title === "Offer Sent").length;
+      const totalUnreadCount = allNotifications.filter(item => !item.is_read).length;
 
-      updateBottomNavNotificationBadge(unreadCount);
-      updateOfficialTabBadge(unreadCount);
+      updateBottomNavNotificationBadge(totalUnreadCount);
+      updateOfficialTabBadge(officialUnreadCount);
+      updateBuyingTabBadge(buyingUnreadCount);
 
     } catch (error) {
       console.warn("Could not refresh global notification badge:", error);
       updateBottomNavNotificationBadge(0);
       updateOfficialTabBadge(0);
+      updateBuyingTabBadge(0);
     }
   }
 
@@ -3045,6 +3291,7 @@
         .from("notifications")
         .select("id, user_id, title, message, is_read, created_at")
         .eq("user_id", user.id)
+        .neq("title", "Offer Sent")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -3062,7 +3309,7 @@
           `<div class="empty-notification">No notifications yet</div>`;
 
         updateOfficialTabBadge(0);
-        updateBottomNavNotificationBadge(0);
+        await refreshGlobalUnreadNotificationBadge();
 
         return;
 
@@ -3070,7 +3317,7 @@
 
       const unreadCount = notifications.filter(n => !n.is_read).length;
       updateOfficialTabBadge(unreadCount);
-      updateBottomNavNotificationBadge(unreadCount);
+      await refreshGlobalUnreadNotificationBadge();
 
 
       const list = document.createElement("div");
@@ -3151,6 +3398,7 @@
 
       container.innerHTML = "";
       container.appendChild(list);
+      await refreshGlobalUnreadNotificationBadge();
 
     } catch (error) {
 
@@ -3158,6 +3406,330 @@
 
       container.innerHTML =
         `<div class="empty-notification">Could not load notifications. Please try again.</div>`;
+
+    }
+
+  }
+
+  async function loadBuyingNotifications() {
+
+    const container = document.getElementById("buying-tab");
+
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML =
+      `<div class="loading">Loading notifications...</div>`;
+
+    try {
+
+      const user = await getAuthenticatedUser();
+
+      if (!user) {
+
+        container.innerHTML = "";
+        return;
+      }
+
+      const { data: notifications, error } = await supabaseClient
+        .from("notifications")
+        .select("id, user_id, title, message, is_read, created_at")
+        .eq("user_id", user.id)
+        .eq("title", "Offer Sent")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Could not load buying notifications:", error);
+
+        container.innerHTML =
+          `<div class="empty-notification">Could not load notifications. Please try again.</div>`;
+
+        return;
+      }
+
+      if (!notifications || notifications.length === 0) {
+
+        container.innerHTML =
+          `<div class="empty-notification">No offer notifications yet</div>`;
+
+        updateBuyingTabBadge(0);
+        await refreshGlobalUnreadNotificationBadge();
+
+        return;
+
+      }
+
+      const unreadCount = notifications.filter(n => !n.is_read).length;
+      updateBuyingTabBadge(unreadCount);
+      await refreshGlobalUnreadNotificationBadge();
+
+      const list = document.createElement("div");
+      list.className = "official-notification-list";
+
+      notifications.forEach(notification => {
+
+        const item = document.createElement("article");
+
+        item.className =
+          "official-notification" +
+          (notification.is_read ? "" : " unread");
+        item.dataset.notificationId = String(notification.id);
+
+        const title = escapeHTML(
+          (notification.title || "Offer Sent").trim()
+        );
+
+        const message = escapeHTML(
+          (notification.message || "").trim()
+        );
+
+        const date = notification.created_at
+          ? new Date(notification.created_at).toLocaleString(
+              "en-US",
+              {
+                dateStyle: "medium",
+                timeStyle: "short"
+              }
+            )
+          : "";
+
+        item.innerHTML = `
+          <div class="official-notification-icon">${getNotificationIcon(notification.title)}</div>
+          <div class="official-notification-body">
+            <div class="official-notification-title-row">
+              <div class="official-notification-title">
+                ${title}
+              </div>
+              ${
+                notification.is_read
+                  ? ""
+                  : `<span class="official-unread-dot" aria-label="Unread notification"></span>`
+              }
+            </div>
+
+            <div class="official-notification-message">
+              ${message}
+            </div>
+
+            <div class="official-notification-date">
+              ${escapeHTML(date)}
+            </div>
+          </div>
+        `;
+
+        item.addEventListener("click", async () => {
+          item.classList.toggle("expanded");
+
+          if (notification.is_read) {
+            return;
+          }
+
+          notification.is_read = true;
+          item.classList.remove("unread");
+
+          const unreadDot = item.querySelector(".official-unread-dot");
+          if (unreadDot) {
+            unreadDot.remove();
+          }
+
+          await markNotificationAsRead(notification.id);
+        });
+
+        list.appendChild(item);
+
+      });
+
+      container.innerHTML = "";
+      container.appendChild(list);
+
+    } catch (error) {
+
+      console.error("Unexpected buying notification error:", error);
+
+      container.innerHTML =
+        `<div class="empty-notification">Could not load notifications. Please try again.</div>`;
+
+    }
+
+  }
+
+  async function loadSellingOffers() {
+
+    function getRelativeTimeLabel(value) {
+      if (!value) return "";
+      const ts = typeof value === 'number' ? value : Date.parse(String(value));
+      if (Number.isNaN(ts)) return "";
+      const diffMin = Math.max(1, Math.floor((Date.now() - ts) / 60000));
+      if (diffMin < 60) return `${diffMin}m ago`;
+      const diffHr = Math.floor(diffMin / 60);
+      if (diffHr < 24) return `${diffHr}h ago`;
+      const diffDays = Math.floor(diffHr / 24);
+      return `${diffDays}d ago`;
+    }
+
+    const container = document.getElementById("selling-tab");
+
+    if (!container) {
+      return;
+    }
+
+    container.innerHTML =
+      `<div class="loading">Loading offers...</div>`;
+
+    try {
+
+      const user = await getAuthenticatedUser();
+
+      if (!user) {
+        container.innerHTML = "";
+        return;
+      }
+
+      const { data: offers, error } = await supabaseClient
+        .from("offers")
+        .select("id, ad_id, buyer_id, offer_amount, created_at")
+        .eq("seller_id", user.id)
+        .eq("status", "pending")
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Could not load pending offers:", error);
+        container.innerHTML =
+          `<div class="empty-notification">Could not load offers. Please try again.</div>`;
+        return;
+      }
+
+      if (!offers || offers.length === 0) {
+        container.innerHTML =
+          `<div class="empty-notification">No pending offers.</div>`;
+        return;
+      }
+
+      const adIds = [...new Set(offers.map(offer => offer.ad_id).filter(Boolean))];
+      const adsById = {};
+
+      if (adIds.length) {
+        const { data: ads, error: adsError } = await supabaseClient
+          .from("ads")
+          .select("id, title, price, images")
+          .in("id", adIds);
+
+        if (adsError) {
+          console.warn("Could not load related ads for offers:", adsError);
+        } else if (ads) {
+          ads.forEach(ad => {
+            adsById[ad.id] = ad;
+          });
+        }
+      }
+
+      const buyerIds = [...new Set(offers.map(offer => offer.buyer_id).filter(Boolean))];
+      const buyersById = {};
+
+      if (buyerIds.length) {
+        const { data: buyerProfiles, error: buyerProfilesError } = await supabaseClient
+          .from("sellers")
+          .select("id, username, avatar_url")
+          .in("id", buyerIds);
+
+        if (buyerProfilesError) {
+          console.warn("Could not load buyer usernames for offers:", buyerProfilesError);
+        } else if (buyerProfiles) {
+          buyerProfiles.forEach(profile => {
+            buyersById[profile.id] = {
+              username: profile.username || "Buyer",
+              avatarUrl: profile.avatar_url || ""
+            };
+          });
+        }
+      }
+
+      const list = document.createElement("div");
+      list.className = "official-notification-list";
+
+      offers.forEach(offer => {
+
+        const item = document.createElement("article");
+        item.className = "official-notification selling-offer-notification";
+        item.dataset.offerId = String(offer.id);
+
+        const ad = adsById[offer.ad_id] || {};
+        const title = escapeHTML(ad.title || "Product");
+        const firstAdImage = Array.isArray(ad.images) && ad.images.length
+          ? ad.images[0]
+          : "";
+        const originalPrice = Number(ad.price);
+        const originalPriceText = Number.isFinite(originalPrice)
+          ? `Rs. ${originalPrice.toLocaleString()}`
+          : "Rs. —";
+
+        const offerAmount = Number(offer.offer_amount);
+        const offerAmountText = Number.isFinite(offerAmount)
+          ? `Rs. ${offerAmount.toLocaleString()}`
+          : "Rs. —";
+
+        const buyerProfile = buyersById[offer.buyer_id] || {};
+        const buyerUsername = buyerProfile.username || "Buyer";
+        const buyerAvatarUrl = buyerProfile.avatarUrl || "";
+        const offerAgoLabel = getRelativeTimeLabel(offer.created_at);
+        const buyerInitials = escapeHTML(getInitials(buyerUsername));
+
+        item.innerHTML = `
+          <div class="selling-offer-header">
+            <div class="selling-offer-avatar" aria-hidden="true">
+              <span>${buyerInitials}</span>
+              ${buyerAvatarUrl ? `<img src="${escapeHTML(buyerAvatarUrl)}" alt="">` : ""}
+            </div>
+            <div class="selling-offer-headline">
+              <strong class="selling-offer-buyer">${escapeHTML(buyerUsername)}</strong> made an offer
+            </div>
+            <time class="selling-offer-time" datetime="${escapeHTML(offer.created_at || "")}">${escapeHTML(offerAgoLabel)}</time>
+          </div>
+
+          <div class="selling-offer-product">
+            <div class="selling-offer-image" aria-hidden="true">
+              ${firstAdImage ? `<img src="${escapeHTML(firstAdImage)}" alt="${title}">` : "👕"}
+            </div>
+            <div class="selling-offer-details">
+              <div class="selling-offer-product-title">${title}</div>
+              <div class="selling-offer-price-row">
+                <span class="selling-offer-original-price">${escapeHTML(originalPriceText)}</span>
+                <span class="selling-offer-amount">${escapeHTML(offerAmountText)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="selling-offer-actions">
+            <button type="button" class="selling-offer-action-btn reject">Reject</button>
+            <button type="button" class="selling-offer-action-btn accept">Accept</button>
+          </div>
+        `;
+
+        const buyerAvatarImage = item.querySelector(".selling-offer-avatar img");
+        if (buyerAvatarImage) {
+          buyerAvatarImage.addEventListener("error", () => buyerAvatarImage.remove(), { once: true });
+        }
+
+        const adImage = item.querySelector(".selling-offer-image img");
+        if (adImage) {
+          adImage.addEventListener("error", () => {
+            adImage.parentElement.textContent = "👕";
+          }, { once: true });
+        }
+
+        list.appendChild(item);
+
+      });
+
+      container.innerHTML = "";
+      container.appendChild(list);
+
+    } catch (error) {
+
+      console.error("Unexpected selling offer error:", error);
+      container.innerHTML =
+        `<div class="empty-notification">Could not load offers. Please try again.</div>`;
 
     }
 
@@ -3185,7 +3757,7 @@
         }
 
         updateOfficialTabBadge(document.querySelectorAll(".official-notification.unread").length);
-        updateBottomNavNotificationBadge(document.querySelectorAll(".official-notification.unread").length);
+        await refreshGlobalUnreadNotificationBadge();
 
         return;
       }
@@ -3228,7 +3800,7 @@
       }
 
       updateOfficialTabBadge(document.querySelectorAll(".official-notification.unread").length);
-      updateBottomNavNotificationBadge(document.querySelectorAll(".official-notification.unread").length);
+      await refreshGlobalUnreadNotificationBadge();
 
     } catch (error) {
       console.error("Could not mark notification as read:", error);
@@ -3270,10 +3842,25 @@
       badge.classList.remove("show");
     }
 
-    updateBottomNavNotificationBadge(count);
-
   }
 
+  function updateBuyingTabBadge(count) {
+
+    const badge = document.getElementById("buyingTabBadge");
+
+    if (!badge) {
+      return;
+    }
+
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : String(count);
+      badge.classList.add("show");
+    } else {
+      badge.textContent = "";
+      badge.classList.remove("show");
+    }
+
+  }
 
   /* =========================================================
      NOTIFICATION TABS
@@ -3305,6 +3892,16 @@
       /* Load official notifications whenever LootShoot tab is opened. */
       if (tabName === "official") {
         await loadOfficialNotifications();
+      }
+
+      /* Load buying notifications whenever Buying tab is opened. */
+      if (tabName === "buying") {
+        await loadBuyingNotifications();
+      }
+
+      /* Load pending offers whenever Selling tab is opened. */
+      if (tabName === "selling") {
+        await loadSellingOffers();
       }
 
     });
