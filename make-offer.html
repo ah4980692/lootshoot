@@ -340,7 +340,7 @@
     const offerSuccess = document.getElementById('offerSuccess');
     const successOfferAmount = document.getElementById('successOfferAmount');
     const offerLockNotice = document.getElementById('offerLockNotice');
-    const OFFER_COOLDOWN_MS = 30000;
+    const OFFER_COOLDOWN_MS = 1800000;
     let offerCooldownInterval = null;
     let isSubmittingOffer = false;
 
@@ -362,6 +362,32 @@
       }
     }
 
+    async function getPendingOfferForBuyer(buyerId, adId) {
+      try {
+        const { data, error } = await supabaseClient
+          .from('offers')
+          .select('id, status, created_at')
+          .eq('buyer_id', buyerId)
+          .eq('ad_id', adId)
+          .eq('status', 'pending')
+          .maybeSingle();
+
+        if (error) {
+          console.error('make-offer > Error checking pending offers:', error);
+          return null;
+        }
+
+        if (data) {
+          console.log('make-offer > Found pending offer for buyer:', { buyerId, adId, offerId: data.id });
+        }
+
+        return data; // Returns null if no pending offer exists
+      } catch (error) {
+        console.error('make-offer > Unexpected error checking pending offers:', error);
+        return null;
+      }
+    }
+
     async function createOfferRecord({ adId, sellerId, buyerId, offerAmount }) {
       const numericOfferAmount = Number(offerAmount || 0);
 
@@ -371,6 +397,17 @@
           sellerId,
           buyerId,
           offerAmount: numericOfferAmount
+        });
+        return null;
+      }
+
+      // Check if buyer already has a pending offer for this ad (prevent duplicates)
+      const existingPendingOffer = await getPendingOfferForBuyer(buyerId, adId);
+      if (existingPendingOffer) {
+        console.warn('make-offer > Buyer already has a pending offer for this ad:', {
+          adId,
+          buyerId,
+          existingOfferId: existingPendingOffer.id
         });
         return null;
       }
@@ -436,12 +473,12 @@
       offerLockNotice.textContent = '';
     }
 
-    function showOfferCooldownWarning(remainingSeconds) {
+    function showOfferCooldownWarning(remainingMinutes) {
       offerLockNotice.style.display = 'block';
-      offerLockNotice.textContent = `An offer has already been sent. Please wait ${remainingSeconds} seconds before sending another offer.`;
+      offerLockNotice.textContent = `An offer has already been sent. Please wait ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''} before sending another offer.`;
       console.log('[OFFER COOLDOWN] warning shown:', {
         adId,
-        remainingSeconds,
+        remainingMinutes,
         text: offerLockNotice.textContent
       });
     }
@@ -791,12 +828,56 @@
         return;
       }
 
+      try {
+        const buyerUserId = await getCurrentBuyerUserId();
+        if (!buyerUserId) {
+          console.warn('make-offer > No authenticated buyer found before checking cooldown.');
+          return;
+        }
+
+        // Check if buyer has a pending offer in the database (cross-device check)
+        const pendingOffer = await getPendingOfferForBuyer(buyerUserId, adId);
+        if (pendingOffer) {
+          // Buyer has a pending offer - calculate remaining time from database creation time
+          const createdAt = new Date(pendingOffer.created_at).getTime();
+          const remainingMs = (createdAt + OFFER_COOLDOWN_MS) - Date.now();
+
+          if (remainingMs > 0) {
+            console.log('[OFFER COOLDOWN] pending offer found in database, blocking submission:', {
+              adId,
+              buyerId: buyerUserId,
+              offerId: pendingOffer.id,
+              remainingMs
+            });
+
+            // Update localStorage with the correct expiry from database
+            const correctExpiry = createdAt + OFFER_COOLDOWN_MS;
+            localStorage.setItem(getOfferCooldownKey(), String(correctExpiry));
+
+            const remainingMinutes = Math.ceil(remainingMs / 60000);
+            showOfferCooldownWarning(remainingMinutes);
+            return;
+          }
+        }
+
+        // No pending offer in database, check if localStorage cooldown needs cleanup
+        const localStorageCooldownMs = getRemainingOfferCooldownMs();
+        if (localStorageCooldownMs > 0 && !pendingOffer) {
+          // localStorage has cooldown but no pending offer in database - clear it
+          console.log('[OFFER COOLDOWN] clearing expired/completed offer from localStorage:', { adId });
+          localStorage.removeItem(getOfferCooldownKey());
+        }
+      } catch (error) {
+        console.error('make-offer > Error checking pending offer status:', error);
+        // Continue with submission attempt - let normal error handling take over
+      }
+
       const existingCooldownMs = getRemainingOfferCooldownMs();
       console.log('[OFFER COOLDOWN] existing cooldown before this click (ms):', existingCooldownMs);
       if (existingCooldownMs > 0) {
         console.log('[OFFER COOLDOWN] existing cooldown branch: true');
-        const remainingSeconds = Math.ceil(existingCooldownMs / 1000);
-        showOfferCooldownWarning(remainingSeconds);
+        const remainingMinutes = Math.ceil(existingCooldownMs / 60000);
+        showOfferCooldownWarning(remainingMinutes);
         return;
       }
 
