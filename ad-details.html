@@ -1432,7 +1432,11 @@
             return;
           }
 
-          // Intentionally left empty for later implementation.
+          sessionStorage.setItem("makeOfferAdId", String(ad.id));
+          sessionStorage.setItem("makeOfferAdTitle", ad.title || "Untitled Ad");
+          sessionStorage.setItem("makeOfferAdPrice", String(ad.price || 0));
+          sessionStorage.setItem("makeOfferReturnUrl", window.location.href);
+          window.location.href = "make-offer.html?id=" + encodeURIComponent(ad.id);
         });
       }
 
