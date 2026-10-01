@@ -3917,7 +3917,7 @@
         ? `Rs. ${offerAmount.toLocaleString()}` 
         : "the offer";
       
-      const notificationMessage = `Your offer of ${offerAmountText} for the "${productTitle}" has been rejected by the seller.`;
+      const notificationMessage = `Your offer of ${offerAmountText} for the "${productTitle}" has been rejected by the seller. You can make a new offer with a higher price if you'd like.`;
 
       const { error: notificationError } = await supabaseClient
         .from("notifications")
