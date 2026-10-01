@@ -3523,6 +3523,7 @@
       updateBottomNavNotificationBadge(0);
       updateOfficialTabBadge(0);
       updateBuyingTabBadge(0);
+      updateSellingTabBadge(0);
       return;
     }
 
@@ -3541,15 +3542,31 @@
       const buyingUnreadCount = allNotifications.filter(item => !item.is_read && (item.title === "Offer Sent" || item.title === "Offer Rejected" || item.title === "Offer Accepted")).length;
       const totalUnreadCount = allNotifications.filter(item => !item.is_read).length;
 
-      updateBottomNavNotificationBadge(totalUnreadCount);
+      // Count pending offers for the Selling tab badge
+      const { data: pendingOffers, error: offersError } = await supabaseClient
+        .from("offers")
+        .select("id")
+        .eq("seller_id", user.id)
+        .eq("status", "pending");
+
+      if (offersError) {
+        console.warn("Could not fetch pending offers for badge:", offersError);
+      }
+
+      const pendingOfferCount = pendingOffers ? pendingOffers.length : 0;
+      const totalCount = totalUnreadCount + pendingOfferCount;
+
+      updateBottomNavNotificationBadge(totalCount);
       updateOfficialTabBadge(officialUnreadCount);
       updateBuyingTabBadge(buyingUnreadCount);
+      updateSellingTabBadge(pendingOfferCount);
 
     } catch (error) {
       console.warn("Could not refresh global notification badge:", error);
       updateBottomNavNotificationBadge(0);
       updateOfficialTabBadge(0);
       updateBuyingTabBadge(0);
+      updateSellingTabBadge(0);
     }
   }
 
@@ -4482,6 +4499,24 @@
   function updateBuyingTabBadge(count) {
 
     const badge = document.getElementById("buyingTabBadge");
+
+    if (!badge) {
+      return;
+    }
+
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : String(count);
+      badge.classList.add("show");
+    } else {
+      badge.textContent = "";
+      badge.classList.remove("show");
+    }
+
+  }
+
+  function updateSellingTabBadge(count) {
+
+    const badge = document.getElementById("sellingTabBadge");
 
     if (!badge) {
       return;
