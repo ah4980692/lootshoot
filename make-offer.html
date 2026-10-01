@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Make an Offer</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #10281b;
+      --green: #15965a;
+      --green-dark: #0f7a48;
+      --green-soft: #e7f4ed;
+      --bg: #f3f6f4;
+      --card: #ffffff;
+      --line: #dde6e0;
+      --muted: #5d6e64;
+      --input-bg: #f7f7f7;
+      --orange: #bf6b1b;
+      --shadow: rgba(16, 40, 27, 0.06);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, textarea { font: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+    .page {
+      max-width: 480px;
+      margin: 0 auto;
+      min-height: 100vh;
+      padding-bottom: 110px;
+    }
+
+    .topbar {
+      height: 64px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+    }
+
+    .topbar-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+
+    .content {
+      padding: 16px;
+      display: grid;
+      gap: 14px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--line);
+      box-shadow: 0 1px 0 var(--shadow);
+    }
+
+    .product-wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-height: 96px;
+    }
+
+    .product-image-wrap {
+      width: 86px;
+      height: 86px;
+      border-radius: 18px;
+      overflow: hidden;
+      background: var(--green-soft);
+      border: 1px solid var(--line);
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .product-image-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .product-image-placeholder {
+      width: 100%;
+      height: 100%;
+      display: grid;
+      place-items: center;
+      color: var(--green);
+    }
+
+    .product-image-placeholder svg {
+      width: 40px;
+      height: 40px;
+    }
+
+    .product-meta {
+      min-width: 0;
+    }
+
+    .label {
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .product-title {
+      font-size: clamp(1.2rem, 2vw, 1.7rem);
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      word-break: break-word;
+    }
+
+    .product-category {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .listed-price {
+      margin-top: 8px;
+      font-size: 1.05rem;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+    }
+
+    .field-label {
+      font-size: 0.95rem;
+      color: var(--ink);
+      font-weight: 600;
+    }
+
+    .input-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 60px;
+      background: var(--input-bg);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 0 14px;
+    }
+
+    .currency {
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      border: none;
+      background: transparent;
+      color: var(--ink);
+      font-size: 1.1rem;
+      font-weight: 600;
+      font-family: inherit;
+    }
+
+    input[type="text"] {
+      font-size: clamp(1.3rem, 2vw, 2rem);
+      letter-spacing: -0.04em;
+    }
+
+    input[type="text"]:focus, textarea:focus {
+      outline: none;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      padding: 14px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--input-bg);
+      font-weight: 500;
+    }
+
+    .offer-note {
+      color: var(--orange);
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-top: -2px;
+    }
+
+    .bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .bar-inner { max-width: 480px; margin: 0 auto; }
+
+    .submit-btn {
+      width: 100%;
+      height: 52px;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      transition: background 0.15s;
+    }
+
+    .submit-btn:hover { background: var(--green-dark); }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <button class="back-btn" aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="topbar-title">Make an Offer</div>
+    </div>
+
+    <div class="content">
+      <div class="card product-wrap">
+        <div class="product-image-wrap">
+          <div class="product-image-placeholder" id="productImagePlaceholder" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4.5 18.5V12.5C4.5 11.17 5.67 10.1 7 10.1C8.06 10.1 9.05 10.74 9.46 11.71L10.1 13.2L13.06 8.63C13.45 8.13 14.08 7.85 14.75 7.85C15.42 7.85 16.05 8.13 16.44 8.63L19.5 13.91V18.5H4.5Z" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="8.5" cy="8.5" r="1.8" stroke="currentColor" stroke-width="1.7"/>
+            </svg>
+          </div>
+          <img id="productImage" alt="Product image" hidden />
+        </div>
+
+        <div class="product-meta">
+          <div class="product-title" id="adTitle">Loading...</div>
+          <div class="product-category" id="adCategory" hidden></div>
+          <div class="listed-price" id="adPrice">Current price: Rs. 0</div>
+        </div>
+      </div>
+
+      <div class="card field">
+        <label class="field-label" for="offerInput">Offer amount</label>
+
+        <div class="input-wrap">
+          <input id="offerInput" type="text" inputmode="numeric" value="" aria-label="Offer amount" />
+        </div>
+
+        <div class="offer-note" id="offerNote">Enter the amount you are willing to pay</div>
+        <div id="offerLockNotice" style="display:none; color: #c62828; font-size: 0.92rem; font-weight: 700; line-height: 1.5; margin-top: 8px;" aria-live="polite"></div>
+      </div>
+
+      <div class="card" id="offerSuccess" hidden>
+        <div style="font-size: 1.05rem; line-height: 1.7; color: var(--ink);">
+          <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: var(--green);">Offer Sent</div>
+          <div>
+            Your offer of <strong id="successOfferAmount">Rs. 0</strong> has been sent to the seller.
+          </div>
+          <div style="margin-top: 10px;">
+            You will be notified once the seller accepts or rejects it.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="bar-inner">
+      <button type="button" class="submit-btn" id="sendOfferBtn">Send offer</button>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = 'https://saguwhkijrdiwiabxvyv.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const params = new URLSearchParams(window.location.search);
+    const adId = params.get('id') || sessionStorage.getItem('makeOfferAdId') || '4871ebae-2335-4d07-b925-5036e58f323d';
+    const storedTitle = sessionStorage.getItem('makeOfferAdTitle') || 'Ad';
+    const storedPrice = sessionStorage.getItem('makeOfferAdPrice') || '0';
+    const urlPrice = params.get('price');
+
+    const adTitleEl = document.getElementById('adTitle');
+    const adCategoryEl = document.getElementById('adCategory');
+    const adPriceEl = document.getElementById('adPrice');
+    const offerInput = document.getElementById('offerInput');
+    const offerNote = document.getElementById('offerNote');
+    const productImage = document.getElementById('productImage');
+    const productImagePlaceholder = document.getElementById('productImagePlaceholder');
+    const backBtn = document.querySelector('.back-btn');
+    const sendOfferBtn = document.getElementById('sendOfferBtn');
+    const offerSuccess = document.getElementById('offerSuccess');
+    const successOfferAmount = document.getElementById('successOfferAmount');
+    const offerLockNotice = document.getElementById('offerLockNotice');
+    const OFFER_COOLDOWN_MS = 30000;
+    let offerCooldownInterval = null;
+    let isSubmittingOffer = false;
+
+    async function fetchCurrentAdForOffer() {
+      if (!adId) return null;
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('ads')
+          .select('id, seller_id')
+          .eq('id', adId)
+          .maybeSingle();
+
+        if (error) throw error;
+        return data || null;
+      } catch (error) {
+        console.error('make-offer > Could not load current ad for offer insert:', error);
+        return null;
+      }
+    }
+
+    async function createOfferRecord({ adId, sellerId, buyerId, offerAmount }) {
+      const numericOfferAmount = Number(offerAmount || 0);
+
+      if (!adId || !sellerId || !buyerId || !Number.isFinite(numericOfferAmount) || numericOfferAmount <= 0) {
+        console.warn('make-offer > Missing required values for offers insert:', {
+          adId,
+          sellerId,
+          buyerId,
+          offerAmount: numericOfferAmount
+        });
+        return null;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('offers')
+          .insert([
+            {
+              ad_id: adId,
+              seller_id: sellerId,
+              buyer_id: buyerId,
+              offer_amount: numericOfferAmount,
+              status: 'pending'
+            }
+          ])
+          .select('id, ad_id, seller_id, buyer_id, offer_amount, status, created_at')
+          .single();
+
+        if (error) throw error;
+
+        console.log('make-offer > Offer row inserted successfully:', data);
+        return data;
+      } catch (error) {
+        console.error('make-offer > Failed to insert into public.offers:', error);
+        return null;
+      }
+    }
+
+    function getOfferCooldownKey() {
+      return `offerCooldown_${adId}`;
+    }
+
+    function getOfferCooldownExpiry() {
+      const rawValue = localStorage.getItem(getOfferCooldownKey());
+      const expiry = Number(rawValue || 0);
+      console.log('[OFFER COOLDOWN] adId:', adId);
+      console.log('[OFFER COOLDOWN] existing expiry:', expiry);
+      return Number.isFinite(expiry) ? expiry : 0;
+    }
+
+    function getRemainingOfferCooldownMs() {
+      const expiry = getOfferCooldownExpiry();
+      if (!expiry) {
+        console.log('[OFFER COOLDOWN] remaining before submit: 0');
+        return 0;
+      }
+
+      const remainingMs = expiry - Date.now();
+      console.log('[OFFER COOLDOWN] remaining before submit:', remainingMs);
+
+      if (remainingMs <= 0) {
+        localStorage.removeItem(getOfferCooldownKey());
+        console.log('[OFFER COOLDOWN] expired cooldown removed for adId:', adId);
+        return 0;
+      }
+
+      return remainingMs;
+    }
+
+    function hideOfferCooldownWarning() {
+      offerLockNotice.style.display = 'none';
+      offerLockNotice.textContent = '';
+    }
+
+    function showOfferCooldownWarning(remainingSeconds) {
+      offerLockNotice.style.display = 'block';
+      offerLockNotice.textContent = `An offer has already been sent. Please wait ${remainingSeconds} seconds before sending another offer.`;
+      console.log('[OFFER COOLDOWN] warning shown:', {
+        adId,
+        remainingSeconds,
+        text: offerLockNotice.textContent
+      });
+    }
+
+    function setOfferCooldown() {
+      const expiry = Date.now() + OFFER_COOLDOWN_MS;
+      localStorage.setItem(getOfferCooldownKey(), String(expiry));
+      console.log('[OFFER COOLDOWN] new expiry:', {
+        adId,
+        key: getOfferCooldownKey(),
+        expiry,
+        expiryIso: new Date(expiry).toISOString()
+      });
+    }
+
+    function updateSendOfferButtonState() {
+      const remainingMs = getRemainingOfferCooldownMs();
+      if (remainingMs > 0) {
+        sendOfferBtn.disabled = true;
+        sendOfferBtn.style.opacity = '0.6';
+        sendOfferBtn.style.cursor = 'not-allowed';
+        return;
+      }
+
+      sendOfferBtn.disabled = false;
+      sendOfferBtn.style.opacity = '1';
+      sendOfferBtn.style.cursor = 'pointer';
+      hideOfferCooldownWarning();
+    }
+
+    function startOfferCooldownTimer() {
+      if (offerCooldownInterval) {
+        clearInterval(offerCooldownInterval);
+      }
+
+      offerCooldownInterval = setInterval(() => {
+        const remainingMs = getRemainingOfferCooldownMs();
+        if (!remainingMs) {
+          clearOfferCooldown();
+          updateSendOfferButtonState();
+          clearInterval(offerCooldownInterval);
+          offerCooldownInterval = null;
+          console.log('[OFFER COOLDOWN] cooldown expired; button enabled again.');
+          return;
+        }
+
+        sendOfferBtn.disabled = true;
+        sendOfferBtn.style.opacity = '0.6';
+        sendOfferBtn.style.cursor = 'not-allowed';
+      }, 1000);
+    }
+
+    function clearOfferCooldown() {
+      localStorage.removeItem(getOfferCooldownKey());
+    }
+
+    function getOfferLockKey() {
+      return `lootshoot_offer_lock_${adId}`;
+    }
+
+    function getLockedUntil() {
+      const lockKey = getOfferLockKey();
+      const value = Number(sessionStorage.getItem(lockKey) || localStorage.getItem(lockKey) || 0);
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function setOfferLock() {
+      const lockKey = getOfferLockKey();
+      const expiresAt = Date.now() + (OFFER_LOCK_SECONDS * 1000);
+      sessionStorage.setItem(lockKey, String(expiresAt));
+      localStorage.setItem(lockKey, String(expiresAt));
+    }
+
+    function getRemainingOfferLockMs() {
+      const lockExpiresAt = getLockedUntil();
+      if (!lockExpiresAt) return 0;
+      const remaining = lockExpiresAt - Date.now();
+      return remaining > 0 ? remaining : 0;
+    }
+
+    function hideOfferLockWarning() {
+      offerLockNotice.style.display = 'none';
+      offerLockNotice.textContent = '';
+    }
+
+    function showOfferLockWarning() {
+      const remainingMs = getRemainingOfferLockMs();
+      if (!remainingMs) {
+        hideOfferLockWarning();
+        return;
+      }
+
+      const remainingSeconds = Math.ceil(remainingMs / 1000);
+      const minutes = Math.floor(remainingSeconds / 60);
+      const seconds = remainingSeconds % 60;
+
+      offerLockNotice.style.display = 'block';
+      offerLockNotice.textContent = `Please wait ${minutes} minute${minutes === 1 ? '' : 's'} ${seconds} second${seconds === 1 ? '' : 's'} before sending another offer.`;
+    }
+
+    function startOfferLockTimer() {
+      if (window.offerLockInterval) {
+        clearInterval(window.offerLockInterval);
+      }
+
+      window.offerLockInterval = setInterval(() => {
+        const remainingMs = getRemainingOfferLockMs();
+        if (!remainingMs) {
+          hideOfferLockWarning();
+          clearInterval(window.offerLockInterval);
+          return;
+        }
+
+        showOfferLockWarning();
+      }, 1000);
+    }
+
+    function formatNumber(value) {
+      const num = Number(value || 0);
+      return Number.isFinite(num) ? num.toLocaleString('en-US') : '0';
+    }
+
+    async function getCurrentBuyerUserId() {
+      try {
+        const { data: userData, error: userError } = await supabaseClient.auth.getUser();
+        if (!userError && userData?.user?.id) {
+          return userData.user.id;
+        }
+      } catch (error) {
+        console.warn('make-offer > Could not read authenticated buyer user:', error);
+      }
+
+      try {
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        const sessionUserId = sessionData?.session?.user?.id;
+        if (sessionUserId) {
+          return sessionUserId;
+        }
+      } catch (error) {
+        console.warn('make-offer > Could not read buyer session user:', error);
+      }
+
+      const fallbackUserId =
+        sessionStorage.getItem('sellerSessionUserId') ||
+        localStorage.getItem('sellerSessionUserId');
+
+      return fallbackUserId || null;
+    }
+
+    async function createBuyerOfferNotification({ offerAmount, productTitle }) {
+      const buyerUserId = await getCurrentBuyerUserId();
+
+      if (!buyerUserId) {
+        console.warn('make-offer > No authenticated buyer found for offer notification.');
+        return false;
+      }
+
+      const safeProductTitle = String(productTitle || storedTitle || 'Ad').trim() || 'Ad';
+      const formattedOfferAmount = formatNumber(offerAmount || 0);
+      const notificationMessage = `Your offer of Rs. ${formattedOfferAmount} for "${safeProductTitle}" has been sent to the seller. You will be notified once the seller accepts or rejects it.`;
+
+      try {
+        const { data: existingNotifications, error: duplicateCheckError } = await supabaseClient
+          .from('notifications')
+          .select('id')
+          .eq('user_id', buyerUserId)
+          .eq('message', notificationMessage)
+          .limit(1);
+
+        if (duplicateCheckError) {
+          console.warn('make-offer > Could not check duplicate buyer notification:', duplicateCheckError);
+        }
+
+        if (existingNotifications && existingNotifications.length > 0) {
+          console.log('make-offer > Duplicate buyer offer notification suppressed:', notificationMessage);
+          return false;
+        }
+
+        const { error: insertError } = await supabaseClient
+          .from('notifications')
+          .insert([
+            {
+              user_id: buyerUserId,
+              title: 'Offer Sent',
+              message: notificationMessage,
+              is_read: false
+            }
+          ]);
+
+        if (insertError) {
+          throw insertError;
+        }
+
+        console.log('make-offer > Buyer offer notification created:', {
+          user_id: buyerUserId,
+          message: notificationMessage
+        });
+
+        return true;
+      } catch (error) {
+        console.error('make-offer > Could not create buyer offer notification:', error);
+        return false;
+      }
+    }
+
+    function normalizeNumeric(value) {
+      if (!value && value !== 0) return 0;
+      const cleaned = String(value).replace(/[^\d.]/g, '');
+      const num = Number(cleaned || 0);
+      return Number.isFinite(num) ? num : 0;
+    }
+
+    function setOfferText(value) {
+      const numericValue = Math.max(0, normalizeNumeric(value));
+      offerInput.value = numericValue ? formatNumber(numericValue) : '';
+
+      const asking = liveAskingPrice || 0;
+      if (!asking) {
+        offerNote.textContent = 'Enter the amount you are willing to pay';
+        return;
+      }
+    }
+
+    function setProductImage(imageUrl) {
+      const finalUrl = Array.isArray(imageUrl) ? imageUrl[0] : imageUrl;
+
+      console.log('make-offer > setProductImage input:', imageUrl);
+      console.log('make-offer > finalUrl:', finalUrl);
+
+      if (!finalUrl) {
+        productImage.hidden = true;
+        productImagePlaceholder.hidden = false;
+        return;
+      }
+
+      productImage.src = finalUrl;
+      console.log('make-offer > productImage.src assigned:', productImage.src);
+      productImage.hidden = false;
+      productImagePlaceholder.hidden = true;
+    }
+
+    function applyAdInfo(title, price, category = 'Category', imageUrl = '') {
+      adTitleEl.textContent = title || 'Untitled Ad';
+      adCategoryEl.textContent = category || 'Category';
+      adCategoryEl.hidden = true;
+      adPriceEl.textContent = 'Current price: Rs. ' + formatNumber(price || 0);
+      liveAskingPrice = Number(price || 0);
+
+      setProductImage(imageUrl);
+
+      offerNote.textContent = 'Enter the amount you are willing to pay';
+    }
+
+    async function ensureSignedIn() {
+      try {
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        const sessionUserId = sessionData?.session?.user?.id;
+        if (sessionUserId) {
+          return true;
+        }
+      } catch (error) {
+        console.warn('Could not read current seller session:', error);
+      }
+
+      const localUserId =
+        sessionStorage.getItem('sellerSessionUserId') ||
+        localStorage.getItem('sellerSessionUserId');
+
+      if (localUserId) {
+        return true;
+      }
+
+      window.location.href = 'index.html';
+      return false;
+    }
+
+    async function loadSelectedAd() {
+      if (!adId) {
+        applyAdInfo(storedTitle, storedPrice, 'Category');
+        return;
+      }
+
+      console.log('make-offer > adId:', adId);
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('ads')
+          .select('id, type, title, price, description, images, created_at, seller_id')
+          .eq('id', adId);
+
+        console.log('make-offer > Supabase query error:', error);
+        console.log('make-offer > returned data:', data);
+
+        if (error) {
+          console.error('make-offer > ad fetch failed:', error);
+          applyAdInfo(storedTitle, storedPrice, 'Category');
+          return;
+        }
+
+        const ad = Array.isArray(data) ? data[0] : data;
+
+        if (!ad) {
+          console.warn('make-offer > No ad matched this id:', adId);
+          applyAdInfo(storedTitle, storedPrice, 'Category');
+          return;
+        }
+
+        sessionStorage.setItem('makeOfferAdId', String(ad.id));
+        sessionStorage.setItem('makeOfferAdTitle', ad.title || 'Untitled Ad');
+        sessionStorage.setItem('makeOfferAdPrice', String(ad.price || 0));
+
+        applyAdInfo(
+          ad.title || 'Untitled Ad',
+          ad.price || 0,
+          'Category',
+          Array.isArray(ad.images) ? ad.images[0] : ''
+        );
+
+        return;
+      } catch (error) {
+        console.error('make-offer > Could not load selected ad on make-offer page:', error);
+        applyAdInfo(storedTitle, storedPrice, 'Category');
+      }
+
+      applyAdInfo(storedTitle, storedPrice, 'Category');
+    }
+
+    backBtn.addEventListener('click', () => {
+      const returnUrl = sessionStorage.getItem('makeOfferReturnUrl') || sessionStorage.getItem('adDetailsReturnUrl') || 'explore.html';
+      sessionStorage.removeItem('makeOfferAdId');
+      sessionStorage.removeItem('makeOfferAdTitle');
+      sessionStorage.removeItem('makeOfferAdPrice');
+      sessionStorage.removeItem('makeOfferReturnUrl');
+      window.location.href = returnUrl;
+    });
+
+    offerInput.addEventListener('input', function () {
+      const digits = this.value.replace(/[^\d]/g, '');
+      const numericValue = digits ? Number(digits) : 0;
+      setOfferText(numericValue);
+    });
+
+    sendOfferBtn.addEventListener('click', async () => {
+      const numericValue = Math.max(0, normalizeNumeric(offerInput.value));
+      if (!numericValue) {
+        offerInput.focus();
+        return;
+      }
+
+      const existingCooldownMs = getRemainingOfferCooldownMs();
+      console.log('[OFFER COOLDOWN] existing cooldown before this click (ms):', existingCooldownMs);
+      if (existingCooldownMs > 0) {
+        console.log('[OFFER COOLDOWN] existing cooldown branch: true');
+        const remainingSeconds = Math.ceil(existingCooldownMs / 1000);
+        showOfferCooldownWarning(remainingSeconds);
+        return;
+      }
+
+      if (isSubmittingOffer) {
+        console.log('make-offer > Prevented duplicate offer submission from same click.');
+        return;
+      }
+
+      isSubmittingOffer = true;
+      sendOfferBtn.disabled = true;
+      sendOfferBtn.style.opacity = '0.6';
+      sendOfferBtn.style.cursor = 'not-allowed';
+
+      try {
+        console.log('[OFFER SUBMIT] started');
+
+        const buyerUserId = await getCurrentBuyerUserId();
+        if (!buyerUserId) {
+          console.warn('make-offer > No authenticated buyer found. Offer was not recorded.');
+          return;
+        }
+
+        const currentAd = await fetchCurrentAdForOffer();
+        if (!currentAd || !currentAd.seller_id) {
+          console.warn('make-offer > Missing seller_id for current ad. Offer was not recorded.');
+          return;
+        }
+
+        const insertedOffer = await createOfferRecord({
+          adId: String(currentAd.id || adId),
+          sellerId: currentAd.seller_id,
+          buyerId: buyerUserId,
+          offerAmount: numericValue
+        });
+
+        if (!insertedOffer) {
+          console.warn('make-offer > Offer insert failed. Offer Sent success was not shown.');
+          return;
+        }
+
+        successOfferAmount.textContent = 'Rs. ' + formatNumber(numericValue);
+        offerSuccess.hidden = false;
+        offerSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+        console.log('[OFFER SUBMIT] success');
+        setOfferCooldown();
+        hideOfferCooldownWarning();
+        startOfferCooldownTimer();
+
+        const buyerNotificationMessage = await createBuyerOfferNotification({
+          offerAmount: numericValue,
+          productTitle: adTitleEl.textContent || storedTitle || 'Ad'
+        });
+
+        console.log('[OFFER NOTIFICATION] created:', buyerNotificationMessage);
+      } catch (error) {
+        console.error('make-offer > Offer submission failed:', error);
+      } finally {
+        isSubmittingOffer = false;
+
+        if (!getRemainingOfferCooldownMs()) {
+          sendOfferBtn.disabled = false;
+          sendOfferBtn.style.opacity = '1';
+          sendOfferBtn.style.cursor = 'pointer';
+        }
+
+        console.log('[OFFER COOLDOWN] final button state:', {
+          adId,
+          disabled: sendOfferBtn.disabled,
+          opacity: sendOfferBtn.style.opacity,
+          cursor: sendOfferBtn.style.cursor
+        });
+      }
+    });
+
+    (async function init() {
+      const allowed = await ensureSignedIn();
+      if (!allowed) return;
+      applyAdInfo(storedTitle, storedPrice, 'Category');
+
+      const remainingMs = getRemainingOfferCooldownMs();
+      console.log('[OFFER COOLDOWN] init remaining before submit:', remainingMs);
+
+      // Do not disable the button on page load just because a cooldown exists.
+      // The button stays enabled, and the warning is shown only when a user tries to submit again.
+      sendOfferBtn.disabled = false;
+      sendOfferBtn.style.opacity = '1';
+      sendOfferBtn.style.cursor = 'pointer';
+
+      await loadSelectedAd();
+    })();
+  </script>
+</body>
+</html>
