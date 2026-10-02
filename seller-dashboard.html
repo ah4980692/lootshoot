@@ -175,6 +175,27 @@
     stroke-linejoin: round;
   }
 
+  /* Global chat badge shown on the header chat icon */
+  .header-chat-badge {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 18px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    box-shadow: 0 4px 10px rgba(12,75,50,0.12);
+  }
+
   /* Layout */
 
   .dashboard {
@@ -1981,12 +2002,13 @@
 
       <div class="seller-name" id="sellerName">Seller</div>
 
-      <button type="button" class="header-chat-button" id="headerChatButton" aria-label="Messages" title="Messages">
+      <button type="button" class="header-chat-button" id="headerChatButton" aria-label="Messages" title="Messages" style="position:relative">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M7 18.5L3.5 21V6.5A2.5 2.5 0 0 1 6 4h12a2.5 2.5 0 0 1 2.5 2.5v9A2.5 2.5 0 0 1 18 18H7Z"></path>
           <path d="M8 9h8"></path>
           <path d="M8 13h6"></path>
         </svg>
+        <span id="globalChatBadge" class="header-chat-badge" aria-hidden="true"></span>
       </button>
 
       <div class="seller-avatar" id="headerAvatar">
@@ -4800,6 +4822,65 @@
   });
 
 </script>
+</script>
+<script>
+  (function() {
+    const badgeEl = document.getElementById('globalChatBadge');
+    if (!badgeEl) return;
 
+    function setBadge(n) {
+      const num = Number(n) || 0;
+      if (num > 0) {
+        badgeEl.textContent = num > 99 ? '99+' : String(num);
+        badgeEl.style.display = 'inline-flex';
+      } else {
+        badgeEl.textContent = '';
+        badgeEl.style.display = 'none';
+      }
+    }
+
+    // Read initial value from localStorage on load
+    try {
+      const stored = localStorage.getItem('lootshoot_chat_unread');
+      if (stored !== null) setBadge(parseInt(stored, 10));
+    } catch (e) { /* ignore */ }
+
+    // Listen for the custom event dispatched by chat.html
+    window.addEventListener('lootshoot-chat-unread', (ev) => {
+      try {
+        const detail = ev?.detail;
+        if (detail && typeof detail.unread !== 'undefined') setBadge(detail.unread);
+        else if (typeof ev.detail === 'number') setBadge(ev.detail);
+      } catch (e) { console.warn(e); }
+    });
+
+    // Listen to BroadcastChannel messages
+    let bc;
+    try {
+      bc = new BroadcastChannel('lootshoot-chat');
+      bc.addEventListener('message', (m) => {
+        try {
+          const d = m?.data;
+          if (d == null) return;
+          if (typeof d === 'number') setBadge(d);
+          else if (typeof d.unread !== 'undefined') setBadge(d.unread);
+          else if (typeof d.count !== 'undefined') setBadge(d.count);
+        } catch (e) { /* ignore */ }
+      });
+    } catch (e) { /* ignore */ }
+
+    // Also listen to storage events (other tabs) for fallback
+    window.addEventListener('storage', (ev) => {
+      if (ev.key === 'lootshoot_chat_unread') {
+        try { setBadge(parseInt(ev.newValue, 10)); } catch (e) { }
+      }
+    });
+
+    // Clean up on unload
+    window.addEventListener('beforeunload', () => {
+      try { if (bc) bc.close(); } catch (e) { }
+    });
+  })();
+</script>
 </body>
 </html>
