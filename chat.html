@@ -97,6 +97,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .conversation-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
 .conversation-item-title{font-size:15px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .conversation-item-time{font-size:12px;color:var(--muted-2);white-space:nowrap}
+.conversation-unread-badge{background:var(--accent);color:#fff;font-size:12px;line-height:1;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;margin-left:8px}
 .conversation-item-meta{font-size:12px;color:var(--muted);margin-bottom:6px}
 .conversation-item-preview{font-size:13px;color:var(--muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .chat-error{background:var(--red-bg);border:1px solid #e9b7b7;color:var(--red);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5}
@@ -338,6 +339,8 @@ function goToConversationList() {
   url.searchParams.delete("conversation_id");
   window.history.replaceState({}, "", url.toString());
   resetListState();
+  // Clear cached conversations so unread counts refresh after viewing a thread
+  conversationsCache[currentTab] = [];
   showTab(currentTab);
 }
 
@@ -408,10 +411,12 @@ function renderConversationList(conversations) {
     const name = c.otherParticipantName || (currentTab === TABS.buying ? "Seller" : "Buyer");
     const preview = c.latestMessage?.message || "No messages yet";
     const ts = c.latestMessage?.created_at || c.created_at;
+    const unread = Number(c.unreadCount || 0) || 0;
+    const badge = unread > 0 ? `<span class="conversation-unread-badge">${esc(unread > 99 ? '99+' : String(unread))}</span>` : "";
     return `<button type="button" class="conversation-item" data-conversation-id="${esc(String(c.id))}" aria-label="Open conversation with ${esc(name)}">
       <div class="conversation-item-top">
         <div class="conversation-item-title">${esc(c.adTitle || "Ad")}</div>
-        <div class="conversation-item-time">${esc(ts ? formatMessageTime(ts) : "")}</div>
+        <div class="conversation-item-time">${esc(ts ? formatMessageTime(ts) : "")}${badge}</div>
       </div>
       <div class="conversation-item-meta">${esc(name)}</div>
       <div class="conversation-item-preview">${esc(preview)}</div>
@@ -420,6 +425,13 @@ function renderConversationList(conversations) {
 
   $("chatContainer").innerHTML = `${tabMarkup(currentTab)}<div class="chat-list">${listHtml}</div>`;
   bindTabEvents();
+
+  // Ensure unread badges are refreshed even when using cached conversation lists
+  // so badges appear without requiring a full page refresh.
+  document.querySelectorAll('.conversation-item').forEach((item) => {
+    const id = item.dataset.conversationId;
+    if (id) refreshConversationUnreadBadge(id);
+  });
 
   $("chatContainer").querySelectorAll(".conversation-item").forEach((item) => {
     item.addEventListener("click", () => {
@@ -431,6 +443,55 @@ function renderConversationList(conversations) {
       renderConversationThread(id);
     });
   });
+}
+
+async function refreshConversationUnreadBadge(conversationId) {
+  if (!conversationId) return;
+  try {
+    // Ensure we have currentUserId; fall back to auth if missing
+    if (!currentUserId) {
+      const u = await getAuthenticatedUser();
+      if (!u) return;
+      currentUserId = u.id;
+    }
+
+    const { count, error } = await supabaseClient
+      .from('messages')
+      .select('id', { count: 'exact' })
+      .eq('conversation_id', conversationId)
+      .neq('sender_id', currentUserId)
+      .eq('is_read', false);
+
+    if (error) return;
+    const unread = Number(count || 0);
+
+    const item = document.querySelector(`.conversation-item[data-conversation-id="${escapeSelector(conversationId)}"]`);
+    if (!item) return;
+
+    const timeNode = item.querySelector('.conversation-item-time');
+    if (!timeNode) return;
+
+    const existing = timeNode.querySelector('.conversation-unread-badge');
+    if (unread > 0) {
+      const text = unread > 99 ? '99+' : String(unread);
+      if (existing) {
+        existing.textContent = text;
+      } else {
+        const span = document.createElement('span');
+        span.className = 'conversation-unread-badge';
+        span.textContent = text;
+        timeNode.appendChild(span);
+      }
+    } else if (existing) {
+      existing.remove();
+    }
+  } catch (e) {
+    console.warn('Could not refresh unread badge:', e);
+  }
+}
+
+function escapeSelector(s) {
+  return String(s).replace(/(["'\\.:#\[\],<>+~*=^$|(){}])/g, "\\$1");
 }
 
 /* ---------- Data ---------- */
@@ -498,6 +559,30 @@ async function loadConversations(tabName) {
     if (error) throw error;
 
     const enriched = [];
+
+    // Pre-fetch unread incoming message rows for all conversations in one batch
+    // to avoid doing many small count requests and to ensure badges render
+    // immediately without requiring a manual page refresh.
+    const convoIds = (rows || []).map(r => r.id).filter(Boolean);
+    let unreadMap = {};
+    if (convoIds.length) {
+      try {
+        const { data: unreadRows, error: unreadError } = await supabaseClient
+          .from('messages')
+          .select('id, conversation_id')
+          .in('conversation_id', convoIds)
+          .neq('sender_id', user.id)
+          .eq('is_read', false);
+        if (!unreadError && Array.isArray(unreadRows)) {
+          for (const r of unreadRows) {
+            unreadMap[r.conversation_id] = (unreadMap[r.conversation_id] || 0) + 1;
+          }
+        }
+      } catch (e) {
+        console.warn('Could not batch-load unread rows:', e);
+      }
+    }
+
     for (const conversation of rows || []) {
       let adTitle = "Ad";
       try {
@@ -511,7 +596,8 @@ async function loadConversations(tabName) {
 
       const latestMessage = await getLatestMessage(conversation.id);
       const otherParticipantName = await getOtherParticipantName(conversation);
-      enriched.push({ ...conversation, adTitle, otherParticipantName, latestMessage });
+      const unreadCount = Number(unreadMap[conversation.id] || 0);
+      enriched.push({ ...conversation, adTitle, otherParticipantName, latestMessage, unreadCount });
     }
 
     const t = (c) => new Date(c.latestMessage?.created_at || c.created_at).getTime();
