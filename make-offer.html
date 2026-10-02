@@ -322,6 +322,44 @@
     const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
     const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
+    async function checkActiveDeal(adId) {
+      if (!adId) return false;
+      try {
+        const { data: activeDeal, error } = await supabaseClient
+          .from('deals')
+          .select('id')
+          .eq('ad_id', adId)
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          console.warn('make-offer > could not check active deal for ad', adId, error);
+          return false;
+        }
+
+        return Boolean(activeDeal);
+      } catch (err) {
+        console.warn('make-offer > unexpected error checking active deal for ad', adId, err);
+        return false;
+      }
+    }
+
+    function addLockIconToSendButton() {
+      if (!sendOfferBtn) return;
+      if (sendOfferBtn.querySelector && sendOfferBtn.querySelector('.lock-icon')) return;
+      const span = document.createElement('span');
+      span.className = 'lock-icon';
+      span.style.marginRight = '8px';
+      span.setAttribute('aria-hidden', 'true');
+      span.textContent = '🔒';
+      if (sendOfferBtn.firstChild) {
+        sendOfferBtn.insertBefore(span, sendOfferBtn.firstChild);
+      } else {
+        sendOfferBtn.appendChild(span);
+      }
+    }
+
     const params = new URLSearchParams(window.location.search);
     const adId = params.get('id') || sessionStorage.getItem('makeOfferAdId') || '4871ebae-2335-4d07-b925-5036e58f323d';
     const storedTitle = sessionStorage.getItem('makeOfferAdTitle') || 'Ad';
@@ -797,6 +835,20 @@
           Array.isArray(ad.images) ? ad.images[0] : ''
         );
 
+        // If the ad already has an active deal, lock the offer UI
+        try {
+          const locked = await checkActiveDeal(ad.id);
+          if (locked) {
+            addLockIconToSendButton();
+            sendOfferBtn.disabled = true;
+            offerLockNotice.style.display = 'block';
+            offerLockNotice.textContent = 'This ad is locked because it has an active deal.';
+          }
+        } catch (e) {
+          // Do not assume locked on error
+          console.warn('make-offer > could not determine lock state on load', e);
+        }
+
         return;
       } catch (error) {
         console.error('make-offer > Could not load selected ad on make-offer page:', error);
@@ -826,6 +878,19 @@
       if (!numericValue) {
         offerInput.focus();
         return;
+      }
+
+      // Double-check active deal immediately before creating offer
+      try {
+        const lockedNow = await checkActiveDeal(adId);
+        if (lockedNow) {
+          offerLockNotice.style.display = 'block';
+          offerLockNotice.textContent = 'This ad is locked because it has an active deal.';
+          alert('This ad is locked because it already has an active deal.');
+          return;
+        }
+      } catch (e) {
+        console.warn('make-offer > error checking active deal before submit', e);
       }
 
       try {
