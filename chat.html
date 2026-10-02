@@ -433,6 +433,10 @@ function renderConversationList(conversations) {
     if (id) refreshConversationUnreadBadge(id);
   });
 
+  // Update global unread badge (for other pages like seller dashboard)
+  const totalUnread = (conversations || []).reduce((s, c) => s + (Number(c.unreadCount || 0) || 0), 0);
+  updateGlobalUnreadBadge(totalUnread);
+
   $("chatContainer").querySelectorAll(".conversation-item").forEach((item) => {
     item.addEventListener("click", () => {
       const id = item.dataset.conversationId;
@@ -485,6 +489,12 @@ async function refreshConversationUnreadBadge(conversationId) {
     } else if (existing) {
       existing.remove();
     }
+    // Recompute total unread across rendered list and publish globally
+    const total = Array.from(document.querySelectorAll('.conversation-unread-badge')).reduce((s, el) => {
+      const n = parseInt(el.textContent || '0', 10);
+      return s + (Number.isFinite(n) ? n : 0);
+    }, 0);
+    updateGlobalUnreadBadge(total);
   } catch (e) {
     console.warn('Could not refresh unread badge:', e);
   }
@@ -492,6 +502,23 @@ async function refreshConversationUnreadBadge(conversationId) {
 
 function escapeSelector(s) {
   return String(s).replace(/(["'\\.:#\[\],<>+~*=^$|(){}])/g, "\\$1");
+}
+
+function updateGlobalUnreadBadge(total) {
+  try { localStorage.setItem('lootshoot_chat_unread', String(total)); } catch (e) { }
+  try {
+    const bc = new BroadcastChannel('lootshoot-chat');
+    bc.postMessage({ unread: total });
+    bc.close();
+  } catch (e) { }
+  try { window.dispatchEvent(new CustomEvent('lootshoot-chat-unread', { detail: { unread: total } })); } catch (e) { }
+
+  // If a global badge element exists on this page, update it immediately.
+  const globalEl = document.querySelector('#globalChatBadge, .global-chat-badge');
+  if (globalEl) {
+    if (total > 0) globalEl.textContent = total > 99 ? '99+' : String(total);
+    else globalEl.remove();
+  }
 }
 
 /* ---------- Data ---------- */
