@@ -988,6 +988,50 @@
 
   }
 
+  /* =========================================
+     ACTIVE DEAL CHECK
+     Returns true when a deal with status 'active'
+     exists for the given ad id. On error, returns
+     false (do not assume locked on query error).
+  ========================================= */
+  async function checkActiveDeal(adId) {
+    if (!adId) return false;
+    try {
+      const { data: activeDeal, error } = await supabaseClient
+        .from('deals')
+        .select('id')
+        .eq('ad_id', adId)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Could not check active deal for ad', adId, error);
+        return false;
+      }
+
+      return Boolean(activeDeal);
+    } catch (err) {
+      console.warn('Unexpected error while checking active deal for ad', adId, err);
+      return false;
+    }
+  }
+
+  function addLockIcon(el) {
+    if (!el) return;
+    if (el.querySelector && el.querySelector('.lock-icon')) return;
+    const span = document.createElement('span');
+    span.className = 'lock-icon';
+    span.style.marginRight = '8px';
+    span.setAttribute('aria-hidden', 'true');
+    span.textContent = '🔒';
+    if (el.firstChild) {
+      el.insertBefore(span, el.firstChild);
+    } else {
+      el.appendChild(span);
+    }
+  }
+
 
   /* =========================================
      LOAD AD FROM SUPABASE
@@ -1319,12 +1363,33 @@
     details.querySelector(".description").textContent =
       ad.description || "";
 
+    // Check active deal status for this ad (initial load)
+    const isLocked = await checkActiveDeal(ad.id);
+
     if (showSellerActions) {
       const editBtn = document.getElementById("editAdBtn");
       const deleteBtn = document.getElementById("deleteAdBtn");
 
+      // If locked on initial load, visually mark buttons and disable them
+      if (isLocked) {
+        if (editBtn) {
+          addLockIcon(editBtn);
+          editBtn.disabled = true;
+        }
+        if (deleteBtn) {
+          addLockIcon(deleteBtn);
+          deleteBtn.disabled = true;
+        }
+      }
+
       if (editBtn) {
-        editBtn.addEventListener("click", () => {
+        editBtn.addEventListener("click", async () => {
+          const lockedNow = await checkActiveDeal(ad.id);
+          if (lockedNow) {
+            alert('This ad is locked because it already has an active deal.');
+            return;
+          }
+
           sessionStorage.setItem("adDetailsFromMyAds", "true");
           sessionStorage.setItem("adDetailsIsApproved", "true");
           sessionStorage.setItem("editAdReturnUrl", window.location.href);
@@ -1335,6 +1400,12 @@
 
       if (deleteBtn) {
         deleteBtn.addEventListener("click", async () => {
+          const lockedNow = await checkActiveDeal(ad.id);
+          if (lockedNow) {
+            alert('This ad cannot be deleted because it has an active deal.');
+            return;
+          }
+
           const deleteModalBackdrop = document.getElementById("deleteModalBackdrop");
           const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
           const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
@@ -1346,6 +1417,14 @@
           };
 
           confirmDeleteBtn.onclick = async () => {
+            // Final check immediately before deletion
+            const lockedBeforeDelete = await checkActiveDeal(ad.id);
+            if (lockedBeforeDelete) {
+              deleteModalBackdrop.classList.remove("open");
+              alert('This ad cannot be deleted because it has an active deal.');
+              return;
+            }
+
             deleteModalBackdrop.classList.remove("open");
             confirmDeleteBtn.disabled = true;
 
@@ -1423,8 +1502,27 @@
       const makeOfferBtn = document.getElementById("makeOfferBtn");
       const buyNowBtn = document.getElementById("buyNowBtn");
 
+      // If locked on initial load, mark and disable purchase actions and contact link
+      if (isLocked) {
+        if (makeOfferBtn) {
+          addLockIcon(makeOfferBtn);
+          makeOfferBtn.disabled = true;
+        }
+        if (buyNowBtn) {
+          addLockIcon(buyNowBtn);
+          buyNowBtn.disabled = true;
+        }
+      }
+
       if (makeOfferBtn) {
         makeOfferBtn.addEventListener("click", async () => {
+          // Final active-deal check before allowing navigation
+          const lockedNow = await checkActiveDeal(ad.id);
+          if (lockedNow) {
+            alert('This ad is locked because it already has an active deal.');
+            return;
+          }
+
           const user = await getCurrentSellerId();
 
           if (!user) {
@@ -1442,6 +1540,13 @@
 
       if (buyNowBtn) {
         buyNowBtn.addEventListener("click", async () => {
+          // Final active-deal check before allowing navigation to payment
+          const lockedNow = await checkActiveDeal(ad.id);
+          if (lockedNow) {
+            alert('This ad is locked because it already has an active deal.');
+            return;
+          }
+
           const user = await getCurrentSellerId();
 
           if (!user) {
