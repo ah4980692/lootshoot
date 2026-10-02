@@ -4,458 +4,107 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chat - LootShoot</title>
-
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link
-  href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
-  rel="stylesheet"
->
-
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
-
-  :root {
-    --primary: #0c4b32;
-    --primary-hover: #08603c;
-    --accent: #25a56a;
-    --accent-dark: #1c9560;
-    --bg: #f4faf6;
-    --text: #123c2a;
-    --muted: #718078;
-    --muted-2: #7b8982;
-    --border: #d8e7de;
-    --border-2: #e7eee9;
-    --light-green: #d9f5e5;
-    --light-green-2: #eef9f2;
-    --red: #a83232;
-    --red-bg: #f8e5e5;
-    --red-bg-2: #fce0e0;
-  }
-
-  * {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
-
-  body {
-    font-family: Arial, Helvetica, sans-serif;
-    background: var(--bg);
-    color: var(--text);
-  }
-
-  button,
-  input,
-  textarea {
-    font-family: inherit;
-  }
-
-  button:focus-visible,
-  input:focus-visible,
-  textarea:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-
-  .app-shell {
-    max-width: 480px;
-    margin: 0 auto;
-    min-height: 100vh;
-    position: relative;
-    background: var(--bg);
-    display: flex;
-    flex-direction: column;
-  }
-
-  @media (min-width: 600px) {
-
-    .app-shell {
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-    }
-
-  }
-
-  @media (min-width: 900px) {
-
-    body {
-      padding: 28px;
-      background: #edf3f7;
-    }
-
-    .app-shell {
-      max-width: 1200px;
-      width: min(1200px, calc(100vw - 100px));
-      border-radius: 30px;
-      overflow: hidden;
-      box-shadow: 0 24px 60px rgba(23, 34, 48, 0.12);
-    }
-
-  }
-
-  /* Header */
-
-  .chat-header {
-    background: var(--primary);
-    color: white;
-    padding: 18px 24px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .header-left {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex: 1;
-    min-width: 0;
-  }
-
-  .back-button {
-    background: none;
-    border: none;
-    color: white;
-    font-size: 24px;
-    cursor: pointer;
-    padding: 0;
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s ease;
-  }
-
-  .back-button:hover {
-    opacity: 0.8;
-  }
-
-  .header-title {
-    font-size: 18px;
-    font-weight: 700;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .header-subtitle {
-    font-size: 12px;
-    opacity: 0.85;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .header-icon-btn {
-    background: rgba(255, 255, 255, 0.15);
-    border: none;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease, transform 0.2s ease;
-  }
-
-  .header-icon-btn:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: translateY(-1px);
-  }
-
-  .header-icon-btn svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  /* Chat Container */
-
-  .chat-container {
-    flex: 1;
-    overflow-y: auto;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .chat-empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    text-align: center;
-  }
-
-  .chat-empty-icon {
-    font-size: 48px;
-    margin-bottom: 16px;
-    opacity: 0.6;
-  }
-
-  .chat-empty-title {
-    font-size: 18px;
-    font-weight: 700;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-
-  .chat-empty-text {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.5;
-  }
-
-  .message-bubble {
-    display: flex;
-    margin-bottom: 8px;
-    animation: slideIn 0.3s ease;
-  }
-
-  @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  .message-bubble.sent {
-    justify-content: flex-end;
-  }
-
-  .message-bubble.received {
-    justify-content: flex-start;
-  }
-
-  .message-content {
-    max-width: 70%;
-    padding: 12px 14px;
-    border-radius: 14px;
-    font-size: 14px;
-    line-height: 1.4;
-    word-break: break-word;
-  }
-
-  .message-bubble.sent .message-content {
-    background: var(--accent);
-    color: white;
-  }
-
-  .message-bubble.received .message-content {
-    background: var(--light-green-2);
-    color: var(--text);
-  }
-
-  .message-time {
-    font-size: 11px;
-    color: var(--muted-2);
-    margin-top: 4px;
-    text-align: center;
-    margin-bottom: 12px;
-  }
-
-  /* Chat Input Area */
-
-  .chat-input-area {
-    background: white;
-    padding: 12px 16px 16px;
-    display: flex;
-    gap: 10px;
-    align-items: flex-end;
-    border-top: 1px solid var(--border-2);
-  }
-
-  .message-input-wrapper {
-    flex: 1;
-    display: flex;
-    gap: 8px;
-    background: var(--light-green-2);
-    border-radius: 20px;
-    padding: 0 14px;
-    align-items: center;
-  }
-
-  .message-input {
-    flex: 1;
-    border: none;
-    background: transparent;
-    padding: 10px 0;
-    font-size: 14px;
-    color: var(--text);
-    resize: none;
-    max-height: 100px;
-    outline: none;
-  }
-
-  .message-input::placeholder {
-    color: var(--muted);
-  }
-
-  .input-action-btn {
-    background: none;
-    border: none;
-    color: var(--accent);
-    cursor: pointer;
-    font-size: 18px;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: opacity 0.2s ease;
-  }
-
-  .input-action-btn:hover {
-    opacity: 0.8;
-  }
-
-  .send-button {
-    background: var(--accent);
-    border: none;
-    color: white;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: background 0.2s ease, transform 0.2s ease;
-    flex-shrink: 0;
-  }
-
-  .send-button:hover {
-    background: var(--accent-dark);
-    transform: translateY(-1px);
-  }
-
-  .send-button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
-
-  .send-button svg {
-    width: 18px;
-    height: 18px;
-    stroke: currentColor;
-    fill: none;
-    stroke-width: 2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-
-  /* Auth Message */
-
-  .auth-message {
-    background: white;
-    padding: 30px;
-    border-radius: 15px;
-    text-align: center;
-    margin: auto;
-    width: min(100%, 380px);
-  }
-
-  .auth-message-title {
-    font-size: 20px;
-    font-weight: 700;
-    margin-bottom: 10px;
-    color: var(--text);
-  }
-
-  .auth-message-text {
-    font-size: 14px;
-    color: var(--muted);
-    margin-bottom: 20px;
-    line-height: 1.6;
-  }
-
-  .auth-message-buttons {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-
-  .auth-message-btn {
-    padding: 12px;
-    border-radius: 10px;
-    border: none;
-    font-weight: 700;
-    font-size: 14px;
-    cursor: pointer;
-    transition: 0.2s ease;
-  }
-
-  .auth-message-btn.secondary {
-    background: var(--light-green-2);
-    color: var(--primary);
-    border: 1px solid var(--accent);
-  }
-
-  .auth-message-btn.secondary:hover {
-    background: var(--light-green);
-  }
-
-  .auth-message-btn.primary {
-    background: var(--primary);
-    color: white;
-  }
-
-  .auth-message-btn.primary:hover {
-    background: var(--primary-hover);
-  }
-
-  @media (max-width: 600px) {
-
-    .chat-header {
-      padding: 15px;
-    }
-
-    .header-left {
-      gap: 10px;
-    }
-
-    .header-title {
-      font-size: 16px;
-    }
-
-    .header-subtitle {
-      font-size: 11px;
-    }
-
-    .message-content {
-      max-width: 85%;
-      font-size: 13px;
-    }
-
-    .chat-input-area {
-      padding: 10px 14px 14px;
-    }
-
-  }
-
+:root{--primary:#0c4b32;--primary-hover:#08603c;--accent:#25a56a;--bg:#f4faf6;--text:#123c2a;--muted:#718078;--muted-2:#7b8982;--border:#d8e7de;--border-2:#e7eee9;--light-green:#d9f5e5;--light-green-2:#eef9f2;--red:#a83232;--red-bg:#f8e5e5}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--text)}
+button,input,textarea{font-family:inherit}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.app-shell{max-width:480px;margin:0 auto;height:100vh;height:100dvh;background:var(--bg);display:flex;flex-direction:column}
+@media(min-width:600px){.app-shell{border-left:1px solid var(--border);border-right:1px solid var(--border)}}
+@media(min-width:900px){body{padding:28px;background:#edf3f7}.app-shell{max-width:1200px;width:min(1200px,calc(100vw - 100px));height:calc(100vh - 56px);border-radius:30px;overflow:hidden;box-shadow:0 24px 60px rgba(23,34,48,.12)}}
+
+/* Header */
+.chat-header{background:var(--primary);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.1)}
+.header-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+.header-left>div{min-width:0}
+.back-button{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:opacity .2s}
+.back-button:hover{opacity:.8}
+.header-title{font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.header-subtitle{font-size:12px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.header-right{display:flex;align-items:center;gap:10px}
+.conversation-return-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s,transform .2s}
+.conversation-return-btn:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
+.header-icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s}
+.header-icon-btn:hover{background:rgba(255,255,255,.25);transform:translateY(-1px)}
+.header-icon-btn svg{width:18px;height:18px;fill:currentColor}
+
+/* Chat container */
+.chat-container{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.chat-empty,.conversation-thread-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center}
+.chat-empty-icon{font-size:48px;margin-bottom:16px;opacity:.6}
+.chat-empty-title{font-size:18px;font-weight:700;margin-bottom:8px}
+.chat-empty-text{font-size:14px;color:var(--muted);line-height:1.5}
+
+/* Conversation panel */
+.conversation-panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
+.conversation-thread{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px}
+
+/* Messages */
+.message-bubble{display:flex;animation:slideIn .25s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.message-bubble.sent{justify-content:flex-end}
+.message-bubble.received{justify-content:flex-start}
+.message-content{max-width:78%;padding:8px 12px 6px;border-radius:14px;font-size:14px;line-height:1.45;word-break:break-word;white-space:pre-wrap}
+.message-bubble.sent .message-content{background:#d9f5e5;color:var(--text);border:1px solid #b9e3cd;border-bottom-right-radius:4px}
+.message-bubble.received .message-content{background:#fff;color:var(--text);border:1px solid var(--border);border-bottom-left-radius:4px}
+.message-time{font-size:10px;margin-top:3px;text-align:right;color:var(--muted);opacity:.9}
+
+/* Input area */
+.chat-input-area{background:#fff;padding:12px 16px 16px;display:flex;gap:10px;align-items:center;border-top:1px solid var(--border-2)}
+.message-input-wrapper{flex:1;display:flex;gap:8px;background:var(--light-green-2);border-radius:24px;padding:0 14px;align-items:center;min-height:44px}
+.message-input{flex:1;border:none;background:transparent;padding:10px 0;font-size:15px;color:var(--text);outline:none;min-width:0}
+.message-input::placeholder{color:var(--muted)}
+.input-action-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center}
+.input-action-btn svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
+.input-action-btn:hover svg{stroke:var(--accent)}
+
+/* Send button (WhatsApp-style) */
+.send-button{background:var(--accent);border:none;color:#fff;width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;flex-shrink:0;padding:0}
+.send-button:hover{background:#1c9560;transform:scale(1.05)}
+.send-button:active{transform:scale(.95)}
+.send-button:disabled{background:#dfe6e1;color:#7a8a81;cursor:not-allowed;transform:none}
+.send-button svg{width:22px;height:22px;fill:currentColor;stroke:none;display:block;margin-left:2px}
+
+/* Auth */
+.auth-message{background:#fff;padding:30px;border-radius:15px;text-align:center;margin:auto;width:min(100%,380px)}
+.auth-message-title{font-size:20px;font-weight:700;margin-bottom:10px}
+.auth-message-text{font-size:14px;color:var(--muted);margin-bottom:20px;line-height:1.6}
+.auth-message-buttons{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.auth-message-btn{padding:12px;border-radius:10px;border:none;font-weight:700;font-size:14px;cursor:pointer;transition:.2s}
+.auth-message-btn.secondary{background:var(--light-green-2);color:var(--primary);border:1px solid var(--accent)}
+.auth-message-btn.secondary:hover{background:var(--light-green)}
+.auth-message-btn.primary{background:var(--primary);color:#fff}
+.auth-message-btn.primary:hover{background:var(--primary-hover)}
+
+/* Tabs & list */
+.chat-tabs{display:flex;gap:10px;background:var(--light-green-2);border:1px solid var(--border-2);border-radius:16px;padding:8px;position:sticky;top:0;z-index:1}
+.chat-tab{flex:1;border:1px solid transparent;background:transparent;color:var(--muted);padding:12px 14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.chat-tab.active{background:#fff;color:var(--primary);box-shadow:0 4px 12px rgba(12,75,50,.08);border-color:var(--border)}
+.chat-list{display:flex;flex-direction:column;gap:10px}
+.conversation-item{width:100%;background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px 18px;text-align:left;cursor:pointer;transition:transform .15s,box-shadow .15s;color:inherit}
+.conversation-item:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(18,60,42,.06)}
+.conversation-item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px}
+.conversation-item-title{font-size:15px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.conversation-item-time{font-size:12px;color:var(--muted-2);white-space:nowrap}
+.conversation-item-meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+.conversation-item-preview{font-size:13px;color:var(--muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.chat-error{background:var(--red-bg);border:1px solid #e9b7b7;color:var(--red);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5}
+.chat-loading{flex:1;display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--muted);font-size:14px;font-weight:600}
+
+@media(max-width:600px){
+.chat-header{padding:15px}
+.header-title{font-size:16px}
+.header-subtitle{font-size:11px}
+.message-content{max-width:85%;font-size:14px}
+.chat-input-area{padding:10px 14px 14px}
+.conversation-item{padding:14px 16px}
+.conversation-item-title{font-size:14px}
+}
 </style>
 </head>
 <body>
@@ -463,7 +112,6 @@
 <div class="app-shell">
 
   <header class="chat-header">
-
     <div class="header-left">
       <button type="button" class="back-button" id="backButton" aria-label="Go back" title="Back">←</button>
       <div>
@@ -471,233 +119,573 @@
         <div class="header-subtitle" id="chatSubtitle">LootShoot</div>
       </div>
     </div>
-
     <div class="header-right">
       <button type="button" class="header-icon-btn" id="moreOptionsBtn" aria-label="More options" title="More options">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <circle cx="12" cy="5" r="2"></circle>
-          <circle cx="12" cy="12" r="2"></circle>
-          <circle cx="12" cy="19" r="2"></circle>
-        </svg>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
       </button>
     </div>
-
   </header>
 
   <div class="chat-container" id="chatContainer">
-    <div class="chat-empty">
-      <div class="chat-empty-icon">💬</div>
-      <div class="chat-empty-title">No messages yet</div>
-      <div class="chat-empty-text">Chat feature coming soon. Messages will appear here.</div>
-    </div>
+    <div class="chat-loading">Loading...</div>
   </div>
 
-  <div class="chat-input-area" id="chatInputArea" style="display: none;">
+  <div class="chat-input-area" id="chatInputArea" style="display:none;">
     <div class="message-input-wrapper">
-      <input
-        type="text"
-        class="message-input"
-        id="messageInput"
-        placeholder="Type a message..."
-        aria-label="Message input"
-      >
-      <button type="button" class="input-action-btn" id="attachBtn" aria-label="Attach file" title="Attach">📎</button>
+      <input type="text" class="message-input" id="messageInput" placeholder="Type a message" aria-label="Message input" autocomplete="off">
+      <button type="button" class="input-action-btn" id="attachBtn" aria-label="Attach file" title="Attach">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+      </button>
     </div>
     <button type="button" class="send-button" id="sendButton" aria-label="Send message" title="Send" disabled>
-      <svg viewBox="0 0 24 24" aria-hidden="true">
-        <path d="M3 12l18-9-18 9m0 0v6l6-3-6-3z"></path>
-      </svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/></svg>
     </button>
   </div>
 
 </div>
 
 <script>
+const supabaseUrl = "https://saguwhkijrdiwiabxvyv.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  /* =========================================================
-     SUPABASE
-  ========================================================= */
+const TABS = { buying: "buying", selling: "selling" };
+let currentTab = TABS.buying;
+let conversationsCache = { buying: [], selling: [] };
+let currentConversationId = null;
+let isConversationViewOpen = false;
+let currentThreadMessages = [];
+let isSendingMessage = false;
+let currentUserId = null;
+let activeChannel = null;
 
-  const supabaseUrl =
-    "https://saguwhkijrdiwiabxvyv.supabase.co";
+const $ = (id) => document.getElementById(id);
 
-  const supabaseKey =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+// Prevents HTML injection from user-generated text
+function esc(str) {
+  const d = document.createElement("div");
+  d.textContent = str ?? "";
+  return d.innerHTML;
+}
 
-  const supabaseClient =
-    window.supabase.createClient(supabaseUrl, supabaseKey);
+/* ---------- Realtime ---------- */
 
+function removeConversationSubscription() {
+  if (activeChannel) {
+    supabaseClient.removeChannel(activeChannel);
+    activeChannel = null;
+  }
+}
 
-  /* =========================================================
-     GET AUTHENTICATED USER
-  ========================================================= */
+function subscribeToConversationMessages(conversationId) {
+  if (!conversationId) return;
+  removeConversationSubscription();
 
-  async function getAuthenticatedUser() {
+  activeChannel = supabaseClient.channel(`chat-conversation-${conversationId}`);
+  activeChannel
+    .on("postgres_changes", {
+      event: "INSERT", schema: "public", table: "messages",
+      filter: `conversation_id=eq.${conversationId}`
+    }, (payload) => {
+      const msg = payload?.new;
+      if (msg && msg.conversation_id === conversationId) addMessage(msg);
+    })
+    .subscribe((status) => {
+      if (status !== "SUBSCRIBED") console.warn("Realtime status:", status);
+    });
+}
 
-    try {
+/* ---------- Message rendering (single path, no duplicates) ---------- */
 
-      let { data: sessionData, error: sessionError } =
-        await supabaseClient.auth.getSession();
+function messageHtml(m) {
+  const out = m.sender_id === currentUserId;
+  return `<div class="message-bubble ${out ? "sent" : "received"}" data-id="${esc(String(m.id))}">
+    <div class="message-content">${esc(m.message)}<div class="message-time">${esc(formatMessageTime(m.created_at))}</div></div>
+  </div>`;
+}
 
-      if (sessionError) {
-        console.warn("getSession error:", sessionError);
-      }
+function addMessage(message) {
+  if (!message || !message.id) return;
+  if (currentThreadMessages.some((m) => m.id === message.id)) return;
 
-      if (!sessionData?.session) {
+  const thread = document.querySelector(".conversation-thread");
+  if (!thread) return;
 
-        const storedSession =
-          sessionStorage.getItem("sellerAuthSession") ||
-          localStorage.getItem("sellerAuthSession");
+  thread.querySelector(".conversation-thread-empty")?.remove();
+  thread.insertAdjacentHTML("beforeend", messageHtml(message));
+  currentThreadMessages.push(message);
+  thread.scrollTop = thread.scrollHeight;
+}
 
-        if (storedSession) {
+/* ---------- UI helpers ---------- */
 
-          try {
+function setHeaderText(title, subtitle) {
+  $("chatTitle").textContent = title || "Chat";
+  $("chatSubtitle").textContent = subtitle || "LootShoot";
+}
 
-            const parsedSession = JSON.parse(storedSession);
+function refreshComposerState() {
+  const hasText = $("messageInput").value.trim().length > 0;
+  $("sendButton").disabled = !isConversationViewOpen || isSendingMessage || !hasText;
+}
 
-            const { data, error } =
-              await supabaseClient.auth.setSession(parsedSession);
+function hideComposer() {
+  $("chatInputArea").style.display = "none";
+  $("messageInput").value = "";
+  $("sendButton").disabled = true;
+}
 
-            if (error) {
-              throw error;
-            }
+function resetListState() {
+  setHeaderText("Chat", "LootShoot");
+  isConversationViewOpen = false;
+  currentConversationId = null;
+  currentThreadMessages = [];
+  hideComposer();
+}
 
-            sessionData = data;
+function goToConversationList() {
+  removeConversationSubscription();
+  const url = new URL(window.location.href);
+  url.searchParams.delete("conversation_id");
+  window.history.replaceState({}, "", url.toString());
+  resetListState();
+  showTab(currentTab);
+}
 
-            if (data?.session) {
-              sessionStorage.setItem("sellerAuthSession", JSON.stringify(data.session));
-            }
+function getConversationIdFromUrl() {
+  return new URLSearchParams(window.location.search).get("conversation_id");
+}
 
-          } catch (parseError) {
-            console.warn("Could not parse stored session:", parseError);
-            return null;
-          }
+function formatMessageTime(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  const diffDays = Math.floor((new Date() - date) / 86400000);
+  if (diffDays === 0) return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  if (diffDays < 7) return date.toLocaleDateString([], { weekday: "short" });
+  return date.toLocaleDateString([], { month: "short", day: "numeric" });
+}
 
-        }
+function tabMarkup(selected = currentTab) {
+  return `<div class="chat-tabs" aria-label="Chat tabs">
+    <button type="button" class="chat-tab ${selected === TABS.buying ? "active" : ""}" data-tab="buying">Buying</button>
+    <button type="button" class="chat-tab ${selected === TABS.selling ? "active" : ""}" data-tab="selling">Selling</button>
+  </div>`;
+}
 
-      }
+function bindTabEvents() {
+  $("chatContainer").querySelectorAll(".chat-tab").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const t = btn.dataset.tab;
+      if (!t || t === currentTab) return;
+      currentTab = t;
+      showTab(currentTab);
+    });
+  });
+}
 
-      return sessionData?.session?.user || null;
+function renderLoadingState() {
+  resetListState();
+  $("chatContainer").innerHTML = `${tabMarkup()}<div class="chat-loading">Loading conversations...</div>`;
+  bindTabEvents();
+}
 
-    } catch (error) {
+function renderErrorState(message) {
+  resetListState();
+  $("chatContainer").innerHTML = `${tabMarkup()}<div class="chat-error">${esc(message)}</div>`;
+  bindTabEvents();
+}
 
-      console.error("Could not get authenticated user:", error);
-      return null;
+function renderEmptyState(tabName) {
+  resetListState();
+  const text = tabName === TABS.buying ? "No buying conversations yet" : "No selling conversations yet";
+  $("chatContainer").innerHTML = `${tabMarkup(tabName)}
+    <div class="chat-empty">
+      <div class="chat-empty-icon">💬</div>
+      <div class="chat-empty-title">${text}</div>
+      <div class="chat-empty-text">Your conversations will appear here.</div>
+    </div>`;
+  bindTabEvents();
+}
 
-    }
-
+function renderConversationList(conversations) {
+  resetListState();
+  if (!conversations || !conversations.length) {
+    renderEmptyState(currentTab);
+    return;
   }
 
+  const listHtml = conversations.map((c) => {
+    const name = c.otherParticipantName || (currentTab === TABS.buying ? "Seller" : "Buyer");
+    const preview = c.latestMessage?.message || "No messages yet";
+    const ts = c.latestMessage?.created_at || c.created_at;
+    return `<button type="button" class="conversation-item" data-conversation-id="${esc(String(c.id))}" aria-label="Open conversation with ${esc(name)}">
+      <div class="conversation-item-top">
+        <div class="conversation-item-title">${esc(c.adTitle || "Ad")}</div>
+        <div class="conversation-item-time">${esc(ts ? formatMessageTime(ts) : "")}</div>
+      </div>
+      <div class="conversation-item-meta">${esc(name)}</div>
+      <div class="conversation-item-preview">${esc(preview)}</div>
+    </button>`;
+  }).join("");
 
-  /* =========================================================
-     NAVIGATION
-  ========================================================= */
+  $("chatContainer").innerHTML = `${tabMarkup(currentTab)}<div class="chat-list">${listHtml}</div>`;
+  bindTabEvents();
 
-  document.getElementById("backButton").addEventListener("click", () => {
-    window.location.href = "seller-dashboard.html";
+  $("chatContainer").querySelectorAll(".conversation-item").forEach((item) => {
+    item.addEventListener("click", () => {
+      const id = item.dataset.conversationId;
+      if (!id) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set("conversation_id", id);
+      window.history.replaceState({}, "", url.toString());
+      renderConversationThread(id);
+    });
   });
+}
 
+/* ---------- Data ---------- */
 
-  /* =========================================================
-     INITIALIZATION
-  ========================================================= */
+async function getAdTitle(adId) {
+  if (!adId) return "Ad";
+  try {
+    const { data, error } = await supabaseClient.from("ads").select("id, title").eq("id", adId).maybeSingle();
+    if (error) { console.warn("Could not load ad title:", error); return "Ad"; }
+    return data?.title || "Ad";
+  } catch (e) {
+    console.warn("Could not load ad title:", e);
+    return "Ad";
+  }
+}
 
-  async function initializeChat() {
+async function getSellerProfile(userId) {
+  if (!userId) return null;
+  try {
+    const { data, error } = await supabaseClient.from("sellers").select("id, username").eq("id", userId).maybeSingle();
+    if (error) { console.warn("Could not load profile:", error); return null; }
+    return data;
+  } catch (e) {
+    console.warn("Could not load profile:", e);
+    return null;
+  }
+}
 
-    const chatContainer = document.getElementById("chatContainer");
-    const chatInputArea = document.getElementById("chatInputArea");
-    const authMessage = document.querySelector(".auth-message");
+async function getOtherParticipantName(conversation) {
+  const fallback = currentTab === TABS.buying ? "Seller" : "Buyer";
+  const targetId = currentTab === TABS.buying ? conversation.seller_id : conversation.buyer_id;
+  if (!targetId) return fallback;
+  const profile = await getSellerProfile(targetId);
+  return profile?.username || fallback;
+}
 
-    try {
+async function getLatestMessage(conversationId) {
+  try {
+    const { data, error } = await supabaseClient
+      .from("messages")
+      .select("id, conversation_id, message, created_at")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error && error.code !== "PGRST116") console.warn("Could not load latest message:", error);
+    return data || null;
+  } catch (e) {
+    console.warn("Could not load latest message:", e);
+    return null;
+  }
+}
 
-      const user = await getAuthenticatedUser();
+async function loadConversations(tabName) {
+  const user = await getAuthenticatedUser();
+  if (!user) return;
 
-      if (!user) {
+  try {
+    const filterField = tabName === TABS.buying ? "buyer_id" : "seller_id";
+    const { data: rows, error } = await supabaseClient
+      .from("conversations")
+      .select("id, deal_id, buyer_id, seller_id, created_at")
+      .eq(filterField, user.id)
+      .order("created_at", { ascending: false });
+    if (error) throw error;
 
-        // Show auth required message
-        chatContainer.innerHTML = `
-          <div class="auth-message" style="margin: auto;">
-            <div class="auth-message-title">Sign In Required</div>
-            <div class="auth-message-text">You must sign in to access the chat feature.</div>
-            <div class="auth-message-buttons">
-              <button type="button" class="auth-message-btn secondary" onclick="window.location.href='index.html';">Sign Up</button>
-              <button type="button" class="auth-message-btn primary" onclick="window.location.href='index.html';">Sign In</button>
-            </div>
-          </div>
-        `;
-
-        chatInputArea.style.display = "none";
-        return;
-
+    const enriched = [];
+    for (const conversation of rows || []) {
+      let adTitle = "Ad";
+      try {
+        const { data: deal, error: dealError } = await supabaseClient
+          .from("deals").select("id, ad_id").eq("id", conversation.deal_id).maybeSingle();
+        if (dealError) console.warn("Could not load deal:", dealError);
+        if (deal?.ad_id) adTitle = await getAdTitle(deal.ad_id);
+      } catch (e) {
+        console.warn("Failed to get deal/ad data:", e);
       }
 
-      // User is authenticated
-      // Chat input area will be shown when chat feature is fully implemented
-      chatInputArea.style.display = "none";
-
-      // Show placeholder for now
-      if (chatContainer.querySelector(".chat-empty")) {
-        // Keep the default empty state
-      }
-
-    } catch (error) {
-
-      console.error("Could not initialize chat:", error);
-      chatContainer.innerHTML = `
-        <div class="chat-empty">
-          <div class="chat-empty-icon">⚠️</div>
-          <div class="chat-empty-title">Something went wrong</div>
-          <div class="chat-empty-text">Please try refreshing the page.</div>
-        </div>
-      `;
-
+      const latestMessage = await getLatestMessage(conversation.id);
+      const otherParticipantName = await getOtherParticipantName(conversation);
+      enriched.push({ ...conversation, adTitle, otherParticipantName, latestMessage });
     }
 
+    const t = (c) => new Date(c.latestMessage?.created_at || c.created_at).getTime();
+    enriched.sort((a, b) => t(b) - t(a));
+
+    conversationsCache[tabName] = enriched;
+    renderConversationList(enriched);
+  } catch (error) {
+    console.error("Failed to load chat conversations:", error);
+    renderErrorState("We could not load your chats right now.");
+  }
+}
+
+async function getConversationMessageRows(conversationId) {
+  try {
+    const { data, error } = await supabaseClient
+      .from("messages")
+      .select("id, conversation_id, sender_id, message, created_at, is_read")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true });
+    if (error) throw error;
+    return data || [];
+  } catch (e) {
+    console.warn("Could not load messages:", e);
+    return [];
+  }
+}
+
+async function renderConversationThread(conversationId) {
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    renderErrorState("You need to sign in to view this conversation.");
+    return;
   }
 
-  // Initialize on page load
-  window.addEventListener("load", initializeChat);
-  
-  // Also initialize immediately in case page is already loaded
-  if (document.readyState === "loading") {
-    document.addEventListener("DOMContentLoaded", initializeChat);
-  } else {
-    initializeChat();
-  }
+  currentUserId = user.id;
+  removeConversationSubscription();
 
+  try {
+    const { data: conversation, error } = await supabaseClient
+      .from("conversations")
+      .select("id, deal_id, buyer_id, seller_id, created_at")
+      .eq("id", conversationId)
+      .maybeSingle();
+    if (error) throw error;
 
-  /* =========================================================
-     MESSAGE INPUT
-  ========================================================= */
-
-  const messageInput = document.getElementById("messageInput");
-  const sendButton = document.getElementById("sendButton");
-
-  messageInput.addEventListener("input", () => {
-    sendButton.disabled = !messageInput.value.trim();
-  });
-
-  messageInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey && !sendButton.disabled) {
-      e.preventDefault();
-      sendButton.click();
-    }
-  });
-
-  sendButton.addEventListener("click", async () => {
-    const message = messageInput.value.trim();
-
-    if (!message) {
+    if (!conversation) { renderErrorState("This conversation could not be found."); return; }
+    if (conversation.buyer_id !== user.id && conversation.seller_id !== user.id) {
+      renderErrorState("You do not have access to this conversation.");
       return;
     }
 
-    // TODO: Implement actual message sending when chat backend is ready
+    let adTitle = "Ad";
+    const { data: deal, error: dealError } = await supabaseClient
+      .from("deals").select("id, ad_id").eq("id", conversation.deal_id).maybeSingle();
+    if (dealError) console.warn("Could not load deal:", dealError);
+    if (deal?.ad_id) adTitle = await getAdTitle(deal.ad_id);
 
-    messageInput.value = "";
-    sendButton.disabled = true;
-  });
+    const otherId = conversation.buyer_id === user.id ? conversation.seller_id : conversation.buyer_id;
+    const otherProfile = otherId ? await getSellerProfile(otherId) : null;
+    const otherName = otherProfile?.username || "User";
+    const messages = await getConversationMessageRows(conversation.id);
 
+    currentConversationId = conversation.id;
+    isConversationViewOpen = true;
+    currentThreadMessages = messages;
+
+    setHeaderText(otherName, adTitle);
+    $("chatInputArea").style.display = "flex";
+
+    const messageMarkup = messages.length
+      ? messages.map(messageHtml).join("")
+      : `<div class="conversation-thread-empty">
+           <div class="chat-empty-icon">💬</div>
+           <div class="chat-empty-title">No messages yet</div>
+           <div class="chat-empty-text">Say hello 👋</div>
+         </div>`;
+
+    $("chatContainer").innerHTML = `
+      <div class="conversation-panel">
+        <div class="conversation-thread">${messageMarkup}</div>
+      </div>`;
+
+    const thread = document.querySelector(".conversation-thread");
+    if (thread) thread.scrollTop = thread.scrollHeight;
+
+    $("messageInput").value = "";
+    $("sendButton").disabled = true;
+
+    subscribeToConversationMessages(conversation.id);
+    refreshComposerState();
+    $("messageInput").focus();
+  } catch (error) {
+    console.error("Could not open conversation:", error);
+    renderErrorState("We could not load this conversation.");
+  }
+}
+
+async function showTab(tabName) {
+  currentTab = Object.values(TABS).includes(tabName) ? tabName : TABS.buying;
+
+  const conversationId = getConversationIdFromUrl();
+  if (conversationId) {
+    await renderConversationThread(conversationId);
+    return;
+  }
+
+  const cached = conversationsCache[currentTab];
+  if (cached && cached.length) {
+    renderConversationList(cached);
+    return;
+  }
+
+  renderLoadingState();
+  await loadConversations(currentTab);
+}
+
+async function initializeChat() {
+  const chatContainer = $("chatContainer");
+
+  try {
+    const user = await getAuthenticatedUser();
+
+    if (!user) {
+      currentUserId = null;
+      chatContainer.innerHTML = `
+        <div class="auth-message">
+          <div class="auth-message-title">Sign In Required</div>
+          <div class="auth-message-text">You must sign in to access the chat feature.</div>
+          <div class="auth-message-buttons">
+            <button type="button" class="auth-message-btn secondary" onclick="window.location.href='index.html';">Sign Up</button>
+            <button type="button" class="auth-message-btn primary" onclick="window.location.href='index.html';">Sign In</button>
+          </div>
+        </div>`;
+      $("chatInputArea").style.display = "none";
+      removeConversationSubscription();
+      return;
+    }
+
+    currentUserId = user.id;
+    resetListState();
+    currentTab = TABS.buying;
+    await showTab(currentTab);
+  } catch (error) {
+    console.error("Could not initialize chat:", error);
+    chatContainer.innerHTML = `
+      <div class="chat-empty">
+        <div class="chat-empty-icon">⚠️</div>
+        <div class="chat-empty-title">Something went wrong</div>
+        <div class="chat-empty-text">Please try refreshing the page.</div>
+      </div>`;
+  }
+}
+
+async function getAuthenticatedUser() {
+  try {
+    let { data: sessionData, error: sessionError } = await supabaseClient.auth.getSession();
+    if (sessionError) console.warn("getSession error:", sessionError);
+
+    if (!sessionData?.session) {
+      const stored = sessionStorage.getItem("sellerAuthSession") || localStorage.getItem("sellerAuthSession");
+      if (stored) {
+        try {
+          const { data, error } = await supabaseClient.auth.setSession(JSON.parse(stored));
+          if (error) throw error;
+          sessionData = data;
+          if (data?.session) sessionStorage.setItem("sellerAuthSession", JSON.stringify(data.session));
+        } catch (e) {
+          console.warn("Could not restore stored session:", e);
+          return null;
+        }
+      }
+    }
+    return sessionData?.session?.user || null;
+  } catch (e) {
+    console.error("Could not get authenticated user:", e);
+    return null;
+  }
+}
+
+/* ---------- Sending ---------- */
+
+async function validateActiveConversation(conversationId, userId) {
+  if (!conversationId || !userId) return null;
+  try {
+    const { data, error } = await supabaseClient
+      .from("conversations")
+      .select("id, deal_id, buyer_id, seller_id")
+      .eq("id", conversationId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data || (data.buyer_id !== userId && data.seller_id !== userId)) return null;
+    return data;
+  } catch (e) {
+    console.warn("Conversation validation failed:", e);
+    return null;
+  }
+}
+
+async function sendMessage() {
+  if (!isConversationViewOpen || isSendingMessage || !currentConversationId) return;
+
+  const user = await getAuthenticatedUser();
+  if (!user) { window.alert("Please sign in again to send a message."); return; }
+
+  const text = $("messageInput").value.trim();
+  if (!text) { $("sendButton").disabled = true; return; }
+
+  const valid = await validateActiveConversation(currentConversationId, user.id);
+  if (!valid) { window.alert("You can only send messages in conversations you are part of."); return; }
+
+  isSendingMessage = true;
+  $("sendButton").disabled = true;
+
+  try {
+    const { data, error } = await supabaseClient
+      .from("messages")
+      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: text }])
+      .select("id, conversation_id, sender_id, message, created_at, is_read")
+      .single();
+    if (error) throw error;
+
+    if (data) addMessage(data);
+    $("messageInput").value = "";
+  } catch (error) {
+    console.error("Could not send message:", error);
+    window.alert("Message could not be sent. Please try again.");
+  } finally {
+    isSendingMessage = false;
+    refreshComposerState();
+    $("messageInput").focus();
+  }
+}
+
+/* ---------- Events ---------- */
+
+// Header back arrow: inside a conversation -> chat list; on the list -> dashboard
+$("backButton").addEventListener("click", () => {
+  if (isConversationViewOpen) {
+    goToConversationList();
+    return;
+  }
+  removeConversationSubscription();
+  window.location.href = "seller-dashboard.html";
+});
+
+$("messageInput").addEventListener("input", refreshComposerState);
+
+$("messageInput").addEventListener("keydown", async (e) => {
+  if (e.key !== "Enter" || e.shiftKey) return;
+  e.preventDefault();
+  if ($("sendButton").disabled) return;
+  await sendMessage();
+});
+
+$("sendButton").addEventListener("click", sendMessage);
+
+// Run once, whether the DOM is ready yet or not
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initializeChat);
+} else {
+  initializeChat();
+}
 </script>
-
 </body>
 </html>
