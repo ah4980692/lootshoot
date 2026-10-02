@@ -208,10 +208,23 @@ function subscribeToConversationMessages(conversationId) {
     }, (payload) => {
       const msg = payload?.new;
       if (!msg || msg.conversation_id !== conversationId) return;
+
+      // Keep the local thread state in sync
       const existingIndex = currentThreadMessages.findIndex((m) => m && m.id === msg.id);
       if (existingIndex >= 0) currentThreadMessages[existingIndex] = msg;
-      const existingBubble = Array.from(document.querySelectorAll(".message-bubble")).find((node) => node.dataset.id === String(msg.id));
-      if (existingBubble) existingBubble.outerHTML = messageHtml(msg);
+
+      // Update only the meta (time + tick) inside the visible bubble to avoid
+      // re-rendering the whole message or duplicating nodes.
+      const bubble = document.querySelector(`.message-bubble[data-id="${String(msg.id)}"]`);
+      if (bubble) {
+        const meta = bubble.querySelector('.message-meta');
+        if (meta) {
+          meta.innerHTML = `<span class="message-time">${esc(formatMessageTime(msg.created_at))}</span>${getMessageStatusMarkup(msg)}`;
+        } else {
+          // Fallback: replace whole bubble if structure differs
+          bubble.outerHTML = messageHtml(msg);
+        }
+      }
     })
     .subscribe((status) => {
       if (status !== "SUBSCRIBED") console.warn("Realtime status:", status);
@@ -560,10 +573,42 @@ async function renderConversationThread(conversationId) {
     const otherProfile = otherId ? await getSellerProfile(otherId) : null;
     const otherName = otherProfile?.username || "User";
     const messages = await getConversationMessageRows(conversation.id);
-    const preparedMessages = await Promise.all(messages.map(async (message) => {
-      if (!message || message.sender_id === user.id) return message;
-      return await markIncomingMessageStatus(message);
-    }));
+
+    // Batch-mark incoming unread messages as delivered (if null) and read.
+    // This updates the DB and then uses the updated rows for rendering so
+    // the sender's ticks can update when the conversation is opened later.
+    const incomingUnread = (messages || []).filter(m => m && m.sender_id !== user.id && !m.is_read);
+    const updatedMap = {};
+    if (incomingUnread.length) {
+      try {
+        const ids = incomingUnread.map(m => m.id);
+        const now = new Date().toISOString();
+
+        // Set delivered_at only where it's currently NULL
+        await supabaseClient
+          .from('messages')
+          .update({ delivered_at: now })
+          .in('id', ids)
+          .is('delivered_at', null);
+
+        // Mark as read and return updated rows to merge into the local list
+        const { data: updatedRows, error } = await supabaseClient
+          .from('messages')
+          .update({ is_read: true })
+          .in('id', ids)
+          .eq('conversation_id', conversation.id)
+          .neq('sender_id', user.id)
+          .select('id, conversation_id, sender_id, message, created_at, delivered_at, is_read');
+
+        if (!error && Array.isArray(updatedRows)) {
+          updatedRows.forEach(r => { updatedMap[r.id] = r; });
+        }
+      } catch (e) {
+        console.warn('Could not mark messages delivered/read:', e);
+      }
+    }
+
+    const preparedMessages = (messages || []).map(m => m && updatedMap[m.id] ? updatedMap[m.id] : m);
 
     currentConversationId = conversation.id;
     isConversationViewOpen = true;
