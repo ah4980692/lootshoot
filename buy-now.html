@@ -238,7 +238,7 @@
     }
 
     const params = new URLSearchParams(window.location.search);
-    const adId = params.get('id');
+    const adId = params.get('id') || sessionStorage.getItem('buyAdId');
     const urlPrice = params.get('price');
 
     const adTitle = sessionStorage.getItem('buyAdTitle') || 'Ad';
@@ -255,6 +255,33 @@
       document.getElementById('summaryPrice').textContent = 'Rs. ' + price.toLocaleString();
       document.getElementById('summaryCommission').textContent = 'Rs. ' + commission.toLocaleString();
       document.getElementById('summaryTotal').textContent = 'Rs. ' + total.toLocaleString();
+    }
+
+    async function checkActiveDeal(adIdToCheck) {
+      if (!adIdToCheck) return false;
+      try {
+        const supabaseUrl = 'https://saguwhkijrdiwiabxvyv.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
+        const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        const { data: activeDeal, error } = await supabaseClient
+          .from('deals')
+          .select('id')
+          .eq('ad_id', adIdToCheck)
+          .eq('status', 'active')
+          .limit(1)
+          .maybeSingle();
+
+        if (error) {
+          console.warn('buy-now > could not check active deal for ad', adIdToCheck, error);
+          return false;
+        }
+
+        return Boolean(activeDeal);
+      } catch (err) {
+        console.warn('buy-now > unexpected error checking active deal for ad', adIdToCheck, err);
+        return false;
+      }
     }
 
     async function loadPriceFromSupabase() {
@@ -279,6 +306,26 @@
           sessionStorage.setItem('buyAdPrice', String(livePrice));
           document.getElementById('adTitle').textContent = liveTitle;
           setPriceUI(livePrice);
+
+          // If ad has an active deal, disable checkout and show a lock icon
+          try {
+            const locked = await checkActiveDeal(adId);
+            if (locked) {
+              const checkoutBtn = document.querySelector('.checkout-btn');
+              if (checkoutBtn) {
+                const span = document.createElement('span');
+                span.className = 'lock-icon';
+                span.style.marginRight = '8px';
+                span.textContent = '🔒';
+                checkoutBtn.insertBefore(span, checkoutBtn.firstChild);
+                checkoutBtn.disabled = true;
+                checkoutBtn.style.opacity = '0.6';
+                checkoutBtn.style.cursor = 'not-allowed';
+              }
+            }
+          } catch (e) {
+            console.warn('buy-now > error checking active deal after price load', e);
+          }
         }
       } catch (error) {
         console.warn('Could not load price from Supabase:', error);
@@ -292,8 +339,25 @@
     }
 
     function goToPayment() {
-      sessionStorage.setItem('paymentReturnUrl', 'buy-now.html');
-      window.location.href = 'payment.html';
+      (async function() {
+        try {
+          const lockedNow = await checkActiveDeal(adId);
+          if (lockedNow) {
+            alert('This ad is locked because it already has an active deal.');
+            return;
+          }
+
+          sessionStorage.setItem('paymentReturnUrl', 'buy-now.html');
+          sessionStorage.setItem('paymentAdId', adId);
+          window.location.href = 'payment.html';
+        } catch (e) {
+          console.warn('buy-now > error checking active deal before payment', e);
+          // On error, do not assume locked — continue to payment
+          sessionStorage.setItem('paymentReturnUrl', 'buy-now.html');
+          sessionStorage.setItem('paymentAdId', adId);
+          window.location.href = 'payment.html';
+        }
+      })();
     }
   </script>
 </body>
