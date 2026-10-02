@@ -520,10 +520,14 @@
            42501 "new row violates row-level security policy" error. */
         submitBtn.textContent = 'Saving payment...';
 
+        const rawPaymentAdId = sessionStorage.getItem('paymentAdId');
+        const adId = rawPaymentAdId && rawPaymentAdId !== 'null' ? rawPaymentAdId : null;
+
         const { error: paymentError } = await supabaseClient
           .from('payments')
           .insert({
             buyer_id: user.id,
+            ad_id: adId || null,
             payment_method: selectedMethod,
             screenshot_path: filePath,
             status: 'pending'
@@ -539,7 +543,7 @@
         }
 
         /* 4. Success */
-        showMessage('Payment submitted successfully. We will review your payment shortly and will contact you at your WhatsApp number.', 'success');
+        showMessage('Payment submitted successfully. We will review your payment shortly and will contact you.', 'success');
         submitBtn.textContent = 'Payment submitted';
 
       } catch (error) {
