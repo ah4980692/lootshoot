@@ -142,6 +142,39 @@
     display: block;
   }
 
+  .header-chat-button {
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 50%;
+    background: var(--light-green);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    flex-shrink: 0;
+    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .header-chat-button:hover,
+  .header-chat-button:focus-visible {
+    background: #d9f3df;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(12, 75, 50, 0.12);
+  }
+
+  .header-chat-button svg {
+    width: 20px;
+    height: 20px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
   /* Layout */
 
   .dashboard {
@@ -1600,7 +1633,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(10, 22, 18, 0.52);
+    background: rgba(8, 28, 18, 0.62);
     z-index: 2100;
     align-items: center;
     justify-content: center;
@@ -1613,88 +1646,124 @@
 
   .offer-accept-modal-card {
     background: white;
-    border-radius: 20px;
-    width: min(100%, 420px);
-    padding: 28px 24px 22px;
-    box-shadow: 0 22px 60px rgba(3, 11, 9, 0.2);
+    border-radius: 18px;
+    width: min(100%, 380px);
+    padding: 22px 18px 18px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
     position: relative;
+    animation: offerAcceptPop 0.18s ease-out;
+  }
+
+  @keyframes offerAcceptPop {
+    from { transform: scale(0.94); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
   }
 
   .offer-accept-modal-close {
     position: absolute;
-    top: 14px;
-    right: 14px;
-    width: 32px;
-    height: 32px;
+    top: 12px;
+    right: 12px;
+    width: 30px;
+    height: 30px;
     border: none;
-    background: transparent;
-    font-size: 28px;
+    border-radius: 50%;
+    background: var(--bg);
+    font-size: 20px;
+    line-height: 1;
     color: var(--muted);
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     transition: 0.2s ease;
   }
 
   .offer-accept-modal-close:hover {
     color: var(--text);
+    background: var(--light-green);
   }
 
   .offer-accept-modal-header {
     text-align: center;
-    margin: 0 0 16px;
+    margin: 0 0 14px;
   }
 
   .offer-accept-modal-icon {
-    width: 64px;
-    height: 64px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: #e8f7f0;
-    color: var(--accent);
+    background: #e0f3e8;
+    color: var(--accent-dark);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 30px;
-    margin: 0 auto 14px;
-    font-weight: 800;
+    margin: 0 auto 10px;
   }
 
   .offer-accept-modal-title {
+    margin: 0 0 4px;
+    font-size: 19px;
+    font-weight: 700;
+    color: var(--text);
+  }
+
+  .offer-accept-modal-subtitle {
     margin: 0;
-    font-size: 24px;
-    font-weight: 800;
-    color: #1a2a2a;
-  }
-
-  .offer-accept-modal-body {
-    text-align: center;
-    margin: 0 0 16px;
-  }
-
-  .offer-accept-modal-amount {
-    margin: 0 0 12px;
-    font-size: 16px;
-    font-weight: 600;
-    color: var(--primary);
-  }
-
-  .offer-accept-modal-warning {
-    margin: 0;
+    font-size: 13px;
     color: var(--muted);
-    line-height: 1.6;
-    font-size: 14px;
+  }
+
+  .offer-accept-modal-prices {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 0 0 12px;
+  }
+
+  .offer-accept-modal-price-col {
+    text-align: center;
+  }
+
+  .offer-accept-modal-price-label {
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  .offer-accept-modal-price-old {
+    font-size: 16px;
+    color: #8a9f93;
+    text-decoration: line-through;
+  }
+
+  .offer-accept-modal-price-new {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--accent-dark);
+  }
+
+  .offer-accept-modal-arrow {
+    color: var(--accent);
+    display: flex;
   }
 
   .offer-accept-modal-checkbox {
     display: flex;
+    align-items: center;
     gap: 10px;
-    margin: 16px 0 20px;
-    padding: 12px;
-    background: var(--light-green-2);
-    border-radius: 10px;
+    margin: 0 0 14px;
   }
 
   .offer-accept-modal-checkbox input[type="checkbox"] {
     flex-shrink: 0;
-    margin-top: 3px;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    accent-color: var(--accent);
     cursor: pointer;
   }
 
@@ -1702,34 +1771,35 @@
     flex: 1;
     font-size: 13px;
     color: var(--text);
-    line-height: 1.5;
+    line-height: 1.4;
     cursor: pointer;
   }
 
   .offer-accept-modal-actions {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 10px;
   }
 
   .offer-accept-modal-btn {
     border: none;
     border-radius: 12px;
-    padding: 13px 16px;
-    font-weight: 700;
+    height: 44px;
+    padding: 0 16px;
+    font-weight: 600;
     font-size: 14px;
     cursor: pointer;
     transition: 0.2s ease;
   }
 
   .offer-accept-modal-btn.cancel {
-    background: var(--light-green-2);
-    color: var(--primary);
-    border: 1px solid var(--accent);
+    background: white;
+    color: var(--text);
+    border: 1px solid #b9d9c6;
   }
 
   .offer-accept-modal-btn.cancel:hover {
-    background: var(--light-green);
+    background: var(--bg);
   }
 
   .offer-accept-modal-btn.accept {
@@ -1742,8 +1812,12 @@
   }
 
   .offer-accept-modal-btn:disabled {
-    opacity: 0.6;
     cursor: not-allowed;
+  }
+
+  .offer-accept-modal-btn.accept:disabled {
+    background: var(--border);
+    color: #6c8a79;
   }
 
   /* Auth Modal */
@@ -1906,6 +1980,14 @@
     <div class="seller-info">
 
       <div class="seller-name" id="sellerName">Seller</div>
+
+      <button type="button" class="header-chat-button" id="headerChatButton" aria-label="Messages" title="Messages">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M7 18.5L3.5 21V6.5A2.5 2.5 0 0 1 6 4h12a2.5 2.5 0 0 1 2.5 2.5v9A2.5 2.5 0 0 1 18 18H7Z"></path>
+          <path d="M8 9h8"></path>
+          <path d="M8 13h6"></path>
+        </svg>
+      </button>
 
       <div class="seller-avatar" id="headerAvatar">
         <span id="headerAvatarInitials">S</span>
@@ -2201,23 +2283,35 @@
       <button type="button" class="offer-accept-modal-close" aria-label="Close" id="offerAcceptModalCloseBtn">×</button>
 
       <div class="offer-accept-modal-header">
-        <div class="offer-accept-modal-icon">✓</div>
-        <h2 class="offer-accept-modal-title">Accept Offer?</h2>
+        <div class="offer-accept-modal-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4l-7.2 7.2a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>
+        </div>
+        <h2 class="offer-accept-modal-title">Accept this offer?</h2>
+        <p class="offer-accept-modal-subtitle">Your listing price will change.</p>
       </div>
 
-      <div class="offer-accept-modal-body">
-        <p class="offer-accept-modal-amount" id="offerAcceptModalAmount"></p>
-        <p class="offer-accept-modal-warning">If you accept this offer, your product price will automatically be changed to Rs. <span id="offerAcceptModalWarningPrice"></span>.</p>
+      <div class="offer-accept-modal-prices">
+        <div class="offer-accept-modal-price-col" id="offerAcceptCurrentCol">
+          <div class="offer-accept-modal-price-label">Current</div>
+          <div class="offer-accept-modal-price-old" id="offerAcceptCurrentPrice"></div>
+        </div>
+        <div class="offer-accept-modal-arrow" id="offerAcceptArrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </div>
+        <div class="offer-accept-modal-price-col">
+          <div class="offer-accept-modal-price-label">New price</div>
+          <div class="offer-accept-modal-price-new" id="offerAcceptNewPrice"></div>
+        </div>
       </div>
 
       <div class="offer-accept-modal-checkbox">
         <input type="checkbox" id="offerAcceptConfirmCheckbox" aria-label="I understand">
-        <label for="offerAcceptConfirmCheckbox">I understand that accepting this offer will change my product price to Rs. <span id="offerAcceptCheckboxPrice"></span>.</label>
+        <label for="offerAcceptConfirmCheckbox">I understand my price will change to Rs. <span id="offerAcceptCheckboxPrice"></span></label>
       </div>
 
       <div class="offer-accept-modal-actions">
         <button type="button" class="offer-accept-modal-btn cancel" id="offerAcceptCancelBtn">Cancel</button>
-        <button type="button" class="offer-accept-modal-btn accept" id="offerAcceptConfirmBtn" disabled>Accept Offer</button>
+        <button type="button" class="offer-accept-modal-btn accept" id="offerAcceptConfirmBtn" disabled>Accept offer</button>
       </div>
     </div>
   </div>
@@ -2238,6 +2332,42 @@
 
   const supabaseClient =
     window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  // Check active deal for an ad. Returns true when an active deal exists.
+  async function checkActiveDeal(adId) {
+    if (!adId) return false;
+    try {
+      const { data: activeDeal, error } = await supabaseClient
+        .from('deals')
+        .select('id')
+        .eq('ad_id', adId)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.warn('Could not check active deal for ad', adId, error);
+        return false;
+      }
+
+      return Boolean(activeDeal);
+    } catch (err) {
+      console.warn('Unexpected error while checking active deal for ad', adId, err);
+      return false;
+    }
+  }
+
+  function addLockIcon(el) {
+    if (!el) return;
+    if (el.querySelector && el.querySelector('.lock-icon')) return;
+    const span = document.createElement('span');
+    span.className = 'lock-icon';
+    span.style.marginRight = '8px';
+    span.setAttribute('aria-hidden', 'true');
+    span.textContent = '🔒';
+    if (el.firstChild) el.insertBefore(span, el.firstChild);
+    else el.appendChild(span);
+  }
 
 
   /* =========================================================
@@ -3103,10 +3233,34 @@
     const deleteBtn = card.querySelector(".ad-delete-btn");
 
     if (deleteBtn) {
+      // Check on initial render and mark delete button if ad is locked
+      (async () => {
+        try {
+          const locked = await checkActiveDeal(ad.id);
+          if (locked) {
+            addLockIcon(deleteBtn);
+            deleteBtn.disabled = true;
+          }
+        } catch (e) {
+          console.warn('Could not determine active deal state on my-ads card', e);
+        }
+      })();
+
       deleteBtn.addEventListener("click", async event => {
 
         event.preventDefault();
         event.stopPropagation();
+
+        // Final check before opening delete confirm
+        try {
+          const lockedNow = await checkActiveDeal(ad.id);
+          if (lockedNow) {
+            alert('This ad cannot be deleted because it has an active deal.');
+            return;
+          }
+        } catch (e) {
+          console.warn('Could not check active deal before delete modal open', e);
+        }
 
         const deleteConfirmModal = document.getElementById("deleteConfirmModal");
 
@@ -3117,6 +3271,18 @@
         const confirmDeleteBtn = document.getElementById("confirmDeleteBtn");
 
         confirmDeleteBtn.onclick = async () => {
+
+          // Final check immediately before performing deletion operations
+          try {
+            const lockedBeforeDelete = await checkActiveDeal(ad.id);
+            if (lockedBeforeDelete) {
+              deleteConfirmModal.classList.remove("open");
+              alert('This ad cannot be deleted because it has an active deal.');
+              return;
+            }
+          } catch (e) {
+            console.warn('Could not check active deal immediately before delete', e);
+          }
 
           deleteConfirmModal.classList.remove("open");
 
@@ -3632,6 +3798,7 @@
         .neq("title", "Offer Sent")
         .neq("title", "Offer Rejected")
         .neq("title", "Offer Accepted")
+        .neq("title", "Payment Approved")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -3776,7 +3943,7 @@
         .from("notifications")
         .select("id, user_id, title, message, is_read, created_at")
         .eq("user_id", user.id)
-        .or("title.eq.Offer Sent,title.eq.Offer Rejected,title.eq.Offer Accepted")
+        .or("title.eq.Offer Sent,title.eq.Offer Rejected,title.eq.Offer Accepted,title.eq.Payment Approved")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -4069,7 +4236,7 @@
         const acceptButton = item.querySelector(".selling-offer-action-btn.accept");
         if (acceptButton) {
           acceptButton.addEventListener("click", () => {
-            handleAcceptOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id);
+            handleAcceptOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id, originalPrice);
           });
         }
 
@@ -4221,15 +4388,17 @@
     });
   }
 
-  function showOfferAcceptConfirmation(offerAmount) {
+  function showOfferAcceptConfirmation(offerAmount, currentPrice) {
     return new Promise((resolve) => {
       const modal = document.getElementById("offerAcceptModal");
       const cancelBtn = document.getElementById("offerAcceptCancelBtn");
       const confirmBtn = document.getElementById("offerAcceptConfirmBtn");
       const closeBtn = document.getElementById("offerAcceptModalCloseBtn");
       const checkbox = document.getElementById("offerAcceptConfirmCheckbox");
-      const amountDisplay = document.getElementById("offerAcceptModalAmount");
-      const warningPrice = document.getElementById("offerAcceptModalWarningPrice");
+      const newPriceDisplay = document.getElementById("offerAcceptNewPrice");
+      const currentPriceDisplay = document.getElementById("offerAcceptCurrentPrice");
+      const currentCol = document.getElementById("offerAcceptCurrentCol");
+      const arrowIcon = document.getElementById("offerAcceptArrow");
       const checkboxPrice = document.getElementById("offerAcceptCheckboxPrice");
 
       if (!modal) {
@@ -4238,18 +4407,22 @@
         return;
       }
 
-      // Format and display offer amount
+      // Format and display prices
       const formattedAmount = Number.isFinite(offerAmount)
         ? `Rs. ${Number(offerAmount).toLocaleString()}`
-        : "the offer";
-      
-      amountDisplay.textContent = `Offer Amount: ${formattedAmount}`;
-      warningPrice.textContent = Number.isFinite(offerAmount)
-        ? Number(offerAmount).toLocaleString()
         : "this amount";
+
+      newPriceDisplay.textContent = formattedAmount;
       checkboxPrice.textContent = Number.isFinite(offerAmount)
         ? Number(offerAmount).toLocaleString()
         : "this amount";
+
+      const hasCurrentPrice = currentPrice !== null && currentPrice !== undefined && currentPrice !== "" && Number.isFinite(Number(currentPrice));
+      currentCol.style.display = hasCurrentPrice ? "" : "none";
+      arrowIcon.style.display = hasCurrentPrice ? "" : "none";
+      if (hasCurrentPrice) {
+        currentPriceDisplay.textContent = `Rs. ${Number(currentPrice).toLocaleString()}`;
+      }
 
       // Reset checkbox and button state
       checkbox.checked = false;
@@ -4298,9 +4471,9 @@
     });
   }
 
-  async function handleAcceptOffer(offerId, buyerId, offerAmount, productTitle, adId) {
+  async function handleAcceptOffer(offerId, buyerId, offerAmount, productTitle, adId, currentPrice) {
     // Show custom confirmation modal
-    const confirmed = await showOfferAcceptConfirmation(offerAmount);
+    const confirmed = await showOfferAcceptConfirmation(offerAmount, currentPrice);
     
     if (!confirmed) {
       return; // User clicked Cancel or closed modal
@@ -4589,6 +4762,15 @@
 
   document.getElementById("editProfileBtn").addEventListener("click", () => {
     window.location.href = "edit-profile.html";
+  });
+
+
+  /* =========================================================
+     HEADER CHAT BUTTON
+  ========================================================= */
+
+  document.getElementById("headerChatButton").addEventListener("click", () => {
+    window.location.href = "chat.html";
   });
 
 
