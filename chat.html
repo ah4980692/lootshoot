@@ -72,14 +72,51 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .message-status.pending,.message-status.delivered{color:var(--muted)}
 .message-status.read{color:var(--accent);font-weight:700}
 
+/* Image messages */
+.message-content.image-message{display:block;padding:4px;line-height:0}
+.chat-image-wrap{position:relative;display:block;line-height:0;border-radius:11px;overflow:hidden;background:var(--light-green-2);min-width:160px;min-height:120px}
+.chat-image{display:block;width:260px;max-width:100%;max-height:320px;object-fit:cover;cursor:zoom-in}
+.chat-image-wrap.is-broken .chat-image{display:none}
+.chat-image-wrap.is-broken::after{content:"Image unavailable";display:flex;align-items:center;justify-content:center;width:200px;max-width:100%;height:120px;font-size:12px;line-height:1.4;color:var(--muted)}
+.message-content.image-message .message-meta{position:absolute;right:10px;bottom:10px;margin:0;transform:none;gap:3px;padding:3px 7px;border-radius:999px;background:rgba(0,0,0,.45)}
+.message-content.image-message .message-time,
+.message-content.image-message .message-status.pending,
+.message-content.image-message .message-status.delivered{color:#fff;opacity:1}
+.message-content.image-message .message-status.read{color:#7ef0b3}
+
+/* Pending image preview (sits above the input row) */
+.pending-image{display:flex;align-items:center;gap:12px;padding:8px;background:var(--light-green-2);border:1px solid var(--border);border-radius:14px}
+.pending-image-thumb{position:relative;width:64px;height:64px;border-radius:10px;overflow:hidden;flex-shrink:0;background:#fff;border:1px solid var(--border)}
+.pending-image-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.pending-image-spinner{display:none;position:absolute;inset:0;background:rgba(255,255,255,.7);align-items:center;justify-content:center}
+.pending-image-spinner::after{content:"";width:22px;height:22px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.pending-image.is-uploading .pending-image-spinner{display:flex}
+.pending-image-info{flex:1;min-width:0}
+.pending-image-name{font-size:13px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pending-image-meta{font-size:12px;color:var(--muted);margin-top:2px}
+.pending-image-remove{width:30px;height:30px;border-radius:50%;background:#fff;border:1px solid var(--border);color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;padding:0;transition:background .15s,color .15s}
+.pending-image-remove:hover{background:var(--red-bg);color:var(--red)}
+.pending-image-remove svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+.pending-image.is-uploading .pending-image-remove{display:none}
+
+/* Full-size image viewer */
+.lightbox{position:fixed;inset:0;z-index:1000;background:rgba(8,20,14,.92);display:none;align-items:center;justify-content:center;padding:24px}
+.lightbox img{max-width:100%;max-height:100%;border-radius:8px;object-fit:contain}
+.lightbox-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+.lightbox-close:hover{background:rgba(255,255,255,.28)}
+.lightbox-close svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+
 /* Input area */
-.chat-input-area{background:#fff;padding:12px 16px 16px;display:flex;gap:10px;align-items:center;border-top:1px solid var(--border-2)}
+.chat-input-area{background:#fff;padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border-2);flex-shrink:0}
+.chat-input-row{display:flex;gap:10px;align-items:center}
 .message-input-wrapper{flex:1;display:flex;gap:8px;background:var(--light-green-2);border-radius:24px;padding:0 14px;align-items:center;min-height:44px}
 .message-input{flex:1;border:none;background:transparent;padding:10px 0;font-size:15px;color:var(--text);outline:none;min-width:0}
 .message-input::placeholder{color:var(--muted)}
 .input-action-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center}
 .input-action-btn svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
 .input-action-btn:hover svg{stroke:var(--accent)}
+.input-action-btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* Send button (WhatsApp-style) */
 .send-button{background:var(--accent);border:none;color:#fff;width:46px;height:46px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .15s,background .15s;flex-shrink:0;padding:0}
@@ -162,18 +199,40 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   </div>
 
   <div class="chat-input-area" id="chatInputArea" style="display:none;">
-    <div class="message-input-wrapper">
-      <input type="text" class="message-input" id="messageInput" placeholder="Type a message" aria-label="Message input" autocomplete="off">
-      <button type="button" class="input-action-btn" id="attachBtn" aria-label="Attach file" title="Attach">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+    <div class="pending-image" id="pendingImagePreview" style="display:none;">
+      <div class="pending-image-thumb">
+        <img id="previewImage" alt="Selected image">
+        <div class="pending-image-spinner" aria-hidden="true"></div>
+      </div>
+      <div class="pending-image-info">
+        <div class="pending-image-name" id="pendingImageName"></div>
+        <div class="pending-image-meta" id="pendingImageMeta"></div>
+      </div>
+      <button type="button" class="pending-image-remove" id="clearImageBtn" aria-label="Remove image" title="Remove image">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
-      <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" style="display:none;" aria-hidden="true">
     </div>
-    <button type="button" class="send-button" id="sendButton" aria-label="Send message" title="Send" disabled>
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/></svg>
-    </button>
+    <div class="chat-input-row">
+      <div class="message-input-wrapper">
+        <input type="text" class="message-input" id="messageInput" placeholder="Type a message" aria-label="Message input" autocomplete="off">
+        <button type="button" class="input-action-btn" id="attachBtn" aria-label="Attach image" title="Attach image">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+        </button>
+        <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" style="display:none;" aria-hidden="true">
+      </div>
+      <button type="button" class="send-button" id="sendButton" aria-label="Send message" title="Send" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/></svg>
+      </button>
+    </div>
   </div>
 
+</div>
+
+<div class="lightbox" id="imageLightbox" role="dialog" aria-modal="true" aria-label="Image preview">
+  <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close" title="Close">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <img id="lightboxImg" alt="Chat image">
 </div>
 
 <script>
@@ -190,6 +249,8 @@ let currentThreadMessages = [];
 let isSendingMessage = false;
 let currentUserId = null;
 let activeChannel = null;
+let pendingImage = null;
+let isUploadingImage = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -197,7 +258,8 @@ const $ = (id) => document.getElementById(id);
 function esc(str) {
   const d = document.createElement("div");
   d.textContent = str ?? "";
-  return d.innerHTML;
+  // also escape quotes so the result is safe inside attributes (src="...", data-id="...")
+  return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 /* ---------- Realtime ---------- */
@@ -267,27 +329,33 @@ function getMessageStatusMarkup(message) {
   return '<span class="message-status pending">✓</span>';
 }
 
+const CHAT_IMAGE_PREFIX = "CHAT_IMAGE:";
+const CHAT_IMAGE_BASE = `${supabaseUrl}/storage/v1/object/public/chat-images/`;
+
+// Only accept images that live in our own chat-images bucket
+function getChatImageUrl(text) {
+  if (typeof text !== "string" || !text.startsWith(CHAT_IMAGE_PREFIX)) return null;
+  const url = text.slice(CHAT_IMAGE_PREFIX.length).trim();
+  return url.startsWith(CHAT_IMAGE_BASE) ? url : null;
+}
+
+// Text shown in the chat list instead of the raw "CHAT_IMAGE:https://..." string
+function getMessagePreviewText(text) {
+  return getChatImageUrl(text) ? "📷 Photo" : (text || "");
+}
+
 function messageHtml(m) {
   const out = m.sender_id === currentUserId;
   const statusMarkup = getMessageStatusMarkup(m);
   const metaMarkup = `<div class="message-meta"><span class="message-time">${esc(formatMessageTime(m.created_at))}</span>${statusMarkup}</div>`;
-  
-  // Check if message is an image
-  const isImageMessage = m.message && m.message.startsWith("CHAT_IMAGE:");
-  
-  let contentHtml;
-  if (isImageMessage) {
-    // Extract image URL and render as image
-    const imageUrl = m.message.substring("CHAT_IMAGE:".length);
-    const escapedUrl = esc(imageUrl);
-    contentHtml = `<img src="${escapedUrl}" alt="Chat image" style="max-width: 100%; max-height: 300px; border-radius: 12px; display: block; object-fit: cover;">`;
-  } else {
-    // Regular text message
-    contentHtml = `<div class="message-text">${esc(m.message)}</div>`;
-  }
-  
+
+  const imageUrl = getChatImageUrl(m.message);
+  const contentHtml = imageUrl
+    ? `<span class="chat-image-wrap"><img class="chat-image" src="${esc(imageUrl)}" alt="Photo" decoding="async"></span>`
+    : `<div class="message-text">${esc(m.message)}</div>`;
+
   return `<div class="message-bubble ${out ? "sent" : "received"}" data-id="${esc(String(m.id))}">
-    <div class="message-content">
+    <div class="message-content${imageUrl ? " image-message" : ""}">
       ${contentHtml}
       ${metaMarkup}
     </div>
@@ -397,7 +465,7 @@ function setAdStrip(show, ad = {}) {
 
 function refreshComposerState() {
   const hasText = $("messageInput").value.trim().length > 0;
-  $("sendButton").disabled = !isConversationViewOpen || isSendingMessage || !hasText;
+  $("sendButton").disabled = !isConversationViewOpen || isSendingMessage || isUploadingImage || (!hasText && !pendingImage);
 }
 
 function hideComposer() {
@@ -409,6 +477,7 @@ function hideComposer() {
 function resetListState() {
   setHeaderText("Chat", "LootShoot");
   setAdStrip(false);
+  clearPendingImage();
   isConversationViewOpen = false;
   currentConversationId = null;
   currentThreadMessages = [];
@@ -491,7 +560,7 @@ function renderConversationList(conversations) {
 
   const listHtml = conversations.map((c) => {
     const name = c.otherParticipantName || (currentTab === TABS.buying ? "Seller" : "Buyer");
-    const preview = c.latestMessage?.message || "No messages yet";
+    const preview = getMessagePreviewText(c.latestMessage?.message) || "No messages yet";
     const ts = c.latestMessage?.created_at || c.created_at;
     const unread = Number(c.unreadCount || 0) || 0;
     const badge = unread > 0 ? `<span class="conversation-unread-badge">${esc(unread > 99 ? '99+' : String(unread))}</span>` : "";
@@ -946,92 +1015,154 @@ async function getAuthenticatedUser() {
 
 /* ---------- Image upload and sending ---------- */
 
-let isUploadingImage = false;
+const ALLOWED_IMAGE_TYPES = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+let pendingImageUrl = null;
+
+function formatFileSize(bytes) {
+  if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function setUploadingUi(uploading) {
+  $("pendingImagePreview").classList.toggle("is-uploading", uploading);
+  $("attachBtn").disabled = uploading;
+  if (pendingImage) {
+    $("pendingImageMeta").textContent = uploading ? "Sending..." : formatFileSize(pendingImage.size);
+  }
+}
+
+function showImagePreview(file) {
+  // Free the previous preview if the user picked another image
+  if (pendingImageUrl) URL.revokeObjectURL(pendingImageUrl);
+  pendingImageUrl = URL.createObjectURL(file);
+
+  $("previewImage").src = pendingImageUrl;
+  $("pendingImageName").textContent = file.name || "Image";
+  $("pendingImageMeta").textContent = formatFileSize(file.size);
+  $("pendingImagePreview").style.display = "flex";
+}
+
+function clearPendingImage() {
+  if (pendingImageUrl) {
+    URL.revokeObjectURL(pendingImageUrl);
+    pendingImageUrl = null;
+  }
+
+  $("previewImage").removeAttribute("src");
+  $("pendingImageName").textContent = "";
+  $("pendingImageMeta").textContent = "";
+  $("pendingImagePreview").style.display = "none";
+  $("pendingImagePreview").classList.remove("is-uploading");
+  pendingImage = null;
+
+  // Clear file input so the same image can be selected again
+  const fileInput = $("imageInput");
+  if (fileInput) fileInput.value = "";
+
+  refreshComposerState();
+}
+
+function handleImageSelection(file) {
+  if (!ALLOWED_IMAGE_TYPES[file.type]) {
+    window.alert("Only JPEG, PNG, and WEBP images are allowed.");
+    $("imageInput").value = "";
+    return;
+  }
+
+  if (file.size > MAX_IMAGE_BYTES) {
+    window.alert("Image must be smaller than 5 MB.");
+    $("imageInput").value = "";
+    return;
+  }
+
+  pendingImage = file;
+  showImagePreview(file);
+  refreshComposerState();
+}
 
 async function uploadImageToStorage(file, conversationId, userId) {
-  // Validate file type
-  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
-  if (!allowedTypes.includes(file.type)) {
-    throw new Error("Only JPEG, PNG, and WEBP images are allowed.");
-  }
-  
-  // Validate file size (5 MB max)
-  const maxSize = 5 * 1024 * 1024; // 5 MB
-  if (file.size > maxSize) {
-    throw new Error("Image must be smaller than 5 MB.");
-  }
-  
-  // Create unique file path
-  const timestamp = Date.now();
+  const ext = ALLOWED_IMAGE_TYPES[file.type] || "jpg";
   const randomStr = Math.random().toString(36).substring(2, 8);
-  const fileExt = file.name.split(".").pop() || "jpg";
-  const fileName = `${timestamp}-${randomStr}.${fileExt}`;
-  const filePath = `${conversationId}/${userId}/${fileName}`;
-  
-  // Upload to storage
+  const filePath = `${conversationId}/${userId}/${Date.now()}-${randomStr}.${ext}`;
+
   const { data, error } = await supabaseClient.storage
     .from("chat-images")
-    .upload(filePath, file, { upsert: false });
-  
+    .upload(filePath, file, { upsert: false, contentType: file.type, cacheControl: "3600" });
+
   if (error) {
     throw new Error(`Upload failed: ${error.message}`);
   }
-  
-  // Get public URL
+
   const { data: urlData } = supabaseClient.storage
     .from("chat-images")
     .getPublicUrl(data.path);
-  
+
   return urlData.publicUrl;
 }
 
-async function sendImageMessage(file) {
-  if (!isConversationViewOpen || isUploadingImage || !currentConversationId) return;
-  
+async function uploadAndSendPendingImage() {
+  const file = pendingImage;
+  if (!file || !isConversationViewOpen || isUploadingImage || !currentConversationId) return;
+
   const user = await getAuthenticatedUser();
   if (!user) {
     window.alert("Please sign in again to send a message.");
     return;
   }
-  
+
   const valid = await validateActiveConversation(currentConversationId, user.id);
   if (!valid) {
     window.alert("You can only send messages in conversations you are part of.");
     return;
   }
-  
+
   isUploadingImage = true;
-  $("attachBtn").disabled = true;
-  
+  setUploadingUi(true);
+  $("sendButton").disabled = true;
+
+  let sent = false;
   try {
-    // Upload image to storage
     const imageUrl = await uploadImageToStorage(file, currentConversationId, user.id);
-    
-    // Send image message through messages table
-    const messageText = `CHAT_IMAGE:${imageUrl}`;
+
     const { data, error } = await supabaseClient
       .from("messages")
-      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: messageText }])
+      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: `${CHAT_IMAGE_PREFIX}${imageUrl}` }])
       .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
       .single();
-    
+
     if (error) throw error;
-    
+
     if (data) addMessage(data);
+    sent = true;
+    clearPendingImage();
   } catch (error) {
     console.error("Could not send image:", error);
     window.alert(`Error: ${error.message || "Could not send image. Please try again."}`);
+    // Keep the pending image so the user can retry
   } finally {
     isUploadingImage = false;
-    $("attachBtn").disabled = false;
-    
-    // Clear file input so same image can be selected again
-    const fileInput = $("imageInput");
-    if (fileInput) fileInput.value = "";
-    
+    setUploadingUi(false);
     refreshComposerState();
     $("messageInput").focus();
   }
+
+  // If the user also typed text, send it as a normal message right after the image
+  if (sent && $("messageInput").value.trim()) {
+    await sendMessage();
+  }
+}
+
+/* ---------- Full-size image viewer ---------- */
+
+function openLightbox(src) {
+  $("lightboxImg").src = src;
+  $("imageLightbox").style.display = "flex";
+}
+
+function closeLightbox() {
+  $("imageLightbox").style.display = "none";
+  $("lightboxImg").removeAttribute("src");
 }
 
 /* ---------- Sending ---------- */
@@ -1054,6 +1185,12 @@ async function validateActiveConversation(conversationId, userId) {
 }
 
 async function sendMessage() {
+  // Check if there's a pending image to send first
+  if (pendingImage) {
+    await uploadAndSendPendingImage();
+    return;
+  }
+  
   if (!isConversationViewOpen || isSendingMessage || !currentConversationId) return;
 
   const user = await getAuthenticatedUser();
@@ -1124,8 +1261,43 @@ $("attachBtn").addEventListener("click", () => {
 $("imageInput").addEventListener("change", async (e) => {
   const file = e.target.files[0];
   if (file) {
-    await sendImageMessage(file);
+    handleImageSelection(file);
   }
+});
+
+$("clearImageBtn").addEventListener("click", () => {
+  clearPendingImage();
+});
+
+// Keep the thread pinned to the bottom when an image finishes loading
+document.addEventListener("load", (e) => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || !img.classList.contains("chat-image")) return;
+  const thread = document.querySelector(".conversation-thread");
+  if (!thread) return;
+  const distanceFromBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+  if (distanceFromBottom <= img.offsetHeight + 120) thread.scrollTop = thread.scrollHeight;
+}, true);
+
+// Broken / expired image: show a neat placeholder instead of the browser's broken icon
+document.addEventListener("error", (e) => {
+  const img = e.target;
+  if (!(img instanceof HTMLImageElement) || !img.classList.contains("chat-image")) return;
+  img.closest(".chat-image-wrap")?.classList.add("is-broken");
+}, true);
+
+// Tap an image in the thread to view it full size
+document.addEventListener("click", (e) => {
+  const img = e.target.closest ? e.target.closest(".chat-image") : null;
+  if (img && !img.closest(".is-broken")) openLightbox(img.currentSrc || img.src);
+});
+
+$("imageLightbox").addEventListener("click", (e) => {
+  if (e.target.id !== "lightboxImg") closeLightbox();
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeLightbox();
 });
 
 // Run once, whether the DOM is ready yet or not
