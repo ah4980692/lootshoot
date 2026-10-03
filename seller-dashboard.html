@@ -3007,9 +3007,30 @@
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
+      .replace(/\"/g, "&quot;")
       .replace(/'/g, "&#039;");
 
+  }
+
+  function renderSafeNotificationMessage(message) {
+    const rawMessage = String(message || "").trim();
+
+    if (!rawMessage) {
+      return "";
+    }
+
+    const allowedLinkPattern = /<a\s+href="chat\.html\?conversation_id=([^"]+)"\s*>here<\/a>/i;
+    const match = rawMessage.match(allowedLinkPattern);
+
+    if (!match) {
+      return escapeHTML(rawMessage);
+    }
+
+    const beforeLink = rawMessage.slice(0, match.index);
+    const afterLink = rawMessage.slice(match.index + match[0].length);
+    const safeConversationId = escapeHTML(match[1]);
+
+    return `${escapeHTML(beforeLink)}<a href="chat.html?conversation_id=${safeConversationId}">here</a>${escapeHTML(afterLink)}`;
   }
 
   function formatPrice(price) {
@@ -3864,9 +3885,7 @@
           (notification.title || "LootShoot Notification").trim()
         );
 
-        const message = escapeHTML(
-          (notification.message || "").trim()
-        );
+        const message = renderSafeNotificationMessage(notification.message);
 
         const date = notification.created_at
           ? new Date(notification.created_at).toLocaleString(
@@ -4008,10 +4027,7 @@
           (notification.title || "Offer Sent").trim()
         );
 
-        const message =
-          notification.title === "Offer Accepted"
-            ? (notification.message || "").trim()
-            : escapeHTML((notification.message || "").trim());
+        const message = renderSafeNotificationMessage(notification.message);
 
         const date = notification.created_at
           ? new Date(notification.created_at).toLocaleString(
@@ -4668,10 +4684,10 @@
 
     if (count > 0) {
       badge.textContent = count > 99 ? "99+" : String(count);
-      badge.classList.add("show");
+      badge.style.display = "inline-flex";
     } else {
       badge.textContent = "";
-      badge.classList.remove("show");
+      badge.style.display = "none";
     }
 
   }
