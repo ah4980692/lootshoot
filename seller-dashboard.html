@@ -3019,18 +3019,31 @@
       return "";
     }
 
-    const allowedLinkPattern = /<a\s+href="chat\.html\?conversation_id=([^"]+)"\s*>here<\/a>/i;
-    const match = rawMessage.match(allowedLinkPattern);
+    // Allow only two exact link patterns and escape everything else:
+    // 1) <a href="chat.html?conversation_id=CONVERSATION_ID">here</a>
+    // 2) <a href="ad-details.html?id=AD_ID">here</a>
+    const chatPattern = /<a\s+href="chat\.html\?conversation_id=([^"]+)"\s*>here<\/a>/i;
+    const adPattern = /<a\s+href="ad-details\.html\?id=([^"]+)"\s*>here<\/a>/i;
 
-    if (!match) {
-      return escapeHTML(rawMessage);
+    let match = rawMessage.match(chatPattern);
+
+    if (match) {
+      const beforeLink = rawMessage.slice(0, match.index);
+      const afterLink = rawMessage.slice(match.index + match[0].length);
+      const safeConversationId = escapeHTML(match[1]);
+      return `${escapeHTML(beforeLink)}<a href="chat.html?conversation_id=${safeConversationId}">here</a>${escapeHTML(afterLink)}`;
     }
 
-    const beforeLink = rawMessage.slice(0, match.index);
-    const afterLink = rawMessage.slice(match.index + match[0].length);
-    const safeConversationId = escapeHTML(match[1]);
+    match = rawMessage.match(adPattern);
 
-    return `${escapeHTML(beforeLink)}<a href="chat.html?conversation_id=${safeConversationId}">here</a>${escapeHTML(afterLink)}`;
+    if (match) {
+      const beforeLink = rawMessage.slice(0, match.index);
+      const afterLink = rawMessage.slice(match.index + match[0].length);
+      const safeAdId = escapeHTML(match[1]);
+      return `${escapeHTML(beforeLink)}<a href="ad-details.html?id=${safeAdId}">here</a>${escapeHTML(afterLink)}`;
+    }
+
+    return escapeHTML(rawMessage);
   }
 
   function formatPrice(price) {
