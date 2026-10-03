@@ -506,6 +506,89 @@ function addMessage(message) {
 
 /* ---------- UI helpers ---------- */
 
+function renderLoadingState() {
+  const container = $("chatContainer");
+  if (!container) return;
+  container.innerHTML = '<div class="chat-loading">Loading chats...</div>';
+}
+
+function renderErrorState(message) {
+  const container = $("chatContainer");
+  if (!container) return;
+  container.innerHTML = `
+    <div class="chat-empty">
+      <div class="chat-empty-icon">⚠️</div>
+      <div class="chat-empty-title">Something went wrong</div>
+      <div class="chat-empty-text">${esc(message || "Please try again later.")}</div>
+    </div>
+  `;
+}
+
+function renderConversationList(conversations) {
+  const container = $("chatContainer");
+  if (!container) return;
+
+  const items = Array.isArray(conversations) ? conversations : [];
+  const tabMarkup = `
+    <div class="chat-tabs">
+      <button type="button" class="chat-tab ${currentTab === TABS.buying ? "active" : ""}" data-tab="${TABS.buying}">Buying</button>
+      <button type="button" class="chat-tab ${currentTab === TABS.selling ? "active" : ""}" data-tab="${TABS.selling}">Selling</button>
+    </div>
+  `;
+
+  const listMarkup = items.length
+    ? items.map((conversation) => {
+        const latest = conversation.latestMessage;
+        const previewText = latest && latest.message ? getMessagePreviewText(latest.message) : "No messages yet";
+        const timeText = latest ? formatMessageTime(latest.created_at) : formatMessageTime(conversation.created_at);
+        const unreadBadge = Number(conversation.unreadCount || 0) > 0
+          ? `<span class="conversation-unread-badge">${conversation.unreadCount}</span>`
+          : "";
+
+        return `
+          <button type="button" class="conversation-item" data-conversation-id="${conversation.id}">
+            <div class="conversation-item-top">
+              <div class="conversation-item-title">${esc(conversation.adTitle || "Ad")}</div>
+              <div class="conversation-item-time">${esc(timeText)}</div>
+            </div>
+            <div class="conversation-item-meta">
+              ${esc(conversation.otherParticipantName || "User")}${unreadBadge}
+            </div>
+            <div class="conversation-item-preview">${esc(previewText)}</div>
+          </button>
+        `;
+      }).join("")
+    : `
+      <div class="chat-empty">
+        <div class="chat-empty-icon">💬</div>
+        <div class="chat-empty-title">No chats yet</div>
+        <div class="chat-empty-text">Your buying and selling chats will appear here.</div>
+      </div>
+    `;
+
+  container.innerHTML = `${tabMarkup}<div class="chat-list">${listMarkup}</div>`;
+
+  container.querySelectorAll(".chat-tab").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const nextTab = button.dataset.tab;
+      if (!nextTab || nextTab === currentTab) return;
+      currentTab = nextTab;
+      await showTab(currentTab);
+    });
+  });
+
+  container.querySelectorAll(".conversation-item").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const conversationId = button.dataset.conversationId;
+      if (!conversationId) return;
+      const url = new URL(window.location.href);
+      url.searchParams.set("conversation_id", conversationId);
+      window.history.pushState({}, "", url.toString());
+      await renderConversationThread(conversationId);
+    });
+  });
+}
+
 function getInitials(name) {
   const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
   if (!parts.length) return "?";
