@@ -1836,11 +1836,6 @@
     cursor: not-allowed;
   }
 
-  .offer-accept-modal-btn.accept:disabled {
-    background: var(--border);
-    color: #6c8a79;
-  }
-
   /* Auth Modal */
 
   .auth-modal-backdrop {
@@ -3704,6 +3699,10 @@
      NOTIFICATION BADGE GLOBAL REFRESH
   ========================================================= */
 
+  function isBuyingNotificationTitle(title) {
+    return ["Offer Sent", "Offer Rejected", "Offer Accepted", "Payment Approved"].includes(title);
+  }
+
   async function refreshGlobalUnreadNotificationBadge() {
     const user = await getAuthenticatedUser();
 
@@ -3726,8 +3725,8 @@
       }
 
       const allNotifications = notifications || [];
-      const officialUnreadCount = allNotifications.filter(item => !item.is_read && item.title !== "Offer Sent" && item.title !== "Offer Rejected" && item.title !== "Offer Accepted").length;
-      const buyingUnreadCount = allNotifications.filter(item => !item.is_read && (item.title === "Offer Sent" || item.title === "Offer Rejected" || item.title === "Offer Accepted")).length;
+      const officialUnreadCount = allNotifications.filter(item => !item.is_read && !isBuyingNotificationTitle(item.title)).length;
+      const buyingUnreadCount = allNotifications.filter(item => !item.is_read && isBuyingNotificationTitle(item.title)).length;
       const totalUnreadCount = allNotifications.filter(item => !item.is_read).length;
 
       // Count pending offers for the Selling tab badge
