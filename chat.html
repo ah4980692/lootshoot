@@ -483,6 +483,31 @@ function getInitials(name) {
   return (first + second) || "?";
 }
 
+function normalizeAdImage(imageValue) {
+  if (!imageValue) return null;
+
+  if (Array.isArray(imageValue)) {
+    for (const item of imageValue) {
+      const resolved = normalizeAdImage(item);
+      if (resolved) return resolved;
+    }
+    return null;
+  }
+
+  if (typeof imageValue === "string") {
+    const value = imageValue.trim();
+    return value || null;
+  }
+
+  if (typeof imageValue === "object") {
+    if (typeof imageValue.url === "string" && imageValue.url.trim()) return imageValue.url.trim();
+    if (typeof imageValue.image === "string" && imageValue.image.trim()) return imageValue.image.trim();
+    if (typeof imageValue.src === "string" && imageValue.src.trim()) return imageValue.src.trim();
+  }
+
+  return null;
+}
+
 // withAvatar = true (conversation view): avatar + name only, no subtitle
 function setHeaderText(title, subtitle, withAvatar = false, avatarUrl = null) {
   $("chatTitle").textContent = title || "Chat";
@@ -514,8 +539,9 @@ function setAdStrip(show, ad = {}) {
   strip.setAttribute("href", ad.url || "#");
 
   const thumb = $("adStripThumb");
-  if (ad.image) {
-    thumb.innerHTML = `<img src="${esc(ad.image)}" alt="">`;
+  const imageUrl = normalizeAdImage(ad.image);
+  if (imageUrl) {
+    thumb.innerHTML = `<img src="${esc(imageUrl)}" alt="">`;
   } else {
     thumb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
   }
@@ -568,180 +594,16 @@ function formatMessageTime(iso) {
   return date.toLocaleDateString([], { month: "short", day: "numeric" });
 }
 
-function tabMarkup(selected = currentTab) {
-  return `<div class="chat-tabs" aria-label="Chat tabs">
-    <button type="button" class="chat-tab ${selected === TABS.buying ? "active" : ""}" data-tab="buying">Buying</button>
-    <button type="button" class="chat-tab ${selected === TABS.selling ? "active" : ""}" data-tab="selling">Selling</button>
-  </div>`;
-}
-
-function bindTabEvents() {
-  $("chatContainer").querySelectorAll(".chat-tab").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const t = btn.dataset.tab;
-      if (!t || t === currentTab) return;
-      currentTab = t;
-      showTab(currentTab);
-    });
-  });
-}
-
-function renderLoadingState() {
-  resetListState();
-  $("chatContainer").innerHTML = `${tabMarkup()}<div class="chat-loading">Loading conversations...</div>`;
-  bindTabEvents();
-}
-
-function renderErrorState(message) {
-  resetListState();
-  $("chatContainer").innerHTML = `${tabMarkup()}<div class="chat-error">${esc(message)}</div>`;
-  bindTabEvents();
-}
-
-function renderEmptyState(tabName) {
-  resetListState();
-  const text = tabName === TABS.buying ? "No buying conversations yet" : "No selling conversations yet";
-  $("chatContainer").innerHTML = `${tabMarkup(tabName)}
-    <div class="chat-empty">
-      <div class="chat-empty-icon">💬</div>
-      <div class="chat-empty-title">${text}</div>
-      <div class="chat-empty-text">Your conversations will appear here.</div>
-    </div>`;
-  bindTabEvents();
-}
-
-function renderConversationList(conversations) {
-  resetListState();
-  if (!conversations || !conversations.length) {
-    renderEmptyState(currentTab);
-    return;
-  }
-
-  const listHtml = conversations.map((c) => {
-    const name = c.otherParticipantName || (currentTab === TABS.buying ? "Seller" : "Buyer");
-    const preview = getMessagePreviewText(c.latestMessage?.message) || "No messages yet";
-    const ts = c.latestMessage?.created_at || c.created_at;
-    const unread = Number(c.unreadCount || 0) || 0;
-    const badge = unread > 0 ? `<span class="conversation-unread-badge">${esc(unread > 99 ? '99+' : String(unread))}</span>` : "";
-    return `<button type="button" class="conversation-item" data-conversation-id="${esc(String(c.id))}" aria-label="Open conversation with ${esc(name)}">
-      <div class="conversation-item-top">
-        <div class="conversation-item-title">${esc(c.adTitle || "Ad")}</div>
-        <div class="conversation-item-time">${esc(ts ? formatMessageTime(ts) : "")}${badge}</div>
-      </div>
-      <div class="conversation-item-meta">${esc(name)}</div>
-      <div class="conversation-item-preview">${esc(preview)}</div>
-    </button>`;
-  }).join("");
-
-  $("chatContainer").innerHTML = `${tabMarkup(currentTab)}<div class="chat-list">${listHtml}</div>`;
-  bindTabEvents();
-
-  // Ensure unread badges are refreshed even when using cached conversation lists
-  // so badges appear without requiring a full page refresh.
-  document.querySelectorAll('.conversation-item').forEach((item) => {
-    const id = item.dataset.conversationId;
-    if (id) refreshConversationUnreadBadge(id);
-  });
-
-  // Update global unread badge (for other pages like seller dashboard)
-  const totalUnread = (conversations || []).reduce((s, c) => s + (Number(c.unreadCount || 0) || 0), 0);
-  updateGlobalUnreadBadge(totalUnread);
-
-  $("chatContainer").querySelectorAll(".conversation-item").forEach((item) => {
-    item.addEventListener("click", () => {
-      const id = item.dataset.conversationId;
-      if (!id) return;
-      const url = new URL(window.location.href);
-      url.searchParams.set("conversation_id", id);
-      window.history.replaceState({}, "", url.toString());
-      renderConversationThread(id);
-    });
-  });
-}
-
-async function refreshConversationUnreadBadge(conversationId) {
-  if (!conversationId) return;
-  try {
-    // Ensure we have currentUserId; fall back to auth if missing
-    if (!currentUserId) {
-      const u = await getAuthenticatedUser();
-      if (!u) return;
-      currentUserId = u.id;
-    }
-
-    const { count, error } = await supabaseClient
-      .from('messages')
-      .select('id', { count: 'exact' })
-      .eq('conversation_id', conversationId)
-      .neq('sender_id', currentUserId)
-      .eq('is_read', false);
-
-    if (error) return;
-    const unread = Number(count || 0);
-
-    const item = document.querySelector(`.conversation-item[data-conversation-id="${escapeSelector(conversationId)}"]`);
-    if (!item) return;
-
-    const timeNode = item.querySelector('.conversation-item-time');
-    if (!timeNode) return;
-
-    const existing = timeNode.querySelector('.conversation-unread-badge');
-    if (unread > 0) {
-      const text = unread > 99 ? '99+' : String(unread);
-      if (existing) {
-        existing.textContent = text;
-      } else {
-        const span = document.createElement('span');
-        span.className = 'conversation-unread-badge';
-        span.textContent = text;
-        timeNode.appendChild(span);
-      }
-    } else if (existing) {
-      existing.remove();
-    }
-    // Recompute total unread across rendered list and publish globally
-    const total = Array.from(document.querySelectorAll('.conversation-unread-badge')).reduce((s, el) => {
-      const n = parseInt(el.textContent || '0', 10);
-      return s + (Number.isFinite(n) ? n : 0);
-    }, 0);
-    updateGlobalUnreadBadge(total);
-  } catch (e) {
-    console.warn('Could not refresh unread badge:', e);
-  }
-}
-
-function escapeSelector(s) {
-  return String(s).replace(/(["'\\.:#\[\],<>+~*=^$|(){}])/g, "\\$1");
-}
-
-function updateGlobalUnreadBadge(total) {
-  try { localStorage.setItem('lootshoot_chat_unread', String(total)); } catch (e) { }
-  try {
-    const bc = new BroadcastChannel('lootshoot-chat');
-    bc.postMessage({ unread: total });
-    bc.close();
-  } catch (e) { }
-  try { window.dispatchEvent(new CustomEvent('lootshoot-chat-unread', { detail: { unread: total } })); } catch (e) { }
-
-  // If a global badge element exists on this page, update it immediately.
-  const globalEl = document.querySelector('#globalChatBadge, .global-chat-badge');
-  if (globalEl) {
-    if (total > 0) globalEl.textContent = total > 99 ? '99+' : String(total);
-    else globalEl.remove();
-  }
-}
-
-/* ---------- Data ---------- */
-
 async function getAdDetails(adId) {
   if (!adId) return { title: "Ad", price: "Rs 0", image: null, id: null };
   try {
     const { data, error } = await supabaseClient.from("ads").select("id, title, price, images").eq("id", adId).maybeSingle();
     if (error) { console.warn("Could not load ad details:", error); return { title: "Ad", price: "Rs 0", image: null, id: null }; }
+    const image = normalizeAdImage(data?.images);
     return {
       title: data?.title || "Ad",
       price: data?.price ? `Rs ${data.price}` : "Rs 0",
-      image: data?.images || null,
+      image,
       id: data?.id || null
     };
   } catch (e) {
