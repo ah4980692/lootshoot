@@ -247,7 +247,7 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
     </div>
     <div class="chat-input-row">
       <div class="message-input-wrapper">
-        <input type="text" class="message-input" id="messageInput" placeholder="Type a message" aria-label="Message input" autocomplete="off">
+        <input type="text" class="message-input" id="messageInput" placeholder="Type a message" aria-label="Message input" autocomplete="off" autocapitalize="sentences" autocorrect="on" spellcheck="true" inputmode="text" enterkeyhint="send" name="message">
         <button type="button" class="input-action-btn" id="attachBtn" aria-label="Attach image" title="Attach image">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
         </button>
@@ -1218,8 +1218,13 @@ $("adStrip").addEventListener("click", (e) => {
 });
 
 $("messageInput").addEventListener("focus", () => {
-  setTimeout(keepChatBottomVisible, 50);
-  setTimeout(keepChatBottomVisible, 250);
+  if (window.visualViewport) {
+    requestAnimationFrame(() => {
+      if (document.activeElement === $("messageInput")) {
+        keepChatBottomVisible();
+      }
+    });
+  }
 });
 
 $("messageInput").addEventListener("input", refreshComposerState);
@@ -1375,10 +1380,19 @@ document.addEventListener("keydown", (e) => {
 function keepChatBottomVisible() {
   const thread = document.querySelector(".conversation-thread");
   if (!thread) return;
+  const view = window.visualViewport;
+  const keyboardVisible = !!(view && window.innerHeight - (view.height + (view.offsetTop || 0)) > 80);
+  if (!keyboardVisible) return;
 
-  requestAnimationFrame(() => {
-    thread.scrollTop = thread.scrollHeight;
-  });
+  const hasOverflow = thread.scrollHeight > thread.clientHeight + 12;
+  if (!hasOverflow) return;
+
+  const distanceFromBottom = thread.scrollHeight - thread.scrollTop - thread.clientHeight;
+  if (distanceFromBottom <= 180) {
+    requestAnimationFrame(() => {
+      thread.scrollTop = thread.scrollHeight;
+    });
+  }
 }
 
 if (window.visualViewport) {
@@ -1387,18 +1401,7 @@ if (window.visualViewport) {
       keepChatBottomVisible();
     }
   });
-
-  window.visualViewport.addEventListener("scroll", () => {
-    if (document.activeElement === $("messageInput")) {
-      keepChatBottomVisible();
-    }
-  });
 }
-
-$("messageInput").addEventListener("focus", () => {
-  setTimeout(keepChatBottomVisible, 50);
-  setTimeout(keepChatBottomVisible, 250);
-});
 
 // Run once, whether the DOM is ready yet or not
 if (document.readyState === "loading") {
