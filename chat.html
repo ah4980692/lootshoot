@@ -1217,6 +1217,11 @@ $("adStrip").addEventListener("click", (e) => {
   if ($("adStrip").getAttribute("href") === "#") e.preventDefault();
 });
 
+$("messageInput").addEventListener("focus", () => {
+  setTimeout(keepChatBottomVisible, 50);
+  setTimeout(keepChatBottomVisible, 250);
+});
+
 $("messageInput").addEventListener("input", refreshComposerState);
 
 $("messageInput").addEventListener("keydown", async (e) => {
@@ -1365,6 +1370,34 @@ document.addEventListener("keydown", (e) => {
   if (e.key !== "Escape") return;
   if ($("imageLightbox").style.display === "flex") closeLightbox();
   else if (replyingTo) clearReply();
+});
+
+function keepChatBottomVisible() {
+  const thread = document.querySelector(".conversation-thread");
+  if (!thread) return;
+
+  requestAnimationFrame(() => {
+    thread.scrollTop = thread.scrollHeight;
+  });
+}
+
+if (window.visualViewport) {
+  window.visualViewport.addEventListener("resize", () => {
+    if (document.activeElement === $("messageInput")) {
+      keepChatBottomVisible();
+    }
+  });
+
+  window.visualViewport.addEventListener("scroll", () => {
+    if (document.activeElement === $("messageInput")) {
+      keepChatBottomVisible();
+    }
+  });
+}
+
+$("messageInput").addEventListener("focus", () => {
+  setTimeout(keepChatBottomVisible, 50);
+  setTimeout(keepChatBottomVisible, 250);
 });
 
 // Run once, whether the DOM is ready yet or not
