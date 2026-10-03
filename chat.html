@@ -29,12 +29,6 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .back-button:hover{opacity:.8}
 .header-title{font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .header-subtitle{font-size:12px;opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.header-right{display:flex;align-items:center;gap:10px}
-.conversation-return-btn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:700;cursor:pointer;transition:background .2s,transform .2s}
-.conversation-return-btn:hover{background:rgba(255,255,255,.22);transform:translateY(-1px)}
-.header-icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s}
-.header-icon-btn:hover{background:rgba(255,255,255,.25);transform:translateY(-1px)}
-.header-icon-btn svg{width:18px;height:18px;fill:currentColor}
 
 /* Ad strip (shown under header inside a conversation) */
 .ad-strip{display:none;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border-2);text-decoration:none;color:inherit;cursor:pointer;flex-shrink:0;transition:background .15s}
@@ -162,8 +156,9 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 
 /* Tabs & list */
 .chat-tabs{display:flex;gap:10px;background:var(--light-green-2);border:1px solid var(--border-2);border-radius:16px;padding:8px;position:sticky;top:0;z-index:1}
-.chat-tab{flex:1;border:1px solid transparent;background:transparent;color:var(--muted);padding:12px 14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s}
+.chat-tab{flex:1;border:1px solid transparent;background:transparent;color:var(--muted);padding:12px 14px;border-radius:12px;font-size:14px;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
 .chat-tab.active{background:#fff;color:var(--primary);box-shadow:0 4px 12px rgba(12,75,50,.08);border-color:var(--border)}
+.chat-tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 6px;border-radius:999px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;line-height:1}
 .chat-list{display:flex;flex-direction:column;gap:10px}
 .conversation-item{width:100%;background:#fff;border:1px solid var(--border);border-radius:16px;padding:16px 18px;text-align:left;cursor:pointer;transition:transform .15s,box-shadow .15s;color:inherit}
 .conversation-item:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(18,60,42,.06)}
@@ -175,6 +170,50 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 .conversation-item-preview{font-size:13px;color:var(--muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .chat-error{background:var(--red-bg);border:1px solid #e9b7b7;color:var(--red);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5}
 .chat-loading{flex:1;display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--muted);font-size:14px;font-weight:600}
+
+/* Order action (top header, right side) */
+.order-actions{display:none;align-items:center;gap:6px;flex-shrink:0;margin-left:8px}
+.order-actions.show{display:flex}
+.order-btn{display:inline-flex;align-items:center;border:none;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer;transition:background .15s,transform .1s,opacity .15s}
+.order-btn.ready{background:var(--accent);color:#fff}
+.order-btn.ready:active{transform:scale(.96)}
+.order-btn.locked{background:rgba(255,255,255,.14);color:rgba(255,255,255,.6);cursor:not-allowed}
+.order-btn.waiting{background:rgba(255,255,255,.14);color:var(--light-green);cursor:default}
+.order-btn.done{background:var(--light-green);color:var(--primary);cursor:default}
+
+.report-btn{width:32px;height:32px;border-radius:50%;border:none;background:rgba(255,255,255,.14);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:background .15s}
+.report-btn:hover{background:rgba(255,255,255,.24)}
+.report-btn svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.report-reasons{display:flex;flex-direction:column;gap:8px;margin-bottom:12px}
+.report-reason{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);padding:10px 12px;border:1px solid var(--border);border-radius:12px;cursor:pointer}
+.report-reason input{width:18px;height:18px;accent-color:var(--accent);flex-shrink:0}
+.report-details{width:100%;min-height:76px;resize:none;border:1px solid var(--border);border-radius:12px;padding:10px 12px;font-size:14px;color:var(--text);background:var(--light-green-2);margin-bottom:14px;outline:none}
+.report-details:focus{border-color:var(--accent)}
+
+/* Order notice at the top of the conversation */
+.order-notice{display:flex;gap:10px;align-items:flex-start;background:var(--light-green-2);border:1px solid var(--border);border-radius:14px;padding:11px 13px;margin:2px 0 8px;font-size:13px;line-height:1.5;color:var(--text)}
+.order-notice svg{width:18px;height:18px;stroke:var(--accent);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0;margin-top:1px}
+.order-notice b{color:var(--primary)}
+
+/* Order confirmation sheet + toast */
+.order-sheet-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(8,20,14,.5);display:none;align-items:flex-end;justify-content:center}
+.order-sheet-backdrop.show{display:flex}
+.order-sheet{width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));animation:sheetUp .22s ease}
+@keyframes sheetUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
+.order-sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 14px}
+.order-sheet-icon{width:46px;height:46px;border-radius:50%;background:var(--light-green);display:flex;align-items:center;justify-content:center;margin-bottom:12px}
+.order-sheet-icon svg{width:22px;height:22px;stroke:var(--primary);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.order-sheet-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
+.order-sheet-text{font-size:14px;line-height:1.5;color:var(--muted);margin-bottom:14px}
+.order-sheet-check{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:var(--light-green-2);margin-bottom:14px;cursor:pointer}
+.order-sheet-check input{width:20px;height:20px;accent-color:var(--accent);flex-shrink:0}
+.order-sheet-actions{display:flex;gap:10px}
+.order-sheet-actions button{flex:1;border-radius:12px;padding:13px 10px;font-size:15px;font-weight:700;cursor:pointer;border:1px solid var(--border)}
+.order-sheet-cancel{background:#fff;color:var(--primary)}
+.order-sheet-confirm{background:var(--accent);color:#fff;border-color:var(--accent)!important}
+.order-sheet-confirm:disabled{opacity:.45;cursor:not-allowed}
+.order-toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-8px);z-index:1001;max-width:min(88vw,380px);background:#1f2a24;color:#fff;font-size:13px;line-height:1.4;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center}
+.order-toast.show{opacity:1;transform:translate(-50%,0)}
 
 @media(max-width:600px){
 .chat-header{padding:15px}
@@ -200,10 +239,9 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
         <div class="header-subtitle" id="chatSubtitle">LootShoot</div>
       </div>
     </div>
-    <div class="header-right">
-      <button type="button" class="header-icon-btn" id="moreOptionsBtn" aria-label="More options" title="More options">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-      </button>
+    <div class="order-actions" id="orderActions">
+      <button type="button" class="order-btn" id="orderBtn"></button>
+      <button type="button" class="report-btn" id="reportBtn" aria-label="Report a problem" title="Report a problem"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/></svg></button>
     </div>
   </header>
 
@@ -261,6 +299,39 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
   </div>
 
 </div>
+
+<div class="order-sheet-backdrop" id="orderSheet" role="dialog" aria-modal="true" aria-labelledby="orderSheetTitle">
+  <div class="order-sheet">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
+    <div class="order-sheet-title" id="orderSheetTitle"></div>
+    <div class="order-sheet-text" id="orderSheetText"></div>
+    <label class="order-sheet-check" id="orderSheetCheckRow"><input type="checkbox" id="orderSheetCheck"><span>I've checked and everything is correct</span></label>
+    <div class="order-sheet-actions">
+      <button type="button" class="order-sheet-cancel" id="orderSheetCancel">Cancel</button>
+      <button type="button" class="order-sheet-confirm" id="orderSheetConfirm"></button>
+    </div>
+  </div>
+</div>
+<div class="order-sheet-backdrop" id="reportSheet" role="dialog" aria-modal="true" aria-labelledby="reportSheetTitle">
+  <div class="order-sheet">
+    <div class="order-sheet-handle"></div>
+    <div class="order-sheet-title" id="reportSheetTitle">Report a problem</div>
+    <div class="order-sheet-text">Tell us what went wrong with this order.</div>
+    <div class="report-reasons" id="reportReasons">
+      <label class="report-reason"><input type="radio" name="reportReason" value="not_delivered"><span>Order not delivered</span></label>
+      <label class="report-reason"><input type="radio" name="reportReason" value="not_as_described"><span>Not as described</span></label>
+      <label class="report-reason"><input type="radio" name="reportReason" value="not_responding"><span>Other person not responding</span></label>
+      <label class="report-reason"><input type="radio" name="reportReason" value="other"><span>Something else</span></label>
+    </div>
+    <textarea class="report-details" id="reportDetails" maxlength="1000" placeholder="Add details (optional)"></textarea>
+    <div class="order-sheet-actions">
+      <button type="button" class="order-sheet-cancel" id="reportCancel">Cancel</button>
+      <button type="button" class="order-sheet-confirm" id="reportSend" disabled>Send report</button>
+    </div>
+  </div>
+</div>
+<div class="order-toast" id="orderToast" role="status" aria-live="polite"></div>
 
 <div class="lightbox" id="imageLightbox" role="dialog" aria-modal="true" aria-label="Image preview">
   <button type="button" class="lightbox-close" id="lightboxClose" aria-label="Close" title="Close">
@@ -529,10 +600,20 @@ function renderConversationList(conversations) {
   if (!container) return;
 
   const items = Array.isArray(conversations) ? conversations : [];
+  const buyingUnread = conversationsCache[TABS.buying]?.filter((c) => Number(c.unreadCount || 0) > 0).length || 0;
+  const sellingUnread = conversationsCache[TABS.selling]?.filter((c) => Number(c.unreadCount || 0) > 0).length || 0;
+  const activeTabUnread = currentTab === TABS.buying ? buyingUnread : sellingUnread;
+
   const tabMarkup = `
     <div class="chat-tabs">
-      <button type="button" class="chat-tab ${currentTab === TABS.buying ? "active" : ""}" data-tab="${TABS.buying}">Buying</button>
-      <button type="button" class="chat-tab ${currentTab === TABS.selling ? "active" : ""}" data-tab="${TABS.selling}">Selling</button>
+      <button type="button" class="chat-tab ${currentTab === TABS.buying ? "active" : ""}" data-tab="${TABS.buying}">
+        <span>Buying</span>
+        ${buyingUnread > 0 ? `<span class="chat-tab-badge">${buyingUnread > 99 ? '99+' : buyingUnread}</span>` : ""}
+      </button>
+      <button type="button" class="chat-tab ${currentTab === TABS.selling ? "active" : ""}" data-tab="${TABS.selling}">
+        <span>Selling</span>
+        ${sellingUnread > 0 ? `<span class="chat-tab-badge">${sellingUnread > 99 ? '99+' : sellingUnread}</span>` : ""}
+      </button>
     </div>
   `;
 
@@ -676,6 +757,7 @@ function hideComposer() {
 function resetListState() {
   setHeaderText("Chat", "LootShoot");
   setAdStrip(false);
+  hideOrderActions();
   clearReply();
   clearPendingImage();
   isConversationViewOpen = false;
@@ -764,7 +846,7 @@ async function getLatestMessage(conversationId) {
   }
 }
 
-async function loadConversations(tabName) {
+async function loadConversations(tabName, skipRender = false) {
   const user = await getAuthenticatedUser();
   if (!user) return;
 
@@ -828,7 +910,9 @@ async function loadConversations(tabName) {
     enriched.sort((a, b) => t(b) - t(a));
 
     conversationsCache[tabName] = enriched;
-    renderConversationList(enriched);
+    if (!skipRender) {
+      renderConversationList(enriched);
+    }
   } catch (error) {
     console.error("Failed to load chat conversations:", error);
     renderErrorState("We could not load your chats right now.");
@@ -939,6 +1023,8 @@ async function renderConversationThread(conversationId) {
       url: adDetails.id ? `ad-details.html?id=${adDetails.id}` : "#"
     });
     $("chatInputArea").style.display = "flex";
+    // Order button: role comes from the conversation; status defaults to "pending" until you load the real one.
+    setOrderState(conversation.buyer_id === user.id ? "buyer" : "seller", "pending");
 
     const messageMarkup = preparedMessages.length
       ? preparedMessages.map(messageHtml).join("")
@@ -950,7 +1036,7 @@ async function renderConversationThread(conversationId) {
 
     $("chatContainer").innerHTML = `
       <div class="conversation-panel">
-        <div class="conversation-thread">${messageMarkup}</div>
+        <div class="conversation-thread">${orderNoticeHtml(conversation.buyer_id === user.id ? "buyer" : "seller")}${messageMarkup}</div>
       </div>`;
 
     const thread = document.querySelector(".conversation-thread");
@@ -1018,6 +1104,15 @@ async function initializeChat() {
     currentUserId = user.id;
     resetListState();
     currentTab = TABS.buying;
+    
+    // Load conversations for both tabs to ensure badges render correctly
+    // Use skipRender=true to prevent each load from rendering independently
+    await Promise.all([
+      loadConversations(TABS.buying, true),
+      loadConversations(TABS.selling, true)
+    ]);
+    
+    // Show the active tab after both are loaded (renders once with all caches populated)
     await showTab(currentTab);
   } catch (error) {
     console.error("Could not initialize chat:", error);
@@ -1540,6 +1635,130 @@ window.addEventListener("scroll", () => {
   if (window.scrollX !== 0 || window.scrollY !== 0) window.scrollTo(0, 0);
 }, { passive: true });
 syncViewportHeight();
+
+/* ---------- Order delivered / received (front end only) ----------
+   Wire the real logic through these hooks:
+   - setOrderState(role, status)  role: "buyer" | "seller"   status: "pending" | "delivered" | "completed"
+       -> call it whenever the deal status changes (load + realtime).
+   - onOrderConfirm(action)       action: "delivered" | "received"
+       -> runs when the user confirms in the sheet. Save to the backend here,
+          then call setOrderState(...) with the new status.
+   The UI alone does NOT protect anything; enforce who may do what on the server. */
+const ORDER_ICON_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+const ORDER_ICON_INFO = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>';
+
+let orderRole = null;    // "buyer" | "seller"
+let orderStatus = "pending";
+let orderToastTimer = null;
+let orderPendingAction = null;
+
+function orderNoticeHtml(role) {
+  const text = role === "seller"
+    ? "<b>How this order works.</b> Tap <b>Order delivered</b> (top right) after everything is completed from your side. The buyer then confirms they received it. Problem? Tap the flag to report."
+    : "<b>How this order works.</b> The seller taps <b>Order delivered</b> once everything is done from their side. After you've checked it and it's correct, tap <b>Order received</b> (top right). Problem? Tap the flag to report.";
+  return `<div class="order-notice">${ORDER_ICON_INFO}<div>${text}</div></div>`;
+}
+
+function showOrderToast(text) {
+  const t = $("orderToast");
+  t.textContent = text;
+  t.classList.add("show");
+  clearTimeout(orderToastTimer);
+  orderToastTimer = setTimeout(() => t.classList.remove("show"), 2600);
+}
+
+function hideOrderActions() {
+  orderRole = null;
+  $("orderActions").classList.remove("show");
+  closeOrderSheet();
+}
+
+function setOrderState(role, status) {
+  if (role !== "buyer" && role !== "seller") { hideOrderActions(); return; }
+  orderRole = role;
+  orderStatus = ["pending", "delivered", "completed"].includes(status) ? status : "pending";
+
+  const btn = $("orderBtn");
+  let cls = "order-btn", html = "", label = "";
+  if (orderStatus === "completed") {
+    cls += " done"; html = "Completed"; label = "Order completed";
+  } else if (role === "seller") {
+    if (orderStatus === "pending") { cls += " ready"; html = "Order delivered"; label = "Mark order as delivered"; }
+    else { cls += " waiting"; html = "Waiting"; label = "Waiting for buyer to confirm"; }
+  } else {
+    if (orderStatus === "pending") { cls += " locked"; html = "Order received"; label = "Order received (available after the seller marks delivered)"; }
+    else { cls += " ready"; html = "Order received"; label = "Confirm order received"; }
+  }
+  btn.className = cls;
+  btn.textContent = html;
+  btn.setAttribute("aria-label", label);
+  btn.setAttribute("aria-disabled", cls.includes("ready") ? "false" : "true");
+  $("orderActions").classList.add("show");
+}
+
+function openOrderSheet(action) {
+  orderPendingAction = action;
+  const isDeliver = action === "delivered";
+  $("orderSheetTitle").textContent = isDeliver ? "Mark order as delivered?" : "Confirm you received it?";
+  $("orderSheetText").textContent = isDeliver
+    ? "Only continue if everything is completed from your side. The buyer will be asked to confirm that they received it."
+    : "Only continue after you've checked everything and it is correct. This can't be undone.";
+  $("orderSheetConfirm").textContent = isDeliver ? "Yes, delivered" : "Yes, I received it";
+  $("orderSheetCheckRow").style.display = isDeliver ? "none" : "flex";
+  $("orderSheetCheck").checked = false;
+  $("orderSheetConfirm").disabled = !isDeliver;
+  $("orderSheet").classList.add("show");
+}
+
+function closeOrderSheet() {
+  orderPendingAction = null;
+  $("orderSheet").classList.remove("show");
+  const rs = $("reportSheet"); if (rs) rs.classList.remove("show");
+}
+
+// TODO: replace with the real logic (save to Supabase, then call setOrderState with the new status).
+function onOrderConfirm(action) {
+  if (action === "delivered") setOrderState("seller", "delivered");
+  else if (action === "received") setOrderState("buyer", "completed");
+}
+
+$("orderBtn").addEventListener("click", () => {
+  if (orderRole === "seller" && orderStatus === "pending") openOrderSheet("delivered");
+  else if (orderRole === "buyer" && orderStatus === "pending") showOrderToast("You can confirm after the seller marks the order as delivered.");
+  else if (orderRole === "buyer" && orderStatus === "delivered") openOrderSheet("received");
+});
+$("orderSheetCheck").addEventListener("change", (e) => { $("orderSheetConfirm").disabled = !e.target.checked; });
+$("orderSheetCancel").addEventListener("click", closeOrderSheet);
+$("orderSheet").addEventListener("click", (e) => { if (e.target === $("orderSheet")) closeOrderSheet(); });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOrderSheet(); });
+$("orderSheetConfirm").addEventListener("click", () => {
+  const action = orderPendingAction;
+  closeOrderSheet();
+  if (action) onOrderConfirm(action);
+});
+
+/* Report: TODO save the report from onReportSubmit({ reason, details }) */
+function onReportSubmit(report) {
+  showOrderToast("Report sent. Our team will look into it.");
+}
+function openReportSheet() {
+  document.querySelectorAll('input[name="reportReason"]').forEach((r) => { r.checked = false; });
+  $("reportDetails").value = "";
+  $("reportSend").disabled = true;
+  $("reportSheet").classList.add("show");
+}
+function closeReportSheet() { $("reportSheet").classList.remove("show"); }
+$("reportBtn").addEventListener("click", openReportSheet);
+$("reportCancel").addEventListener("click", closeReportSheet);
+$("reportSheet").addEventListener("click", (e) => { if (e.target === $("reportSheet")) closeReportSheet(); });
+$("reportReasons").addEventListener("change", () => { $("reportSend").disabled = false; });
+$("reportSend").addEventListener("click", () => {
+  const picked = document.querySelector('input[name="reportReason"]:checked');
+  if (!picked) return;
+  const report = { reason: picked.value, details: $("reportDetails").value.trim() };
+  closeReportSheet();
+  onReportSubmit(report);
+});
 
 // Run once, whether the DOM is ready yet or not
 if (document.readyState === "loading") {
