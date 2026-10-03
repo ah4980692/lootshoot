@@ -313,24 +313,6 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
     </div>
   </div>
 </div>
-<div class="order-sheet-backdrop" id="reportSheet" role="dialog" aria-modal="true" aria-labelledby="reportSheetTitle">
-  <div class="order-sheet">
-    <div class="order-sheet-handle"></div>
-    <div class="order-sheet-title" id="reportSheetTitle">Report a problem</div>
-    <div class="order-sheet-text">Tell us what went wrong with this order.</div>
-    <div class="report-reasons" id="reportReasons">
-      <label class="report-reason"><input type="radio" name="reportReason" value="not_delivered"><span>Order not delivered</span></label>
-      <label class="report-reason"><input type="radio" name="reportReason" value="not_as_described"><span>Not as described</span></label>
-      <label class="report-reason"><input type="radio" name="reportReason" value="not_responding"><span>Other person not responding</span></label>
-      <label class="report-reason"><input type="radio" name="reportReason" value="other"><span>Something else</span></label>
-    </div>
-    <textarea class="report-details" id="reportDetails" maxlength="1000" placeholder="Add details (optional)"></textarea>
-    <div class="order-sheet-actions">
-      <button type="button" class="order-sheet-cancel" id="reportCancel">Cancel</button>
-      <button type="button" class="order-sheet-confirm" id="reportSend" disabled>Send report</button>
-    </div>
-  </div>
-</div>
 <div class="order-toast" id="orderToast" role="status" aria-live="polite"></div>
 
 <div class="lightbox" id="imageLightbox" role="dialog" aria-modal="true" aria-label="Image preview">
@@ -358,6 +340,10 @@ let pendingImage = null;
 let isUploadingImage = false;
 let replyingTo = null;
 let currentOtherName = "User";
+let currentConversation = null;
+let currentAdTitle = "Product";
+let currentBuyerName = "Buyer";
+let currentSellerName = "Seller";
 
 const $ = (id) => document.getElementById(id);
 
@@ -1019,6 +1005,10 @@ async function renderConversationThread(conversationId) {
     const preparedMessages = (messages || []).map(m => m && updatedMap[m.id] ? updatedMap[m.id] : m);
 
     currentConversationId = conversation.id;
+    currentConversation = conversation;
+    currentAdTitle = adTitle;
+    currentBuyerName = buyerName;
+    currentSellerName = sellerName;
     isConversationViewOpen = true;
     currentThreadMessages = preparedMessages;
 
@@ -1730,7 +1720,6 @@ function openOrderSheet(action) {
 function closeOrderSheet() {
   orderPendingAction = null;
   $("orderSheet").classList.remove("show");
-  const rs = $("reportSheet"); if (rs) rs.classList.remove("show");
 }
 
 // TODO: replace with the real logic (save to Supabase, then call setOrderState with the new status).
@@ -1754,28 +1743,25 @@ $("orderSheetConfirm").addEventListener("click", () => {
   if (action) onOrderConfirm(action);
 });
 
-/* Report: TODO save the report from onReportSubmit({ reason, details }) */
-function onReportSubmit(report) {
-  showOrderToast("Report sent. Our team will look into it.");
+/* Report: Opens WhatsApp with pre-filled message containing order details */
+function openReportOnWhatsApp() {
+  const whatsappNumber = "923411444759";
+  
+  const message = `Hi LootShoot Support, I need help with an issue regarding my order.
+
+Product: ${currentAdTitle}
+
+Buyer: ${currentBuyerName}
+
+Seller: ${currentSellerName}
+
+Conversation ID: ${currentConversationId}`;
+  
+  const encodedMessage = encodeURIComponent(message);
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+  window.open(whatsappUrl, "_blank");
 }
-function openReportSheet() {
-  document.querySelectorAll('input[name="reportReason"]').forEach((r) => { r.checked = false; });
-  $("reportDetails").value = "";
-  $("reportSend").disabled = true;
-  $("reportSheet").classList.add("show");
-}
-function closeReportSheet() { $("reportSheet").classList.remove("show"); }
-$("reportBtn").addEventListener("click", openReportSheet);
-$("reportCancel").addEventListener("click", closeReportSheet);
-$("reportSheet").addEventListener("click", (e) => { if (e.target === $("reportSheet")) closeReportSheet(); });
-$("reportReasons").addEventListener("change", () => { $("reportSend").disabled = false; });
-$("reportSend").addEventListener("click", () => {
-  const picked = document.querySelector('input[name="reportReason"]:checked');
-  if (!picked) return;
-  const report = { reason: picked.value, details: $("reportDetails").value.trim() };
-  closeReportSheet();
-  onReportSubmit(report);
-});
+$("reportBtn").addEventListener("click", openReportOnWhatsApp);
 
 // Run once, whether the DOM is ready yet or not
 if (document.readyState === "loading") {
