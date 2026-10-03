@@ -54,11 +54,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .chat-empty-text{font-size:14px;color:var(--muted);line-height:1.5}
 
 /* Conversation panel */
-.conversation-panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px}
-.conversation-thread{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:4px 2px}
+.conversation-panel{flex:1;min-height:0;display:flex;flex-direction:column;gap:10px;margin:0 -16px}
+.conversation-thread{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column;gap:6px;padding:4px 18px}
 
 /* Messages */
-.message-bubble{display:flex;animation:slideIn .25s ease}
+.message-bubble{display:flex;position:relative;touch-action:pan-y;animation:slideIn .25s ease}
 @keyframes slideIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .message-bubble.sent{justify-content:flex-end}
 .message-bubble.received{justify-content:flex-start}
@@ -106,6 +106,29 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .lightbox-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border-radius:50%;border:none;background:rgba(255,255,255,.15);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 .lightbox-close:hover{background:rgba(255,255,255,.28)}
 .lightbox-close svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2.2;stroke-linecap:round}
+
+/* Swipe to reply */
+.message-bubble::before{content:"";position:absolute;left:6px;top:50%;width:30px;height:30px;margin-top:-15px;border-radius:50%;pointer-events:none;opacity:var(--swipe-p,0);transform:scale(calc(.6 + .4 * var(--swipe-p,0)));background:var(--light-green) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230c4b32' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10a6 6 0 0 1 6 6v3'/%3E%3C/svg%3E") center/16px no-repeat}
+body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;cursor:grabbing}
+.message-bubble.flash .message-content{animation:flash 1.3s ease}
+@keyframes flash{0%,55%{box-shadow:0 0 0 3px rgba(37,165,106,.5)}100%{box-shadow:0 0 0 3px rgba(37,165,106,0)}}
+
+/* Quoted message inside a bubble */
+.message-content.has-reply{flex-wrap:wrap}
+.reply-quote{flex:0 0 100%;display:flex;align-items:center;gap:8px;min-width:150px;margin-bottom:2px;padding:6px 8px;border-radius:8px;border-left:4px solid var(--accent);background:rgba(12,75,50,.07);cursor:pointer;line-height:1.3;overflow:hidden;white-space:normal}
+.message-bubble.received .reply-quote{background:var(--light-green-2)}
+.message-content.image-message .reply-quote{margin-bottom:4px}
+.reply-quote-body{flex:1;min-width:0}
+.reply-quote-name{font-size:12px;font-weight:700;color:var(--primary)}
+.reply-quote-text{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.reply-quote-thumb{width:36px;height:36px;border-radius:6px;object-fit:cover;flex-shrink:0}
+
+/* Reply bar (above the input) */
+.reply-bar{display:flex;align-items:center;gap:10px;padding:8px 8px 8px 12px;background:var(--light-green-2);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:12px}
+.reply-bar-body{flex:1;min-width:0}
+.reply-bar-name{font-size:12px;font-weight:700;color:var(--primary)}
+.reply-bar-text{font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+.reply-bar-thumb{width:40px;height:40px;border-radius:8px;object-fit:cover;flex-shrink:0}
 
 /* Input area */
 .chat-input-area{background:#fff;padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border-2);flex-shrink:0}
@@ -199,6 +222,16 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   </div>
 
   <div class="chat-input-area" id="chatInputArea" style="display:none;">
+    <div class="reply-bar" id="replyBar" style="display:none;">
+      <div class="reply-bar-body">
+        <div class="reply-bar-name" id="replyBarName"></div>
+        <div class="reply-bar-text" id="replyBarText"></div>
+      </div>
+      <img class="reply-bar-thumb" id="replyBarThumb" alt="" style="display:none;">
+      <button type="button" class="pending-image-remove" id="replyBarClose" aria-label="Cancel reply" title="Cancel reply">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
     <div class="pending-image" id="pendingImagePreview" style="display:none;">
       <div class="pending-image-thumb">
         <img id="previewImage" alt="Selected image">
@@ -251,6 +284,8 @@ let currentUserId = null;
 let activeChannel = null;
 let pendingImage = null;
 let isUploadingImage = false;
+let replyingTo = null;
+let currentOtherName = "User";
 
 const $ = (id) => document.getElementById(id);
 
@@ -330,18 +365,43 @@ function getMessageStatusMarkup(message) {
 }
 
 const CHAT_IMAGE_PREFIX = "CHAT_IMAGE:";
+const CHAT_REPLY_PREFIX = "CHAT_REPLY:";
 const CHAT_IMAGE_BASE = `${supabaseUrl}/storage/v1/object/public/chat-images/`;
+
+// A reply is stored as "CHAT_REPLY:<messageId>\n<body>"; body may itself be text or a CHAT_IMAGE message
+function parseMessageText(text) {
+  if (typeof text !== "string") return { replyId: null, body: "" };
+  const match = text.match(/^CHAT_REPLY:([\w-]+)\n([\s\S]*)$/);
+  return match ? { replyId: match[1], body: match[2] } : { replyId: null, body: text };
+}
 
 // Only accept images that live in our own chat-images bucket
 function getChatImageUrl(text) {
-  if (typeof text !== "string" || !text.startsWith(CHAT_IMAGE_PREFIX)) return null;
-  const url = text.slice(CHAT_IMAGE_PREFIX.length).trim();
+  const { body } = parseMessageText(text);
+  if (!body.startsWith(CHAT_IMAGE_PREFIX)) return null;
+  const url = body.slice(CHAT_IMAGE_PREFIX.length).trim();
   return url.startsWith(CHAT_IMAGE_BASE) ? url : null;
 }
 
-// Text shown in the chat list instead of the raw "CHAT_IMAGE:https://..." string
+// Text shown in the chat list / quotes instead of the raw stored string
 function getMessagePreviewText(text) {
-  return getChatImageUrl(text) ? "📷 Photo" : (text || "");
+  return getChatImageUrl(text) ? "📷 Photo" : parseMessageText(text).body;
+}
+
+function quoteBlockHtml(replyId) {
+  const orig = currentThreadMessages.find((x) => x && String(x.id) === String(replyId));
+  let name = "Message";
+  let text = "Original message unavailable";
+  let thumb = "";
+
+  if (orig) {
+    name = orig.sender_id === currentUserId ? "You" : currentOtherName;
+    text = getMessagePreviewText(orig.message);
+    const origImage = getChatImageUrl(orig.message);
+    if (origImage) thumb = `<img class="reply-quote-thumb" src="${esc(origImage)}" alt="">`;
+  }
+
+  return `<div class="reply-quote" data-reply-id="${esc(String(replyId))}"><div class="reply-quote-body"><div class="reply-quote-name">${esc(name)}</div><div class="reply-quote-text">${esc(text)}</div></div>${thumb}</div>`;
 }
 
 function messageHtml(m) {
@@ -349,17 +409,15 @@ function messageHtml(m) {
   const statusMarkup = getMessageStatusMarkup(m);
   const metaMarkup = `<div class="message-meta"><span class="message-time">${esc(formatMessageTime(m.created_at))}</span>${statusMarkup}</div>`;
 
+  const { replyId, body } = parseMessageText(m.message);
   const imageUrl = getChatImageUrl(m.message);
+  const quoteHtml = replyId ? quoteBlockHtml(replyId) : "";
   const contentHtml = imageUrl
     ? `<span class="chat-image-wrap"><img class="chat-image" src="${esc(imageUrl)}" alt="Photo" decoding="async"></span>`
-    : `<div class="message-text">${esc(m.message)}</div>`;
+    : `<div class="message-text">${esc(body)}</div>`;
 
-  return `<div class="message-bubble ${out ? "sent" : "received"}" data-id="${esc(String(m.id))}">
-    <div class="message-content${imageUrl ? " image-message" : ""}">
-      ${contentHtml}
-      ${metaMarkup}
-    </div>
-  </div>`;
+  const classes = `message-content${imageUrl ? " image-message" : ""}${replyId ? " has-reply" : ""}`;
+  return `<div class="message-bubble ${out ? "sent" : "received"}" data-id="${esc(String(m.id))}"><div class="${classes}">${quoteHtml}${contentHtml}${metaMarkup}</div></div>`;
 }
 
 async function markIncomingMessageStatus(message) {
@@ -477,6 +535,7 @@ function hideComposer() {
 function resetListState() {
   setHeaderText("Chat", "LootShoot");
   setAdStrip(false);
+  clearReply();
   clearPendingImage();
   isConversationViewOpen = false;
   currentConversationId = null;
@@ -851,6 +910,7 @@ async function renderConversationThread(conversationId) {
     const otherId = conversation.buyer_id === user.id ? conversation.seller_id : conversation.buyer_id;
     const otherProfile = otherId ? await getSellerProfile(otherId) : null;
     const otherName = otherProfile?.username || "User";
+    currentOtherName = otherName;
     const otherAvatarUrl = otherProfile?.avatar_url || null;
     const messages = await getConversationMessageRows(conversation.id);
 
@@ -1127,7 +1187,7 @@ async function uploadAndSendPendingImage() {
 
     const { data, error } = await supabaseClient
       .from("messages")
-      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: `${CHAT_IMAGE_PREFIX}${imageUrl}` }])
+      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: `${replyPrefix()}${CHAT_IMAGE_PREFIX}${imageUrl}` }])
       .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
       .single();
 
@@ -1135,6 +1195,7 @@ async function uploadAndSendPendingImage() {
 
     if (data) addMessage(data);
     sent = true;
+    clearReply();
     clearPendingImage();
   } catch (error) {
     console.error("Could not send image:", error);
@@ -1163,6 +1224,57 @@ function openLightbox(src) {
 function closeLightbox() {
   $("imageLightbox").style.display = "none";
   $("lightboxImg").removeAttribute("src");
+}
+
+/* ---------- Reply ---------- */
+
+function replyPrefix() {
+  return replyingTo ? `${CHAT_REPLY_PREFIX}${replyingTo.id}\n` : "";
+}
+
+function renderReplyBar() {
+  const bar = $("replyBar");
+  if (!replyingTo) {
+    bar.style.display = "none";
+    return;
+  }
+
+  $("replyBarName").textContent = replyingTo.sender_id === currentUserId ? "You" : currentOtherName;
+  $("replyBarText").textContent = getMessagePreviewText(replyingTo.message);
+
+  const imageUrl = getChatImageUrl(replyingTo.message);
+  const thumb = $("replyBarThumb");
+  if (imageUrl) {
+    thumb.src = imageUrl;
+    thumb.style.display = "block";
+  } else {
+    thumb.removeAttribute("src");
+    thumb.style.display = "none";
+  }
+  bar.style.display = "flex";
+}
+
+function startReply(messageId) {
+  const msg = currentThreadMessages.find((m) => m && String(m.id) === String(messageId));
+  if (!msg) return;
+  replyingTo = { id: msg.id, sender_id: msg.sender_id, message: msg.message };
+  renderReplyBar();
+  $("messageInput").focus();
+}
+
+function clearReply() {
+  replyingTo = null;
+  renderReplyBar();
+}
+
+function jumpToMessage(messageId) {
+  const target = document.querySelector(`.message-bubble[data-id="${CSS.escape(String(messageId))}"]`);
+  if (!target) return;
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  target.classList.remove("flash");
+  void target.offsetWidth; // restart the animation
+  target.classList.add("flash");
+  setTimeout(() => target.classList.remove("flash"), 1400);
 }
 
 /* ---------- Sending ---------- */
@@ -1208,13 +1320,14 @@ async function sendMessage() {
   try {
     const { data, error } = await supabaseClient
       .from("messages")
-      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: text }])
+      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: replyPrefix() + text }])
       .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
       .single();
     if (error) throw error;
 
     if (data) addMessage(data);
     $("messageInput").value = "";
+    clearReply();
   } catch (error) {
     console.error("Could not send message:", error);
     window.alert("Message could not be sent. Please try again.");
@@ -1269,6 +1382,86 @@ $("clearImageBtn").addEventListener("click", () => {
   clearPendingImage();
 });
 
+/* ---------- Swipe to reply (drag a bubble to the right) ---------- */
+
+const SWIPE_TRIGGER = 56; // px to drag before a reply is triggered
+const SWIPE_MAX = 84;     // visual limit
+let swipe = null;
+let suppressClickUntil = 0;
+
+function swipeOffset(dx) {
+  const d = Math.max(0, dx);
+  return d <= SWIPE_TRIGGER ? d : Math.min(SWIPE_MAX, SWIPE_TRIGGER + (d - SWIPE_TRIGGER) * 0.3);
+}
+
+function resetSwipeVisual(bubble) {
+  const content = bubble.querySelector(".message-content");
+  if (content) {
+    content.style.transition = "transform .18s ease";
+    content.style.transform = "";
+  }
+  bubble.style.setProperty("--swipe-p", "0");
+}
+
+document.addEventListener("pointerdown", (e) => {
+  if (!isConversationViewOpen) return;
+  if (e.pointerType === "mouse" && e.button !== 0) return;
+  const bubble = e.target.closest ? e.target.closest(".conversation-thread .message-bubble") : null;
+  if (!bubble) return;
+  swipe = { bubble, id: bubble.dataset.id, startX: e.clientX, startY: e.clientY, active: false, crossed: false, pointerId: e.pointerId };
+});
+
+document.addEventListener("pointermove", (e) => {
+  if (!swipe || e.pointerId !== swipe.pointerId) return;
+
+  const dx = e.clientX - swipe.startX;
+  const dy = e.clientY - swipe.startY;
+
+  if (!swipe.active) {
+    // Mostly vertical movement = normal scrolling, so stop tracking
+    if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) { swipe = null; return; }
+    if (dx > 12 && dx > Math.abs(dy) * 1.2) {
+      swipe.active = true;
+      document.body.classList.add("is-swiping");
+      if (window.getSelection) window.getSelection().removeAllRanges();
+    } else {
+      return;
+    }
+  }
+
+  const offset = swipeOffset(dx);
+  const content = swipe.bubble.querySelector(".message-content");
+  if (content) {
+    content.style.transition = "none";
+    content.style.transform = `translateX(${offset}px)`;
+  }
+  swipe.bubble.style.setProperty("--swipe-p", String(Math.min(1, offset / SWIPE_TRIGGER)));
+
+  if (!swipe.crossed && dx >= SWIPE_TRIGGER) {
+    swipe.crossed = true;
+    if (navigator.vibrate) navigator.vibrate(12);
+  } else if (swipe.crossed && dx < SWIPE_TRIGGER) {
+    swipe.crossed = false;
+  }
+});
+
+function endSwipe(e, cancelled) {
+  if (!swipe || e.pointerId !== swipe.pointerId) return;
+  const s = swipe;
+  swipe = null;
+  document.body.classList.remove("is-swiping");
+  if (!s.active) return;
+
+  suppressClickUntil = Date.now() + 350; // don't treat the end of a swipe as a tap
+  resetSwipeVisual(s.bubble);
+  if (!cancelled && e.clientX - s.startX >= SWIPE_TRIGGER) startReply(s.id);
+}
+
+document.addEventListener("pointerup", (e) => endSwipe(e, false));
+document.addEventListener("pointercancel", (e) => endSwipe(e, true));
+
+$("replyBarClose").addEventListener("click", clearReply);
+
 // Keep the thread pinned to the bottom when an image finishes loading
 document.addEventListener("load", (e) => {
   const img = e.target;
@@ -1288,7 +1481,17 @@ document.addEventListener("error", (e) => {
 
 // Tap an image in the thread to view it full size
 document.addEventListener("click", (e) => {
-  const img = e.target.closest ? e.target.closest(".chat-image") : null;
+  if (Date.now() < suppressClickUntil) return;
+  if (!e.target.closest) return;
+
+  // Tap a quoted message to jump to the original
+  const quote = e.target.closest(".reply-quote");
+  if (quote) {
+    jumpToMessage(quote.dataset.replyId);
+    return;
+  }
+
+  const img = e.target.closest(".chat-image");
   if (img && !img.closest(".is-broken")) openLightbox(img.currentSrc || img.src);
 });
 
@@ -1297,7 +1500,9 @@ $("imageLightbox").addEventListener("click", (e) => {
 });
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === "Escape") closeLightbox();
+  if (e.key !== "Escape") return;
+  if ($("imageLightbox").style.display === "flex") closeLightbox();
+  else if (replyingTo) clearReply();
 });
 
 // Run once, whether the DOM is ready yet or not
