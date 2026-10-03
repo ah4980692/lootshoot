@@ -23,6 +23,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .chat-header{background:var(--primary);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.1)}
 .header-left{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
 .header-left>div{min-width:0}
+.header-avatar{display:none;width:38px;height:38px;border-radius:50%;background:var(--light-green);color:var(--primary);align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;text-transform:uppercase;user-select:none}
 .back-button{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:opacity .2s}
 .back-button:hover{opacity:.8}
 .header-title{font-size:18px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -33,6 +34,17 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .header-icon-btn{background:rgba(255,255,255,.15);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s}
 .header-icon-btn:hover{background:rgba(255,255,255,.25);transform:translateY(-1px)}
 .header-icon-btn svg{width:18px;height:18px;fill:currentColor}
+
+/* Ad strip (shown under header inside a conversation) */
+.ad-strip{display:none;align-items:center;gap:12px;padding:10px 16px;background:#fff;border-bottom:1px solid var(--border-2);text-decoration:none;color:inherit;cursor:pointer;flex-shrink:0;transition:background .15s}
+.ad-strip:hover{background:var(--light-green-2)}
+.ad-strip-thumb{width:52px;height:52px;border-radius:10px;background:var(--light-green-2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden}
+.ad-strip-thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.ad-strip-thumb svg{width:22px;height:22px;stroke:var(--muted-2);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ad-strip-info{flex:1;min-width:0}
+.ad-strip-title{font-size:14px;font-weight:700;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad-strip-price{font-size:13px;font-weight:600;color:var(--primary);margin-top:2px}
+.ad-strip-chevron{width:20px;height:20px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
 
 /* Chat container */
 .chat-container{flex:1;min-height:0;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
@@ -121,6 +133,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
   <header class="chat-header">
     <div class="header-left">
       <button type="button" class="back-button" id="backButton" aria-label="Go back" title="Back">←</button>
+      <div class="header-avatar" id="chatAvatar" aria-hidden="true"></div>
       <div>
         <div class="header-title" id="chatTitle">Chat</div>
         <div class="header-subtitle" id="chatSubtitle">LootShoot</div>
@@ -133,6 +146,17 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
     </div>
   </header>
 
+  <a class="ad-strip" id="adStrip" href="#" aria-label="Open ad">
+    <div class="ad-strip-thumb" id="adStripThumb">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+    </div>
+    <div class="ad-strip-info">
+      <div class="ad-strip-title" id="adStripTitle">Ad title</div>
+      <div class="ad-strip-price" id="adStripPrice">Rs 0</div>
+    </div>
+    <svg class="ad-strip-chevron" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+  </a>
+
   <div class="chat-container" id="chatContainer">
     <div class="chat-loading">Loading...</div>
   </div>
@@ -143,6 +167,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
       <button type="button" class="input-action-btn" id="attachBtn" aria-label="Attach file" title="Attach">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
       </button>
+      <input type="file" id="imageInput" accept="image/jpeg,image/png,image/webp" style="display:none;" aria-hidden="true">
     </div>
     <button type="button" class="send-button" id="sendButton" aria-label="Send message" title="Send" disabled>
       <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"/></svg>
@@ -246,9 +271,24 @@ function messageHtml(m) {
   const out = m.sender_id === currentUserId;
   const statusMarkup = getMessageStatusMarkup(m);
   const metaMarkup = `<div class="message-meta"><span class="message-time">${esc(formatMessageTime(m.created_at))}</span>${statusMarkup}</div>`;
+  
+  // Check if message is an image
+  const isImageMessage = m.message && m.message.startsWith("CHAT_IMAGE:");
+  
+  let contentHtml;
+  if (isImageMessage) {
+    // Extract image URL and render as image
+    const imageUrl = m.message.substring("CHAT_IMAGE:".length);
+    const escapedUrl = esc(imageUrl);
+    contentHtml = `<img src="${escapedUrl}" alt="Chat image" style="max-width: 100%; max-height: 300px; border-radius: 12px; display: block; object-fit: cover;">`;
+  } else {
+    // Regular text message
+    contentHtml = `<div class="message-text">${esc(m.message)}</div>`;
+  }
+  
   return `<div class="message-bubble ${out ? "sent" : "received"}" data-id="${esc(String(m.id))}">
     <div class="message-content">
-      <div class="message-text">${esc(m.message)}</div>
+      ${contentHtml}
       ${metaMarkup}
     </div>
   </div>`;
@@ -309,9 +349,50 @@ function addMessage(message) {
 
 /* ---------- UI helpers ---------- */
 
-function setHeaderText(title, subtitle) {
+function getInitials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (!parts.length) return "?";
+  const first = Array.from(parts[0])[0] || "";
+  const second = parts.length > 1 ? (Array.from(parts[parts.length - 1])[0] || "") : "";
+  return (first + second) || "?";
+}
+
+// withAvatar = true (conversation view): avatar + name only, no subtitle
+function setHeaderText(title, subtitle, withAvatar = false, avatarUrl = null) {
   $("chatTitle").textContent = title || "Chat";
   $("chatSubtitle").textContent = subtitle || "LootShoot";
+  $("chatSubtitle").style.display = withAvatar ? "none" : "";
+  const avatar = $("chatAvatar");
+  avatar.style.display = withAvatar ? "flex" : "none";
+  
+  if (withAvatar) {
+    if (avatarUrl) {
+      avatar.innerHTML = `<img src="${esc(avatarUrl)}" alt="${esc(title)}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+    } else {
+      avatar.textContent = getInitials(title);
+    }
+  } else {
+    avatar.textContent = "";
+  }
+}
+
+// Ad strip under the header. Pass { title, price, image, url } to fill it in;
+// anything omitted falls back to the placeholder.
+function setAdStrip(show, ad = {}) {
+  const strip = $("adStrip");
+  strip.style.display = show ? "flex" : "none";
+  if (!show) return;
+
+  $("adStripTitle").textContent = ad.title || "Ad title";
+  $("adStripPrice").textContent = ad.price || "Rs 0";
+  strip.setAttribute("href", ad.url || "#");
+
+  const thumb = $("adStripThumb");
+  if (ad.image) {
+    thumb.innerHTML = `<img src="${esc(ad.image)}" alt="">`;
+  } else {
+    thumb.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>';
+  }
 }
 
 function refreshComposerState() {
@@ -327,6 +408,7 @@ function hideComposer() {
 
 function resetListState() {
   setHeaderText("Chat", "LootShoot");
+  setAdStrip(false);
   isConversationViewOpen = false;
   currentConversationId = null;
   currentThreadMessages = [];
@@ -523,22 +605,27 @@ function updateGlobalUnreadBadge(total) {
 
 /* ---------- Data ---------- */
 
-async function getAdTitle(adId) {
-  if (!adId) return "Ad";
+async function getAdDetails(adId) {
+  if (!adId) return { title: "Ad", price: "Rs 0", image: null, id: null };
   try {
-    const { data, error } = await supabaseClient.from("ads").select("id, title").eq("id", adId).maybeSingle();
-    if (error) { console.warn("Could not load ad title:", error); return "Ad"; }
-    return data?.title || "Ad";
+    const { data, error } = await supabaseClient.from("ads").select("id, title, price, images").eq("id", adId).maybeSingle();
+    if (error) { console.warn("Could not load ad details:", error); return { title: "Ad", price: "Rs 0", image: null, id: null }; }
+    return {
+      title: data?.title || "Ad",
+      price: data?.price ? `Rs ${data.price}` : "Rs 0",
+      image: data?.images || null,
+      id: data?.id || null
+    };
   } catch (e) {
-    console.warn("Could not load ad title:", e);
-    return "Ad";
+    console.warn("Could not load ad details:", e);
+    return { title: "Ad", price: "Rs 0", image: null, id: null };
   }
 }
 
 async function getSellerProfile(userId) {
   if (!userId) return null;
   try {
-    const { data, error } = await supabaseClient.from("sellers").select("id, username").eq("id", userId).maybeSingle();
+    const { data, error } = await supabaseClient.from("sellers").select("id, username, avatar_url").eq("id", userId).maybeSingle();
     if (error) { console.warn("Could not load profile:", error); return null; }
     return data;
   } catch (e) {
@@ -612,11 +699,16 @@ async function loadConversations(tabName) {
 
     for (const conversation of rows || []) {
       let adTitle = "Ad";
+      let deal = null;
       try {
-        const { data: deal, error: dealError } = await supabaseClient
+        const dealResult = await supabaseClient
           .from("deals").select("id, ad_id").eq("id", conversation.deal_id).maybeSingle();
-        if (dealError) console.warn("Could not load deal:", dealError);
-        if (deal?.ad_id) adTitle = await getAdTitle(deal.ad_id);
+        deal = dealResult.data;
+        if (dealResult.error) console.warn("Could not load deal:", dealResult.error);
+        if (deal?.ad_id) {
+          const adDetails = await getAdDetails(deal.ad_id);
+          adTitle = adDetails.title;
+        }
       } catch (e) {
         console.warn("Failed to get deal/ad data:", e);
       }
@@ -678,14 +770,19 @@ async function renderConversationThread(conversationId) {
     }
 
     let adTitle = "Ad";
+    let adDetails = { title: "Ad", price: "Rs 0", image: null, id: null };
     const { data: deal, error: dealError } = await supabaseClient
       .from("deals").select("id, ad_id").eq("id", conversation.deal_id).maybeSingle();
     if (dealError) console.warn("Could not load deal:", dealError);
-    if (deal?.ad_id) adTitle = await getAdTitle(deal.ad_id);
+    if (deal?.ad_id) {
+      adDetails = await getAdDetails(deal.ad_id);
+      adTitle = adDetails.title;
+    }
 
     const otherId = conversation.buyer_id === user.id ? conversation.seller_id : conversation.buyer_id;
     const otherProfile = otherId ? await getSellerProfile(otherId) : null;
     const otherName = otherProfile?.username || "User";
+    const otherAvatarUrl = otherProfile?.avatar_url || null;
     const messages = await getConversationMessageRows(conversation.id);
 
     // Batch-mark incoming unread messages as delivered (if null) and read.
@@ -728,7 +825,13 @@ async function renderConversationThread(conversationId) {
     isConversationViewOpen = true;
     currentThreadMessages = preparedMessages;
 
-    setHeaderText(otherName, adTitle);
+    setHeaderText(otherName, adTitle, true, otherAvatarUrl);
+    setAdStrip(true, {
+      title: adDetails.title,
+      price: adDetails.price,
+      image: adDetails.image,
+      url: adDetails.id ? `ad-details.html?id=${adDetails.id}` : "#"
+    });
     $("chatInputArea").style.display = "flex";
 
     const messageMarkup = preparedMessages.length
@@ -841,6 +944,96 @@ async function getAuthenticatedUser() {
   }
 }
 
+/* ---------- Image upload and sending ---------- */
+
+let isUploadingImage = false;
+
+async function uploadImageToStorage(file, conversationId, userId) {
+  // Validate file type
+  const allowedTypes = ["image/jpeg", "image/png", "image/webp"];
+  if (!allowedTypes.includes(file.type)) {
+    throw new Error("Only JPEG, PNG, and WEBP images are allowed.");
+  }
+  
+  // Validate file size (5 MB max)
+  const maxSize = 5 * 1024 * 1024; // 5 MB
+  if (file.size > maxSize) {
+    throw new Error("Image must be smaller than 5 MB.");
+  }
+  
+  // Create unique file path
+  const timestamp = Date.now();
+  const randomStr = Math.random().toString(36).substring(2, 8);
+  const fileExt = file.name.split(".").pop() || "jpg";
+  const fileName = `${timestamp}-${randomStr}.${fileExt}`;
+  const filePath = `${conversationId}/${userId}/${fileName}`;
+  
+  // Upload to storage
+  const { data, error } = await supabaseClient.storage
+    .from("chat-images")
+    .upload(filePath, file, { upsert: false });
+  
+  if (error) {
+    throw new Error(`Upload failed: ${error.message}`);
+  }
+  
+  // Get public URL
+  const { data: urlData } = supabaseClient.storage
+    .from("chat-images")
+    .getPublicUrl(data.path);
+  
+  return urlData.publicUrl;
+}
+
+async function sendImageMessage(file) {
+  if (!isConversationViewOpen || isUploadingImage || !currentConversationId) return;
+  
+  const user = await getAuthenticatedUser();
+  if (!user) {
+    window.alert("Please sign in again to send a message.");
+    return;
+  }
+  
+  const valid = await validateActiveConversation(currentConversationId, user.id);
+  if (!valid) {
+    window.alert("You can only send messages in conversations you are part of.");
+    return;
+  }
+  
+  isUploadingImage = true;
+  $("attachBtn").disabled = true;
+  
+  try {
+    // Upload image to storage
+    const imageUrl = await uploadImageToStorage(file, currentConversationId, user.id);
+    
+    // Send image message through messages table
+    const messageText = `CHAT_IMAGE:${imageUrl}`;
+    const { data, error } = await supabaseClient
+      .from("messages")
+      .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: messageText }])
+      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
+      .single();
+    
+    if (error) throw error;
+    
+    if (data) addMessage(data);
+  } catch (error) {
+    console.error("Could not send image:", error);
+    window.alert(`Error: ${error.message || "Could not send image. Please try again."}`);
+  } finally {
+    isUploadingImage = false;
+    $("attachBtn").disabled = false;
+    
+    // Clear file input so same image can be selected again
+    const fileInput = $("imageInput");
+    if (fileInput) fileInput.value = "";
+    
+    refreshComposerState();
+    $("messageInput").focus();
+  }
+}
+
 /* ---------- Sending ---------- */
 
 async function validateActiveConversation(conversationId, userId) {
@@ -907,6 +1100,11 @@ $("backButton").addEventListener("click", () => {
   window.location.href = "seller-dashboard.html";
 });
 
+// Placeholder ad strip has no link yet, so don't jump to "#"
+$("adStrip").addEventListener("click", (e) => {
+  if ($("adStrip").getAttribute("href") === "#") e.preventDefault();
+});
+
 $("messageInput").addEventListener("input", refreshComposerState);
 
 $("messageInput").addEventListener("keydown", async (e) => {
@@ -917,6 +1115,18 @@ $("messageInput").addEventListener("keydown", async (e) => {
 });
 
 $("sendButton").addEventListener("click", sendMessage);
+
+// Image attachment handling
+$("attachBtn").addEventListener("click", () => {
+  $("imageInput").click();
+});
+
+$("imageInput").addEventListener("change", async (e) => {
+  const file = e.target.files[0];
+  if (file) {
+    await sendImageMessage(file);
+  }
+});
 
 // Run once, whether the DOM is ready yet or not
 if (document.readyState === "loading") {
