@@ -349,11 +349,11 @@ const $ = (id) => document.getElementById(id);
 
 // Intro message read state management
 function isIntroMessageRead(conversationId) {
-  return sessionStorage.getItem(`intro_read_${conversationId}`) === 'true';
+  return localStorage.getItem(`intro_read_${conversationId}`) === 'true';
 }
 
 function markIntroMessageAsRead(conversationId) {
-  sessionStorage.setItem(`intro_read_${conversationId}`, 'true');
+  localStorage.setItem(`intro_read_${conversationId}`, 'true');
 }
 
 // Prevents HTML injection from user-generated text
