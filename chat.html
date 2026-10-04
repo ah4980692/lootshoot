@@ -67,6 +67,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .message-status.pending,.message-status.delivered{color:var(--muted)}
 .message-status.read{color:var(--accent);font-weight:700}
 
+/* System message (order status updates, centered) */
+.system-message{display:flex;justify-content:center;margin:6px 0;animation:slideIn .25s ease}
+.system-message-pill{max-width:90%;text-align:center;background:var(--light-green);color:var(--primary);border:1px solid #b9e3cd;border-radius:12px;padding:6px 14px;font-size:12px;font-weight:600;line-height:1.45;word-break:break-word}
+.system-message-time{display:block;margin-top:2px;font-size:10px;font-weight:500;color:var(--muted);opacity:.9}
+
 /* Date separator */
 .date-separator{display:flex;align-items:center;justify-content:center;margin:12px 0 6px;gap:8px}
 .date-separator::before,.date-separator::after{flex:1;height:1px;background:var(--border)}
@@ -491,6 +496,7 @@ function getMessageStatusMarkup(message) {
 
 const CHAT_IMAGE_PREFIX = "CHAT_IMAGE:";
 const CHAT_REPLY_PREFIX = "CHAT_REPLY:";
+const CHAT_SYSTEM_PREFIX = "CHAT_SYSTEM:";
 const CHAT_IMAGE_BASE = `${supabaseUrl}/storage/v1/object/public/chat-images/`;
 
 // A reply is stored as "CHAT_REPLY:<messageId>\n<body>"; body may itself be text or a CHAT_IMAGE message
@@ -498,6 +504,16 @@ function parseMessageText(text) {
   if (typeof text !== "string") return { replyId: null, body: "" };
   const match = text.match(/^CHAT_REPLY:([\w-]+)\n([\s\S]*)$/);
   return match ? { replyId: match[1], body: match[2] } : { replyId: null, body: text };
+}
+
+// Order status updates ("X has marked the order as delivered/received.") are system messages.
+// New ones are stored as "CHAT_SYSTEM:<text>"; older ones saved without the prefix are
+// recognised by their exact wording so they are shown centered too.
+function getSystemMessageText(text) {
+  if (typeof text !== "string") return null;
+  if (text.startsWith(CHAT_SYSTEM_PREFIX)) return text.slice(CHAT_SYSTEM_PREFIX.length).trim();
+  if (/^.+ has marked the order as (delivered|received)\.$/.test(text.trim())) return text.trim();
+  return null;
 }
 
 // Only accept images that live in our own chat-images bucket
@@ -510,6 +526,8 @@ function getChatImageUrl(text) {
 
 // Text shown in the chat list / quotes instead of the raw stored string
 function getMessagePreviewText(text) {
+  const systemText = getSystemMessageText(text);
+  if (systemText) return systemText;
   return getChatImageUrl(text) ? "📷 Photo" : parseMessageText(text).body;
 }
 
@@ -563,6 +581,12 @@ function getDateSeparatorHtml(iso) {
 }
 
 function messageHtml(m) {
+  // System messages (order status updates) are centered and styled differently
+  const systemText = getSystemMessageText(m.message);
+  if (systemText) {
+    return `<div class="system-message" data-id="${esc(String(m.id))}"><div class="system-message-pill">${esc(systemText)}<span class="system-message-time">${esc(formatMessageTime(m.created_at))}</span></div></div>`;
+  }
+
   const out = m.sender_id === currentUserId;
   const statusMarkup = getMessageStatusMarkup(m);
   const metaMarkup = `<div class="message-meta"><span class="message-time">${esc(formatMessageTime(m.created_at))}</span>${statusMarkup}</div>`;
@@ -1896,9 +1920,9 @@ async function onOrderConfirm(action) {
       return;
     }
 
-    const autoMessage = action === "delivered"
+    const autoMessage = CHAT_SYSTEM_PREFIX + (action === "delivered"
       ? `${currentSellerName || "Seller"} has marked the order as delivered.`
-      : `${currentBuyerName || "Buyer"} has marked the order as received.`;
+      : `${currentBuyerName || "Buyer"} has marked the order as received.`);
 
     try {
       const { data: insertedMessage, error: insertError } = await supabaseClient
