@@ -172,7 +172,7 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 .conversation-item-time{font-size:12px;color:var(--muted-2);white-space:nowrap}
 .conversation-unread-badge{background:var(--accent);color:#fff;font-size:12px;line-height:1;font-weight:700;min-width:20px;height:20px;padding:0 6px;border-radius:999px;display:inline-flex;align-items:center;justify-content:center;margin-left:0;flex-shrink:0}
 .conversation-item-meta{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
-.conversation-item-preview{font-size:13px;color:var(--muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.conversation-item-preview{font-size:13px;color:var(--muted);line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;box-orient:vertical}
 .chat-error{background:var(--red-bg);border:1px solid #e9b7b7;color:var(--red);border-radius:14px;padding:14px 16px;font-size:14px;line-height:1.5}
 .chat-loading{flex:1;display:flex;align-items:center;justify-content:center;min-height:180px;color:var(--muted);font-size:14px;font-weight:600}
 
@@ -221,7 +221,7 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 .order-sheet-check input::after{content:"";width:10px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform .12s ease}
 .order-sheet-check input:checked{background:var(--accent);border-color:var(--accent)}
 .order-sheet-check input:checked::after{transform:rotate(-45deg) scale(1)}
-.order-sheet-check span{flex:1;min-width:0}
+.order-sheet-check span{flex-1;min-width:0}
 .order-sheet-actions{display:flex;flex-direction:column;gap:8px}
 .order-sheet-actions button{width:100%;border-radius:14px;padding:15px 12px;font-size:15px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:transform .1s,background .15s,opacity .15s}
 .order-sheet-actions button:active{transform:scale(.98)}
@@ -334,7 +334,7 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
         <span class="order-sheet-value" id="orderSheetParty"></span>
       </div>
     </div>
-    <label class="order-sheet-check" id="orderSheetCheckRow"><input type="checkbox" id="orderSheetCheck"><span>I've checked and everything is correct</span></label>
+    <label class="order-sheet-check" id="orderSheetCheckRow"><input type="checkbox" id="orderSheetCheck"><span>I confirm that I have received and secured the product.</span></label>
     <label class="order-sheet-check" id="orderSheetDeliveryCheckRow" style="display:none"><input type="checkbox" id="orderSheetDeliveryCheck"><span>I confirm that I have delivered the order as mentioned</span></label>
     <div class="order-sheet-actions">
       <button type="button" class="order-sheet-confirm" id="orderSheetConfirm"></button>
@@ -376,21 +376,20 @@ let currentSellerName = "Seller";
 
 const $ = (id) => document.getElementById(id);
 
-// Intro message read state management
+// Prevents HTML injection from user-generated text
+function esc(str) {
+  const value = String(str ?? "");
+  const d = document.createElement("div");
+  d.textContent = value;
+  return d.innerHTML;
+}
+
 function isIntroMessageRead(conversationId) {
   return localStorage.getItem(`intro_read_${conversationId}`) === 'true';
 }
 
 function markIntroMessageAsRead(conversationId) {
   localStorage.setItem(`intro_read_${conversationId}`, 'true');
-}
-
-// Prevents HTML injection from user-generated text
-function esc(str) {
-  const d = document.createElement("div");
-  d.textContent = str ?? "";
-  // also escape quotes so the result is safe inside attributes (src="...", data-id="...")
-  return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;");
 }
 
 /* ---------- Mobile viewport / keyboard handling ---------- */
@@ -1032,11 +1031,25 @@ async function renderConversationThread(conversationId) {
     let adTitle = "Ad";
     let adDetails = { title: "Ad", price: "Rs 0", image: null, id: null };
     const { data: deal, error: dealError } = await supabaseClient
-      .from("deals").select("id, ad_id").eq("id", conversation.deal_id).maybeSingle();
+      .from("deals")
+      .select("id, ad_id, status, seller_delivered, buyer_confirmed")
+      .eq("id", conversation.deal_id)
+      .maybeSingle();
     if (dealError) console.warn("Could not load deal:", dealError);
     if (deal?.ad_id) {
       adDetails = await getAdDetails(deal.ad_id);
       adTitle = adDetails.title;
+    }
+    currentDealId = deal?.id || conversation.deal_id || null;
+    if (deal) {
+      const nextStatus = resolveDealOrderStatus(deal);
+      if (currentUserId && conversation.buyer_id === currentUserId) {
+        setOrderState("buyer", nextStatus);
+      } else if (currentUserId && conversation.seller_id === currentUserId) {
+        setOrderState("seller", nextStatus);
+      } else {
+        setOrderState("pending", "pending");
+      }
     }
 
     const otherId = conversation.buyer_id === user.id ? conversation.seller_id : conversation.buyer_id;
@@ -1108,8 +1121,14 @@ async function renderConversationThread(conversationId) {
       url: adDetails.id ? `ad-details.html?id=${adDetails.id}` : "#"
     });
     $("chatInputArea").style.display = "flex";
-    // Order button: role comes from the conversation; status defaults to "pending" until you load the real one.
-    setOrderState(conversation.buyer_id === user.id ? "buyer" : "seller", "pending");
+    // Order button: role comes from the conversation; status comes from the loaded deal record when available.
+    if (currentDealId) {
+      const role = conversation.buyer_id === user.id ? "buyer" : "seller";
+      const initStatus = resolveDealOrderStatus(deal || null);
+      setOrderState(role, initStatus);
+    } else {
+      setOrderState(conversation.buyer_id === user.id ? "buyer" : "seller", "pending");
+    }
 
     const messageMarkup = preparedMessages.length
       ? (() => {
@@ -1148,8 +1167,10 @@ async function renderConversationThread(conversationId) {
 
     // On phones, don't pop the keyboard open automatically when a chat opens
     // (it covers the messages). On desktop, focus the box as before.
+
     if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
       $("messageInput").focus();
+
     }
   } catch (error) {
     console.error("Could not open conversation:", error);
@@ -1749,6 +1770,15 @@ let orderRole = null;    // "buyer" | "seller"
 let orderStatus = "pending";
 let orderToastTimer = null;
 let orderPendingAction = null;
+let orderRequestInFlight = false;
+let currentDealId = null;
+
+function resolveDealOrderStatus(deal) {
+  if (!deal) return "pending";
+  if (deal.status === "completed" || deal.buyer_confirmed) return "completed";
+  if (deal.seller_delivered || deal.status === "delivered") return "delivered";
+  return "pending";
+}
 
 function orderNoticeHtml(role, buyerName = "Buyer", sellerName = "Seller", productTitle = "Product") {
   const introText = `${buyerName} has purchased "<b>${productTitle}</b>" listed by ${sellerName}. You can communicate, complete, and confirm the deal right here.`;
@@ -1801,6 +1831,7 @@ function setOrderState(role, status) {
   btn.textContent = html;
   btn.setAttribute("aria-label", label);
   btn.setAttribute("aria-disabled", cls.includes("ready") ? "false" : "true");
+  btn.disabled = orderRequestInFlight || cls.includes("locked") || cls.includes("waiting") || cls.includes("done");
   $("orderActions").classList.add("show");
 }
 
@@ -1829,13 +1860,82 @@ function closeOrderSheet() {
   $("orderSheet").classList.remove("show");
 }
 
-// TODO: replace with the real logic (save to Supabase, then call setOrderState with the new status).
-function onOrderConfirm(action) {
-  if (action === "delivered") setOrderState("seller", "delivered");
-  else if (action === "received") setOrderState("buyer", "completed");
+async function onOrderConfirm(action) {
+  if (orderRequestInFlight) return;
+  if (!currentDealId) {
+    showOrderToast("Deal information is not available yet.");
+    return;
+  }
+
+  const rpcName = action === "delivered" ? "seller_mark_order_delivered" : action === "received" ? "buyer_confirm_order_received" : null;
+  if (!rpcName) return;
+
+  orderRequestInFlight = true;
+  $("orderBtn").disabled = true;
+
+  try {
+    const { data, error } = await supabaseClient.rpc(rpcName, { p_deal_id: currentDealId });
+    if (error) throw error;
+
+    const updatedDeal = data || null;
+    const nextStatus = resolveDealOrderStatus(updatedDeal || {
+      status: action === "received" ? "completed" : "active",
+      seller_delivered: action === "delivered",
+      buyer_confirmed: action === "received"
+    });
+
+    if (action === "delivered") {
+      setOrderState("seller", nextStatus);
+      showOrderToast("Order marked as delivered.");
+    } else {
+      setOrderState("buyer", nextStatus);
+      showOrderToast("Order confirmed as received.");
+    }
+
+    if (!currentConversationId || !currentUserId) {
+      return;
+    }
+
+    const autoMessage = action === "delivered"
+      ? `${currentSellerName || "Seller"} has marked the order as delivered.`
+      : `${currentBuyerName || "Buyer"} has marked the order as received.`;
+
+    try {
+      const { data: insertedMessage, error: insertError } = await supabaseClient
+        .from("messages")
+        .insert([{
+          conversation_id: currentConversationId,
+          sender_id: currentUserId,
+          message: autoMessage
+        }])
+        .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
+        .single();
+
+      if (insertError) {
+        console.warn("Could not add order status message:", insertError);
+      } else if (insertedMessage) {
+        addMessage(insertedMessage);
+      }
+    } catch (insertError) {
+      console.warn("Could not add order status message:", insertError);
+    }
+  } catch (error) {
+    console.error(`Failed to ${action} order:`, error);
+    const message = (error && error.message) ? error.message : "Could not update this order. Please try again.";
+    showOrderToast(message);
+    if (orderRole === "seller") {
+      setOrderState("seller", orderStatus === "delivered" ? "delivered" : "pending");
+    } else if (orderRole === "buyer") {
+      setOrderState("buyer", orderStatus === "completed" ? "completed" : (orderStatus === "delivered" ? "delivered" : "pending"));
+    }
+  } finally {
+    orderRequestInFlight = false;
+    $("orderBtn").disabled = false;
+  }
 }
 
 $("orderBtn").addEventListener("click", () => {
+  if (orderRequestInFlight) return;
   if (orderRole === "seller" && orderStatus === "pending") openOrderSheet("delivered");
   else if (orderRole === "buyer" && orderStatus === "pending") showOrderToast("You can confirm after the seller marks the order as delivered.");
   else if (orderRole === "buyer" && orderStatus === "delivered") openOrderSheet("received");
