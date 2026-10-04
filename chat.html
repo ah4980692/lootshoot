@@ -67,6 +67,11 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .message-status.pending,.message-status.delivered{color:var(--muted)}
 .message-status.read{color:var(--accent);font-weight:700}
 
+/* Date separator */
+.date-separator{display:flex;align-items:center;justify-content:center;margin:12px 0 6px;gap:8px}
+.date-separator::before,.date-separator::after{flex:1;height:1px;background:var(--border)}
+.date-separator-text{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;flex-shrink:0;background:var(--light-green);padding:4px 10px;border-radius:12px}
+
 /* Image messages */
 .message-content.image-message{display:block;padding:4px;line-height:0}
 .chat-image-wrap{position:relative;display:block;line-height:0;border-radius:11px;overflow:hidden;background:var(--light-green-2);min-width:160px;min-height:120px}
@@ -196,22 +201,35 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 .order-notice b{color:var(--primary);font-weight:600}
 
 /* Order confirmation sheet + toast */
-.order-sheet-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(8,20,14,.5);display:none;align-items:flex-end;justify-content:center}
+.order-sheet-backdrop{position:fixed;inset:0;z-index:1000;background:rgba(8,20,14,.55);-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);display:none;align-items:flex-end;justify-content:center}
 .order-sheet-backdrop.show{display:flex}
-.order-sheet{width:100%;max-width:480px;background:#fff;border-radius:20px 20px 0 0;padding:10px 20px calc(20px + env(safe-area-inset-bottom,0px));animation:sheetUp .22s ease}
-@keyframes sheetUp{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}
-.order-sheet-handle{width:40px;height:4px;border-radius:2px;background:var(--border);margin:0 auto 14px}
-.order-sheet-icon{width:46px;height:46px;border-radius:50%;background:var(--light-green);display:flex;align-items:center;justify-content:center;margin-bottom:12px}
-.order-sheet-icon svg{width:22px;height:22px;stroke:var(--primary);fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
-.order-sheet-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:6px}
-.order-sheet-text{font-size:14px;line-height:1.5;color:var(--muted);margin-bottom:14px}
-.order-sheet-check{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--text);padding:11px 12px;border:1px solid var(--border);border-radius:12px;background:var(--light-green-2);margin-bottom:14px;cursor:pointer}
-.order-sheet-check input{width:20px;height:20px;accent-color:var(--accent);flex-shrink:0}
-.order-sheet-actions{display:flex;gap:10px}
-.order-sheet-actions button{flex:1;border-radius:12px;padding:13px 10px;font-size:15px;font-weight:700;cursor:pointer;border:1px solid var(--border)}
-.order-sheet-cancel{background:#fff;color:var(--primary)}
-.order-sheet-confirm{background:var(--accent);color:#fff;border-color:var(--accent)!important}
-.order-sheet-confirm:disabled{opacity:.45;cursor:not-allowed}
+.order-sheet{width:100%;max-width:480px;max-height:92vh;overflow-y:auto;background:#fff;border-radius:28px 28px 0 0;padding:12px 22px calc(22px + env(safe-area-inset-bottom,0px));box-shadow:0 -12px 40px rgba(8,20,14,.18);animation:sheetUp .26s cubic-bezier(.2,.8,.2,1)}
+@keyframes sheetUp{from{transform:translateY(60px);opacity:0}to{transform:none;opacity:1}}
+.order-sheet-handle{width:44px;height:5px;border-radius:3px;background:var(--border);margin:0 auto 18px}
+.order-sheet-icon{position:relative;width:68px;height:68px;border-radius:50%;background:linear-gradient(145deg,var(--light-green),#c3edd5);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 0 8px var(--light-green-2),0 0 0 9px var(--border-2)}
+.order-sheet-icon svg{width:30px;height:30px;stroke:var(--primary);fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.order-sheet-title{font-family:'Space Grotesk','DM Sans',Arial,sans-serif;font-size:21px;font-weight:700;color:var(--text);margin-bottom:8px;text-align:center;letter-spacing:-.01em}
+.order-sheet-text{font-size:14px;line-height:1.55;color:var(--muted);margin:0 auto 16px;text-align:center;max-width:340px}
+.order-sheet-summary{background:var(--light-green-2);border:1px solid var(--border);border-radius:16px;padding:4px 14px;margin-bottom:14px}
+.order-sheet-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0}
+.order-sheet-row+.order-sheet-row{border-top:1px dashed var(--border)}
+.order-sheet-label{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted-2);flex-shrink:0}
+.order-sheet-value{font-size:14px;font-weight:700;color:var(--primary);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.order-sheet-check{display:flex;align-items:center;gap:12px;font-size:14px;line-height:1.4;color:var(--text);padding:13px 14px;border:1.5px solid var(--border);border-radius:14px;background:#fff;margin-bottom:16px;cursor:pointer;transition:background .15s,border-color .15s}
+.order-sheet-check:has(input:checked){background:var(--light-green-2);border-color:var(--accent)}
+.order-sheet-check input{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin:0;border-radius:7px;border:2px solid #b9cfc2;background:#fff;display:grid;place-content:center;flex-shrink:0;cursor:pointer;transition:background .15s,border-color .15s}
+.order-sheet-check input::after{content:"";width:10px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform .12s ease}
+.order-sheet-check input:checked{background:var(--accent);border-color:var(--accent)}
+.order-sheet-check input:checked::after{transform:rotate(-45deg) scale(1)}
+.order-sheet-check span{flex:1;min-width:0}
+.order-sheet-actions{display:flex;flex-direction:column;gap:8px}
+.order-sheet-actions button{width:100%;border-radius:14px;padding:15px 12px;font-size:15px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:transform .1s,background .15s,opacity .15s}
+.order-sheet-actions button:active{transform:scale(.98)}
+.order-sheet-confirm{background:var(--accent);color:#fff;border-color:var(--accent)!important;box-shadow:0 8px 18px rgba(37,165,106,.28)}
+.order-sheet-confirm:hover:not(:disabled){background:#1c9560}
+.order-sheet-confirm:disabled{opacity:.45;cursor:not-allowed;box-shadow:none}
+.order-sheet-cancel{background:transparent;color:var(--muted)}
+.order-sheet-cancel:hover{background:var(--light-green-2);color:var(--primary)}
 .order-toast{position:fixed;left:50%;top:70px;transform:translate(-50%,-8px);z-index:1001;max-width:min(88vw,380px);background:#1f2a24;color:#fff;font-size:13px;line-height:1.4;padding:10px 14px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;text-align:center}
 .order-toast.show{opacity:1;transform:translate(-50%,0)}
 
@@ -303,13 +321,24 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 <div class="order-sheet-backdrop" id="orderSheet" role="dialog" aria-modal="true" aria-labelledby="orderSheetTitle">
   <div class="order-sheet">
     <div class="order-sheet-handle"></div>
-    <div class="order-sheet-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
+    <div class="order-sheet-icon" id="orderSheetIcon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg></div>
     <div class="order-sheet-title" id="orderSheetTitle"></div>
     <div class="order-sheet-text" id="orderSheetText"></div>
+    <div class="order-sheet-summary" id="orderSheetSummary">
+      <div class="order-sheet-row">
+        <span class="order-sheet-label">Product</span>
+        <span class="order-sheet-value" id="orderSheetProduct"></span>
+      </div>
+      <div class="order-sheet-row">
+        <span class="order-sheet-label" id="orderSheetPartyLabel">Buyer</span>
+        <span class="order-sheet-value" id="orderSheetParty"></span>
+      </div>
+    </div>
     <label class="order-sheet-check" id="orderSheetCheckRow"><input type="checkbox" id="orderSheetCheck"><span>I've checked and everything is correct</span></label>
+    <label class="order-sheet-check" id="orderSheetDeliveryCheckRow" style="display:none"><input type="checkbox" id="orderSheetDeliveryCheck"><span>I confirm that I have delivered the order as mentioned</span></label>
     <div class="order-sheet-actions">
-      <button type="button" class="order-sheet-cancel" id="orderSheetCancel">Cancel</button>
       <button type="button" class="order-sheet-confirm" id="orderSheetConfirm"></button>
+      <button type="button" class="order-sheet-cancel" id="orderSheetCancel">Cancel</button>
     </div>
   </div>
 </div>
@@ -501,6 +530,39 @@ function quoteBlockHtml(replyId) {
   return `<div class="reply-quote" data-reply-id="${esc(String(replyId))}"><div class="reply-quote-body"><div class="reply-quote-name">${esc(name)}</div><div class="reply-quote-text">${esc(text)}</div></div>${thumb}</div>`;
 }
 
+function getMessageDateKey(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().split('T')[0];
+}
+
+function formatDateSeparator(iso) {
+  if (!iso) return "";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  
+  const msgDate = new Date(date);
+  msgDate.setHours(0, 0, 0, 0);
+  
+  if (msgDate.getTime() === today.getTime()) return "Today";
+  if (msgDate.getTime() === yesterday.getTime()) return "Yesterday";
+  
+  return date.toLocaleDateString([], { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function getDateSeparatorHtml(iso) {
+  const text = formatDateSeparator(iso);
+  if (!text) return "";
+  return `<div class="date-separator"><span class="date-separator-text">${esc(text)}</span></div>`;
+}
+
 function messageHtml(m) {
   const out = m.sender_id === currentUserId;
   const statusMarkup = getMessageStatusMarkup(m);
@@ -565,7 +627,18 @@ function addMessage(message) {
   if (!thread) return;
 
   thread.querySelector(".conversation-thread-empty")?.remove();
-  thread.insertAdjacentHTML("beforeend", messageHtml(message));
+  
+  const lastMsg = currentThreadMessages[currentThreadMessages.length - 1];
+  const lastDateKey = lastMsg ? getMessageDateKey(lastMsg.created_at) : "";
+  const newDateKey = getMessageDateKey(message.created_at);
+  
+  let html = "";
+  if (newDateKey !== lastDateKey) {
+    html += getDateSeparatorHtml(message.created_at);
+  }
+  html += messageHtml(message);
+  
+  thread.insertAdjacentHTML("beforeend", html);
   currentThreadMessages.push(message);
   thread.scrollTop = thread.scrollHeight;
 }
@@ -1039,7 +1112,19 @@ async function renderConversationThread(conversationId) {
     setOrderState(conversation.buyer_id === user.id ? "buyer" : "seller", "pending");
 
     const messageMarkup = preparedMessages.length
-      ? preparedMessages.map(messageHtml).join("")
+      ? (() => {
+          let html = "";
+          let lastDateKey = "";
+          for (const msg of preparedMessages) {
+            const curDateKey = getMessageDateKey(msg.created_at);
+            if (curDateKey && curDateKey !== lastDateKey) {
+              html += getDateSeparatorHtml(msg.created_at);
+              lastDateKey = curDateKey;
+            }
+            html += messageHtml(msg);
+          }
+          return html;
+        })()
       : `<div class="conversation-thread-empty">
            <div class="chat-empty-icon">💬</div>
            <div class="chat-empty-title">No messages yet</div>
@@ -1658,6 +1743,7 @@ syncViewportHeight();
    The UI alone does NOT protect anything; enforce who may do what on the server. */
 const ORDER_ICON_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
 const ORDER_ICON_INFO = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg>';
+const ORDER_ICON_PACKAGE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 8l-9-5-9 5v8l9 5 9-5V8z"/><path d="M3.3 7.5L12 12.5l8.7-5"/><path d="M12 22V12.5"/><path d="M7.5 5.2l9 5"/></svg>';
 
 let orderRole = null;    // "buyer" | "seller"
 let orderStatus = "pending";
@@ -1721,14 +1807,20 @@ function setOrderState(role, status) {
 function openOrderSheet(action) {
   orderPendingAction = action;
   const isDeliver = action === "delivered";
+  $("orderSheetIcon").innerHTML = isDeliver ? ORDER_ICON_PACKAGE : ORDER_ICON_CHECK;
   $("orderSheetTitle").textContent = isDeliver ? "Mark order as delivered?" : "Confirm you received it?";
   $("orderSheetText").textContent = isDeliver
     ? "Only continue if everything is completed from your side. The buyer will be asked to confirm that they received it."
     : "Only continue after you've checked everything and it is correct. This can't be undone.";
+  $("orderSheetProduct").textContent = currentAdTitle || "Product";
+  $("orderSheetPartyLabel").textContent = isDeliver ? "Buyer" : "Seller";
+  $("orderSheetParty").textContent = (isDeliver ? currentBuyerName : currentSellerName) || "User";
   $("orderSheetConfirm").textContent = isDeliver ? "Yes, delivered" : "Yes, I received it";
   $("orderSheetCheckRow").style.display = isDeliver ? "none" : "flex";
+  $("orderSheetDeliveryCheckRow").style.display = isDeliver ? "flex" : "none";
   $("orderSheetCheck").checked = false;
-  $("orderSheetConfirm").disabled = !isDeliver;
+  $("orderSheetDeliveryCheck").checked = false;
+  $("orderSheetConfirm").disabled = true;
   $("orderSheet").classList.add("show");
 }
 
@@ -1749,6 +1841,7 @@ $("orderBtn").addEventListener("click", () => {
   else if (orderRole === "buyer" && orderStatus === "delivered") openOrderSheet("received");
 });
 $("orderSheetCheck").addEventListener("change", (e) => { $("orderSheetConfirm").disabled = !e.target.checked; });
+$("orderSheetDeliveryCheck").addEventListener("change", (e) => { $("orderSheetConfirm").disabled = !e.target.checked; });
 $("orderSheetCancel").addEventListener("click", closeOrderSheet);
 $("orderSheet").addEventListener("click", (e) => { if (e.target === $("orderSheet")) closeOrderSheet(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOrderSheet(); });
