@@ -4188,9 +4188,68 @@
       const list = document.createElement("div");
       list.className = "official-notification-list";
 
-      // Add selling notifications first
-      if (hasNotifications) {
-        notifications.forEach(notification => {
+      const parseCreatedAt = (value) => {
+        if (!value) return 0;
+        const ts = Date.parse(String(value));
+        return Number.isNaN(ts) ? 0 : ts;
+      };
+
+      let adsById = {};
+      let buyersById = {};
+
+      if (hasOffers) {
+        const adIds = [...new Set(offers.map(offer => offer.ad_id).filter(Boolean))];
+        if (adIds.length) {
+          const { data: ads, error: adsError } = await supabaseClient
+            .from("ads")
+            .select("id, title, price, images")
+            .in("id", adIds);
+
+          if (adsError) {
+            console.warn("Could not load related ads for offers:", adsError);
+          } else if (ads) {
+            ads.forEach(ad => {
+              adsById[ad.id] = ad;
+            });
+          }
+        }
+
+        const buyerIds = [...new Set(offers.map(offer => offer.buyer_id).filter(Boolean))];
+        if (buyerIds.length) {
+          const { data: buyerProfiles, error: buyerProfilesError } = await supabaseClient
+            .from("sellers")
+            .select("id, username, avatar_url")
+            .in("id", buyerIds);
+
+          if (buyerProfilesError) {
+            console.warn("Could not load buyer usernames for offers:", buyerProfilesError);
+          } else if (buyerProfiles) {
+            buyerProfiles.forEach(profile => {
+              buyersById[profile.id] = {
+                username: profile.username || "Buyer",
+                avatarUrl: profile.avatar_url || ""
+              };
+            });
+          }
+        }
+      }
+
+      const combinedSellingItems = [
+        ...(notifications || []).map(notification => ({
+          type: "notification",
+          created_at: notification.created_at,
+          payload: notification
+        })),
+        ...(offers || []).map(offer => ({
+          type: "offer",
+          created_at: offer.created_at,
+          payload: offer
+        }))
+      ].sort((a, b) => parseCreatedAt(b.created_at) - parseCreatedAt(a.created_at));
+
+      combinedSellingItems.forEach(entry => {
+        if (entry.type === "notification") {
+          const notification = entry.payload;
           const item = document.createElement("article");
           item.className =
             "official-notification" +
@@ -4256,142 +4315,97 @@
           });
 
           list.appendChild(item);
-        });
-      }
-
-      // Add pending offers
-      if (hasOffers) {
-        const adIds = [...new Set(offers.map(offer => offer.ad_id).filter(Boolean))];
-        const adsById = {};
-
-        if (adIds.length) {
-          const { data: ads, error: adsError } = await supabaseClient
-            .from("ads")
-            .select("id, title, price, images")
-            .in("id", adIds);
-
-          if (adsError) {
-            console.warn("Could not load related ads for offers:", adsError);
-          } else if (ads) {
-            ads.forEach(ad => {
-              adsById[ad.id] = ad;
-            });
-          }
+          return;
         }
 
-        const buyerIds = [...new Set(offers.map(offer => offer.buyer_id).filter(Boolean))];
-        const buyersById = {};
+        const offer = entry.payload;
+        const item = document.createElement("article");
+        item.className = "official-notification selling-offer-notification";
+        item.dataset.offerId = String(offer.id);
 
-        if (buyerIds.length) {
-          const { data: buyerProfiles, error: buyerProfilesError } = await supabaseClient
-            .from("sellers")
-            .select("id, username, avatar_url")
-            .in("id", buyerIds);
+        const ad = adsById[offer.ad_id] || {};
+        const title = escapeHTML(ad.title || "Product");
+        const firstAdImage = Array.isArray(ad.images) && ad.images.length
+          ? ad.images[0]
+          : "";
+        const originalPrice = Number(ad.price);
+        const originalPriceText = Number.isFinite(originalPrice)
+          ? `Rs. ${originalPrice.toLocaleString()}`
+          : "Rs. —";
 
-          if (buyerProfilesError) {
-            console.warn("Could not load buyer usernames for offers:", buyerProfilesError);
-          } else if (buyerProfiles) {
-            buyerProfiles.forEach(profile => {
-              buyersById[profile.id] = {
-                username: profile.username || "Buyer",
-                avatarUrl: profile.avatar_url || ""
-              };
-            });
-          }
+        const offerAmount = Number(offer.offer_amount);
+        const offerAmountText = Number.isFinite(offerAmount)
+          ? `Rs. ${offerAmount.toLocaleString()}`
+          : "Rs. —";
+
+        const buyerProfile = buyersById[offer.buyer_id] || {};
+        const buyerUsername = buyerProfile.username || "Buyer";
+        const buyerAvatarUrl = buyerProfile.avatarUrl || "";
+        const offerAgoLabel = getRelativeTimeLabel(offer.created_at);
+        const buyerInitials = escapeHTML(getInitials(buyerUsername));
+
+        item.innerHTML = `
+          <div class="selling-offer-header">
+            <div class="selling-offer-avatar" aria-hidden="true">
+              <span>${buyerInitials}</span>
+              ${buyerAvatarUrl ? `<img src="${escapeHTML(buyerAvatarUrl)}" alt="">` : ""}
+            </div>
+            <div class="selling-offer-headline">
+              <strong class="selling-offer-buyer">${escapeHTML(buyerUsername.length > 9 ? buyerUsername.substring(0, 9) + '...' : buyerUsername)}</strong> made an offer
+            </div>
+            <time class="selling-offer-time" datetime="${escapeHTML(offer.created_at || "")}">${escapeHTML(offerAgoLabel)}</time>
+          </div>
+
+          <div class="selling-offer-product">
+            <div class="selling-offer-image" aria-hidden="true">
+              ${firstAdImage ? `<img src="${escapeHTML(firstAdImage)}" alt="${title}">` : "👕"}
+            </div>
+            <div class="selling-offer-details">
+              <div class="selling-offer-product-title">${escapeHTML(title.length > 25 ? title.substring(0, 25) + '...' : title)}</div>
+              <div class="selling-offer-price-row">
+                <span class="selling-offer-original-price">${escapeHTML(originalPriceText)}</span>
+                <span class="selling-offer-amount">${escapeHTML(offerAmountText)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="selling-offer-actions">
+            <button type="button" class="selling-offer-action-btn reject">Reject</button>
+            <button type="button" class="selling-offer-action-btn accept">Accept</button>
+          </div>
+        `;
+
+        const buyerAvatarImage = item.querySelector(".selling-offer-avatar img");
+        if (buyerAvatarImage) {
+          buyerAvatarImage.addEventListener("error", () => buyerAvatarImage.remove(), { once: true });
         }
 
-        offers.forEach(offer => {
+        const adImage = item.querySelector(".selling-offer-image img");
+        if (adImage) {
+          adImage.addEventListener("error", () => {
+            adImage.parentElement.textContent = "👕";
+          }, { once: true });
+        }
 
-          const item = document.createElement("article");
-          item.className = "official-notification selling-offer-notification";
-          item.dataset.offerId = String(offer.id);
+        const rejectButton = item.querySelector(".selling-offer-action-btn.reject");
+        if (rejectButton) {
+          rejectButton.addEventListener("click", () => {
+            handleRejectOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id);
+          });
+        }
 
-          const ad = adsById[offer.ad_id] || {};
-          const title = escapeHTML(ad.title || "Product");
-          const firstAdImage = Array.isArray(ad.images) && ad.images.length
-            ? ad.images[0]
-            : "";
-          const originalPrice = Number(ad.price);
-          const originalPriceText = Number.isFinite(originalPrice)
-            ? `Rs. ${originalPrice.toLocaleString()}`
-            : "Rs. —";
+        const acceptButton = item.querySelector(".selling-offer-action-btn.accept");
+        if (acceptButton) {
+          acceptButton.addEventListener("click", () => {
+            handleAcceptOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id, originalPrice);
+          });
+        }
 
-          const offerAmount = Number(offer.offer_amount);
-          const offerAmountText = Number.isFinite(offerAmount)
-            ? `Rs. ${offerAmount.toLocaleString()}`
-            : "Rs. —";
-
-          const buyerProfile = buyersById[offer.buyer_id] || {};
-          const buyerUsername = buyerProfile.username || "Buyer";
-          const buyerAvatarUrl = buyerProfile.avatarUrl || "";
-          const offerAgoLabel = getRelativeTimeLabel(offer.created_at);
-          const buyerInitials = escapeHTML(getInitials(buyerUsername));
-
-          item.innerHTML = `
-            <div class="selling-offer-header">
-              <div class="selling-offer-avatar" aria-hidden="true">
-                <span>${buyerInitials}</span>
-                ${buyerAvatarUrl ? `<img src="${escapeHTML(buyerAvatarUrl)}" alt="">` : ""}
-              </div>
-              <div class="selling-offer-headline">
-                <strong class="selling-offer-buyer">${escapeHTML(buyerUsername.length > 9 ? buyerUsername.substring(0, 9) + '...' : buyerUsername)}</strong> made an offer
-              </div>
-              <time class="selling-offer-time" datetime="${escapeHTML(offer.created_at || "")}">${escapeHTML(offerAgoLabel)}</time>
-            </div>
-
-            <div class="selling-offer-product">
-              <div class="selling-offer-image" aria-hidden="true">
-                ${firstAdImage ? `<img src="${escapeHTML(firstAdImage)}" alt="${title}">` : "👕"}
-              </div>
-              <div class="selling-offer-details">
-                <div class="selling-offer-product-title">${escapeHTML(title.length > 25 ? title.substring(0, 25) + '...' : title)}</div>
-                <div class="selling-offer-price-row">
-                  <span class="selling-offer-original-price">${escapeHTML(originalPriceText)}</span>
-                  <span class="selling-offer-amount">${escapeHTML(offerAmountText)}</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="selling-offer-actions">
-              <button type="button" class="selling-offer-action-btn reject">Reject</button>
-              <button type="button" class="selling-offer-action-btn accept">Accept</button>
-            </div>
-          `;
-
-          const buyerAvatarImage = item.querySelector(".selling-offer-avatar img");
-          if (buyerAvatarImage) {
-            buyerAvatarImage.addEventListener("error", () => buyerAvatarImage.remove(), { once: true });
-          }
-
-          const adImage = item.querySelector(".selling-offer-image img");
-          if (adImage) {
-            adImage.addEventListener("error", () => {
-              adImage.parentElement.textContent = "👕";
-            }, { once: true });
-          }
-
-          const rejectButton = item.querySelector(".selling-offer-action-btn.reject");
-          if (rejectButton) {
-            rejectButton.addEventListener("click", () => {
-              handleRejectOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id);
-            });
-          }
-
-          const acceptButton = item.querySelector(".selling-offer-action-btn.accept");
-          if (acceptButton) {
-            acceptButton.addEventListener("click", () => {
-              handleAcceptOffer(offer.id, offer.buyer_id, offerAmount, ad.title || "Product", offer.ad_id, originalPrice);
-            });
-          }
-
-          list.appendChild(item);
-
-        });
-      }
+        list.appendChild(item);
+      });
 
       container.innerHTML = "";
       container.appendChild(list);
-
     } catch (error) {
 
       console.error("Unexpected selling offer/notification error:", error);
@@ -5055,6 +5069,7 @@
     });
 
     (async () => {
+     
       try {
         await refreshChatUnreadBadge();
 
