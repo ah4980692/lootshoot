@@ -4958,164 +4958,93 @@
 
   });
 
-</script>
-</script>
-<script>
-  (function() {
-    const badgeEl = document.getElementById('globalChatBadge');
-    if (!badgeEl) return;
+  /* =========================================================
+     REALTIME NOTIFICATION BADGE
+  ========================================================= */
 
-    function setBadge(n) {
-      const num = Number(n) || 0;
-      const value = num > 99 ? '99+' : String(num);
-      localStorage.setItem('lootshoot_chat_unread', String(num));
+  let notificationRealtimeChannel = null;
+  let notificationRealtimeUserId = null;
 
-      if (num > 0) {
-        badgeEl.textContent = value;
-        badgeEl.style.display = 'inline-flex';
-      } else {
-        badgeEl.textContent = '';
-        badgeEl.style.display = 'none';
-      }
-    }
-
-    async function refreshChatUnreadBadge() {
-      try {
-        const user = (typeof getAuthenticatedUser === 'function') ? await getAuthenticatedUser() : null;
-        if (!user || !user.id) {
-          setBadge(0);
-          return 0;
-        }
-
-        const { data: conversations, error: convErr } = await supabaseClient
-          .from('conversations')
-          .select('id')
-          .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
-
-        if (convErr) throw convErr;
-
-        const conversationIds = (conversations || []).map((c) => c.id).filter(Boolean);
-        if (!conversationIds.length) {
-          setBadge(0);
-          return 0;
-        }
-
-        const { data: unreadRows, error: msgErr } = await supabaseClient
-          .from('messages')
-          .select('id')
-          .in('conversation_id', conversationIds)
-          .neq('sender_id', user.id)
-          .eq('is_read', false);
-
-        if (msgErr) throw msgErr;
-
-        const total = unreadRows ? unreadRows.length : 0;
-        setBadge(total);
-        return total;
-      } catch (e) {
-        console.warn('Could not refresh chat unread badge:', e);
-        setBadge(0);
-        return 0;
-      }
-    }
-
-    function publishChatUnread(total) {
-      const value = Number(total) || 0;
-      localStorage.setItem('lootshoot_chat_unread', String(value));
-      setBadge(value);
-
-      try {
-        window.dispatchEvent(new CustomEvent('lootshoot-chat-unread', { detail: { unread: value } }));
-      } catch (e) { /* ignore */ }
-
-      try {
-        const bc = new BroadcastChannel('lootshoot-chat');
-        bc.postMessage({ unread: value });
-        bc.close();
-      } catch (e) { /* ignore */ }
+  function cleanupNotificationRealtimeBadge() {
+    if (!notificationRealtimeChannel) {
+      return;
     }
 
     try {
-      const stored = localStorage.getItem('lootshoot_chat_unread');
-      if (stored !== null) setBadge(parseInt(stored, 10));
-    } catch (e) { /* ignore */ }
-
-    window.addEventListener('lootshoot-chat-unread', (ev) => {
-      try {
-        const detail = ev?.detail;
-        if (detail && typeof detail.unread !== 'undefined') setBadge(detail.unread);
-        else if (typeof ev.detail === 'number') setBadge(ev.detail);
-      } catch (e) { console.warn(e); }
-    });
-
-    let bc;
-    try {
-      bc = new BroadcastChannel('lootshoot-chat');
-      bc.addEventListener('message', (m) => {
-        try {
-          const d = m?.data;
-          if (d == null) return;
-          if (typeof d === 'number') setBadge(d);
-          else if (typeof d.unread !== 'undefined') setBadge(d.unread);
-          else if (typeof d.count !== 'undefined') setBadge(d.count);
-        } catch (e) { /* ignore */ }
-      });
-    } catch (e) { /* ignore */ }
-
-    window.addEventListener('storage', (ev) => {
-      if (ev.key === 'lootshoot_chat_unread') {
-        try { setBadge(parseInt(ev.newValue, 10)); } catch (e) { }
+      if (typeof notificationRealtimeChannel.unsubscribe === 'function') {
+        notificationRealtimeChannel.unsubscribe();
       }
-    });
+    } catch (error) {
+      console.warn('Could not unsubscribe notification realtime channel:', error);
+    }
 
-    (async () => {
-     
-      try {
-        await refreshChatUnreadBadge();
+    try {
+      if (typeof supabaseClient.removeChannel === 'function') {
+        supabaseClient.removeChannel(notificationRealtimeChannel);
+      }
+    } catch (error) {
+      // ignore removeChannel cleanup errors
+    }
 
-        const user = (typeof getAuthenticatedUser === 'function') ? await getAuthenticatedUser() : null;
-        if (!user || !user.id) return;
+    notificationRealtimeChannel = null;
+    notificationRealtimeUserId = null;
+  }
 
-        let channel;
-        try {
-          channel = supabaseClient
-            .channel('public:messages:seller-dashboard-badge')
-            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, async (payload) => {
-              try {
-                const msg = payload?.new;
-                if (!msg || !msg.id || String(msg.sender_id) === String(user.id)) return;
-                const unread = await refreshChatUnreadBadge();
-                publishChatUnread(unread);
-              } catch (e) {
-                console.warn('Realtime message badge refresh failed:', e);
-              }
-            })
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages' }, async (payload) => {
-              try {
-                const msg = payload?.new;
-                if (!msg || !msg.id) return;
-                const unread = await refreshChatUnreadBadge();
-                publishChatUnread(unread);
-              } catch (e) {
-                console.warn('Realtime message badge update failed:', e);
-              }
-            })
-            .subscribe();
-        } catch (e) {
-          console.warn('Could not subscribe to chat unread badge realtime updates:', e);
-        }
+  async function setupNotificationRealtimeBadge() {
+    try {
+      const user = (typeof getAuthenticatedUser === 'function') ? await getAuthenticatedUser() : null;
 
-        window.addEventListener('beforeunload', () => {
-          try { if (bc) bc.close(); } catch (e) { }
+      if (!user || !user.id) {
+        cleanupNotificationRealtimeBadge();
+        return;
+      }
+
+      if (notificationRealtimeChannel && notificationRealtimeUserId === user.id) {
+        return;
+      }
+
+      cleanupNotificationRealtimeBadge();
+      notificationRealtimeUserId = user.id;
+
+      notificationRealtimeChannel = supabaseClient
+        .channel('public:notifications:seller-dashboard-badge')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications'
+        }, async (payload) => {
           try {
-            if (channel && typeof channel.unsubscribe === 'function') channel.unsubscribe();
-            else if (channel && typeof supabaseClient.removeChannel === 'function') supabaseClient.removeChannel(channel);
-          } catch (e) { }
-        }, { once: true });
-      } catch (e) {
-        console.warn('Realtime badge setup failed:', e);
+            const newNotification = payload?.new;
+            if (!newNotification || !newNotification.id) {
+              return;
+            }
+
+            if (String(newNotification.user_id) !== String(notificationRealtimeUserId)) {
+              return;
+            }
+
+            if (newNotification.is_read === true) {
+              return;
+            }
+
+            await refreshGlobalUnreadNotificationBadge();
+          } catch (error) {
+            console.warn('Could not refresh notification badge realtime:', error);
+          }
+        })
+        .subscribe();
+
+      if (!window.__notificationBadgeUnloadBound) {
+        window.__notificationBadgeUnloadBound = true;
+        window.addEventListener('beforeunload', cleanupNotificationRealtimeBadge, { once: true });
       }
-    })();
+    } catch (error) {
+      console.warn('Could not subscribe to notification badge realtime updates:', error);
+    }
+  }
+
+  (async () => {
+    await setupNotificationRealtimeBadge();
   })();
 </script>
 </body>
