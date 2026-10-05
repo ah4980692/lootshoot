@@ -207,6 +207,30 @@
       opacity: .78;
     }
 
+    /* =========================================
+       STICKY SEARCH + CATEGORIES
+    ========================================= */
+
+    .sticky-filters {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      margin: 16px -20px 20px;
+      padding: 12px 20px;
+      background: #f6fcf9;
+      border-bottom: 1px solid #dcefe7;
+    }
+
+    .sticky-inner {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .sticky-filters .categories {
+      max-width: none;
+      margin: 12px 0 0;
+    }
+
     .search-row {
       display: flex;
       align-items: center;
@@ -677,6 +701,15 @@
         object-position: center bottom;
       }
 
+      .sticky-filters {
+        margin: 12px -12px 14px;
+        padding: 10px 12px;
+      }
+
+      .sticky-filters .categories {
+        margin: 10px 0 0;
+      }
+
       .search-row {
         position: relative;
         z-index: 5;
@@ -835,6 +868,25 @@
           Find the best PUBG Mobile accounts, POP and more from trusted sellers.
         </p>
 
+      </div>
+
+      <div class="hero-decoration"></div>
+
+      <div class="hero-character">
+
+        <img
+          src="foji.png"
+          alt="LootShoot PUBG Soldier"
+        >
+
+      </div>
+
+    </section>
+
+    <div class="sticky-filters">
+
+      <div class="sticky-inner">
+
         <div class="search-row">
 
           <div class="search-box">
@@ -853,50 +905,39 @@
 
         </div>
 
+        <div class="categories">
+
+          <button
+            class="category active"
+            data-category="all"
+          >
+            All
+          </button>
+
+          <button
+            class="category"
+            data-category="accounts"
+          >
+            Accounts
+          </button>
+
+          <button
+            class="category"
+            data-category="pop"
+          >
+            POP
+          </button>
+
+          <button
+            class="category"
+            data-category="other"
+          >
+            Other Items
+          </button>
+
+        </div>
+
       </div>
-
-      <div class="hero-decoration"></div>
-
-      <div class="hero-character">
-
-        <img
-          src="foji.png"
-          alt="LootShoot PUBG Soldier"
-        >
-
-      </div>
-
-    </section>
-
-    <div class="categories">
-
-      <button
-        class="category active"
-        data-category="all"
-      >
-        All
-      </button>
-
-      <button
-        class="category"
-        data-category="accounts"
-      >
-        Accounts
-      </button>
-
-      <button
-        class="category"
-        data-category="pop"
-      >
-        POP
-      </button>
-
-      <button
-        class="category"
-        data-category="other"
-      >
-        Other Items
-      </button>
 
     </div>
 
