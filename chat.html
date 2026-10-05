@@ -382,6 +382,8 @@ let currentConversation = null;
 let currentAdTitle = "Product";
 let currentBuyerName = "Buyer";
 let currentSellerName = "Seller";
+let currentDealData = null;
+let dealChannel = null;
 
 const $ = (id) => document.getElementById(id);
 
@@ -438,6 +440,7 @@ function removeConversationSubscription() {
     supabaseClient.removeChannel(activeChannel);
     activeChannel = null;
   }
+  removeDealSubscription();
 }
 
 function subscribeToConversationMessages(conversationId) {
@@ -486,6 +489,50 @@ function subscribeToConversationMessages(conversationId) {
     })
     .subscribe((status) => {
       if (status !== "SUBSCRIBED") console.warn("Realtime status:", status);
+    });
+}
+
+function removeDealSubscription() {
+  if (dealChannel) {
+    supabaseClient.removeChannel(dealChannel);
+    dealChannel = null;
+  }
+}
+
+function syncOrderUiFromDeal(deal) {
+  if (!deal || !currentConversationId) return;
+
+  currentDealData = deal;
+  currentDealId = deal.id || currentDealId;
+
+  const currentUser = currentUserId || null;
+  const role = currentUser && currentConversation?.buyer_id === currentUser ? "buyer" : (currentUser && currentConversation?.seller_id === currentUser ? "seller" : null);
+  const nextStatus = resolveDealOrderStatus(deal);
+
+  if (role) {
+    setOrderState(role, nextStatus);
+  }
+}
+
+function subscribeToCurrentDealUpdates() {
+  if (!currentConversationId || !currentDealId) return;
+
+  removeDealSubscription();
+
+  dealChannel = supabaseClient.channel(`deal-updates-${currentConversationId}`);
+  dealChannel
+    .on("postgres_changes", {
+      event: "UPDATE",
+      schema: "public",
+      table: "deals",
+      filter: `id=eq.${currentDealId}`
+    }, (payload) => {
+      const nextDeal = payload?.new;
+      if (!nextDeal || !currentConversationId) return;
+      syncOrderUiFromDeal(nextDeal);
+    })
+    .subscribe((status) => {
+      if (status !== "SUBSCRIBED") console.warn("Deal realtime status:", status);
     });
 }
 
@@ -1064,6 +1111,7 @@ async function renderConversationThread(conversationId) {
       adTitle = adDetails.title;
     }
     currentDealId = deal?.id || conversation.deal_id || null;
+    currentDealData = deal || null;
     if (deal) {
       const nextStatus = resolveDealOrderStatus(deal);
       if (currentUserId && conversation.buyer_id === currentUserId) {
@@ -1081,7 +1129,6 @@ async function renderConversationThread(conversationId) {
     currentOtherName = otherName;
     const otherAvatarUrl = otherProfile?.avatar_url || null;
     
-    // Fetch both buyer and seller names for the order notice
     const buyerProfile = conversation.buyer_id ? await getSellerProfile(conversation.buyer_id) : null;
     const buyerName = buyerProfile?.username || "Buyer";
     const sellerProfile = conversation.seller_id ? await getSellerProfile(conversation.seller_id) : null;
@@ -1089,24 +1136,18 @@ async function renderConversationThread(conversationId) {
     
     const messages = await getConversationMessageRows(conversation.id);
 
-    // Batch-mark incoming unread messages as delivered (if null) and read.
-    // This updates the DB and then uses the updated rows for rendering so
-    // the sender's ticks can update when the conversation is opened later.
     const incomingUnread = (messages || []).filter(m => m && m.sender_id !== user.id && !m.is_read);
     const updatedMap = {};
     if (incomingUnread.length) {
       try {
         const ids = incomingUnread.map(m => m.id);
         const now = new Date().toISOString();
-
-        // Set delivered_at only where it's currently NULL
         await supabaseClient
           .from('messages')
           .update({ delivered_at: now })
           .in('id', ids)
           .is('delivered_at', null);
 
-        // Mark as read and return updated rows to merge into the local list
         const { data: updatedRows, error } = await supabaseClient
           .from('messages')
           .update({ is_read: true })
@@ -1133,7 +1174,6 @@ async function renderConversationThread(conversationId) {
     isConversationViewOpen = true;
     currentThreadMessages = preparedMessages;
 
-    // Mark intro message as read since conversation is now being viewed
     markIntroMessageAsRead(conversation.id);
 
     setHeaderText(otherName, adTitle, true, otherAvatarUrl);
@@ -1144,7 +1184,6 @@ async function renderConversationThread(conversationId) {
       url: adDetails.id ? `ad-details.html?id=${adDetails.id}` : "#"
     });
     $("chatInputArea").style.display = "flex";
-    // Order button: role comes from the conversation; status comes from the loaded deal record when available.
     if (currentDealId) {
       const role = conversation.buyer_id === user.id ? "buyer" : "seller";
       const initStatus = resolveDealOrderStatus(deal || null);
@@ -1152,6 +1191,8 @@ async function renderConversationThread(conversationId) {
     } else {
       setOrderState(conversation.buyer_id === user.id ? "buyer" : "seller", "pending");
     }
+
+    subscribeToCurrentDealUpdates();
 
     const messageMarkup = preparedMessages.length
       ? (() => {
@@ -1167,37 +1208,24 @@ async function renderConversationThread(conversationId) {
           }
           return html;
         })()
-      : `<div class="conversation-thread-empty">
-           <div class="chat-empty-icon">💬</div>
-           <div class="chat-empty-title">No messages yet</div>
-           <div class="chat-empty-text">Say hello 👋</div>
-         </div>`;
-
-    $("chatContainer").innerHTML = `
-      <div class="conversation-panel">
-        <div class="conversation-thread">${orderNoticeHtml(conversation.buyer_id === user.id ? "buyer" : "seller", buyerName, sellerName, adTitle)}${messageMarkup}</div>
-      </div>`;
+      : `<div class="conversation-thread-empty"><div class="chat-empty-icon">💬</div><div class="chat-empty-title">No messages yet</div><div class="chat-empty-text">Say hello and start the conversation.</div></div>`;
 
     const thread = document.querySelector(".conversation-thread");
-    if (thread) thread.scrollTop = thread.scrollHeight;
+    if (!thread) {
+      $("chatContainer").innerHTML = `<div class="conversation-panel"><div class="conversation-thread">${messageMarkup}</div></div>`;
+    } else {
+      thread.innerHTML = messageMarkup;
+    }
 
-    $("messageInput").value = "";
-    autoGrowInput();
-    $("sendButton").disabled = true;
+    setTimeout(() => {
+      const threadEl = document.querySelector(".conversation-thread");
+      if (threadEl) threadEl.scrollTop = threadEl.scrollHeight;
+    }, 0);
 
     subscribeToConversationMessages(conversation.id);
-    refreshComposerState();
-
-    // On phones, don't pop the keyboard open automatically when a chat opens
-    // (it covers the messages). On desktop, focus the box as before.
-
-    if (window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
-      $("messageInput").focus();
-
-    }
   } catch (error) {
-    console.error("Could not open conversation:", error);
-    renderErrorState("We could not load this conversation.");
+    console.error("Failed to render conversation:", error);
+    renderErrorState("We could not load this conversation right now.");
   }
 }
 
