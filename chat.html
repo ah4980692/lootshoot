@@ -502,12 +502,21 @@ function removeDealSubscription() {
 function syncOrderUiFromDeal(deal) {
   if (!deal || !currentConversationId) return;
 
-  currentDealData = deal;
-  currentDealId = deal.id || currentDealId;
+  const mergedDeal = {
+    ...(currentDealData || {}),
+    ...(deal || {})
+  };
+
+  if (!mergedDeal.id) {
+    mergedDeal.id = currentDealId || currentConversation?.deal_id || null;
+  }
+
+  currentDealData = mergedDeal;
+  currentDealId = mergedDeal.id || currentDealId;
 
   const currentUser = currentUserId || null;
   const role = currentUser && currentConversation?.buyer_id === currentUser ? "buyer" : (currentUser && currentConversation?.seller_id === currentUser ? "seller" : null);
-  const nextStatus = resolveDealOrderStatus(deal);
+  const nextStatus = resolveDealOrderStatus(mergedDeal);
 
   if (role) {
     setOrderState(role, nextStatus);
@@ -529,7 +538,17 @@ function subscribeToCurrentDealUpdates() {
     }, (payload) => {
       const nextDeal = payload?.new;
       if (!nextDeal || !currentConversationId) return;
-      syncOrderUiFromDeal(nextDeal);
+
+      const mergedDeal = {
+        ...(currentDealData || {}),
+        ...nextDeal
+      };
+      if (!mergedDeal.id) {
+        mergedDeal.id = currentDealId || currentConversation?.deal_id || null;
+      }
+      currentDealData = mergedDeal;
+      currentDealId = mergedDeal.id || currentDealId;
+      syncOrderUiFromDeal(mergedDeal);
     })
     .subscribe((status) => {
       if (status !== "SUBSCRIBED") console.warn("Deal realtime status:", status);
