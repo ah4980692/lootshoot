@@ -140,8 +140,8 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 /* Input area */
 .chat-input-area{background:#fff;padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--border-2);flex-shrink:0}
 .chat-input-row{display:flex;gap:10px;align-items:flex-end}
-.message-input-wrapper{flex:1;display:flex;gap:8px;background:var(--light-green-2);border-radius:24px;padding:0 14px;align-items:flex-end;min-height:44px}
-.message-input{flex:1;display:block;border:none;background:transparent;padding:11px 0;font-size:16px;line-height:22px;height:44px;max-height:120px;resize:none;overflow-y:auto;color:var(--text);outline:none;min-width:0}
+.message-input-wrapper{flex:1;display:flex;gap:8px;background:#f4faf6;border:1px solid var(--border);border-radius:22px;padding:0 12px;align-items:flex-end;min-height:46px}
+.message-input{flex:1;display:block;border:none;background:transparent;padding:11px 0;font-size:16px;line-height:22px;height:46px;min-height:46px;max-height:120px;resize:none;overflow-y:auto;color:var(--text);outline:none;min-width:0}
 .message-input::placeholder{color:var(--muted)}
 .input-action-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;margin-bottom:7px}
 .input-action-btn svg{width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:stroke .2s}
@@ -223,12 +223,12 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 .order-sheet-label{font-size:12px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted-2);flex-shrink:0}
 .order-sheet-value{font-size:14px;font-weight:700;color:var(--primary);text-align:right;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .order-sheet-check{display:flex;align-items:center;gap:12px;font-size:14px;line-height:1.4;color:var(--text);padding:13px 14px;border:1.5px solid var(--border);border-radius:14px;background:#fff;margin-bottom:16px;cursor:pointer;transition:background .15s,border-color .15s}
-.order-sheet-check:has(input:checked){background:var(--light-green-2);border-color:var(--accent)}
+.order-sheet-check.is-checked{background:var(--light-green-2);border-color:var(--accent)}
 .order-sheet-check input{-webkit-appearance:none;appearance:none;width:22px;height:22px;margin:0;border-radius:7px;border:2px solid #b9cfc2;background:#fff;display:grid;place-content:center;flex-shrink:0;cursor:pointer;transition:background .15s,border-color .15s}
 .order-sheet-check input::after{content:"";width:10px;height:5px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:rotate(-45deg) scale(0);margin-top:-2px;transition:transform .12s ease}
 .order-sheet-check input:checked{background:var(--accent);border-color:var(--accent)}
 .order-sheet-check input:checked::after{transform:rotate(-45deg) scale(1)}
-.order-sheet-check span{flex-1;min-width:0}
+.order-sheet-check span{flex:1;min-width:0}
 .order-sheet-actions{display:flex;flex-direction:column;gap:8px}
 .order-sheet-actions button{width:100%;border-radius:14px;padding:15px 12px;font-size:15px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:transform .1s,background .15s,opacity .15s}
 .order-sheet-actions button:active{transform:scale(.98)}
@@ -430,7 +430,7 @@ function autoGrowInput() {
   const el = $("messageInput");
   if (!el) return;
   el.style.height = "auto";
-  el.style.height = Math.min(el.scrollHeight, 120) + "px";
+  el.style.height = Math.min(Math.max(el.scrollHeight, 46), 120) + "px";
 }
 
 /* ---------- Realtime ---------- */
@@ -1147,6 +1147,8 @@ async function renderConversationThread(conversationId) {
           .update({ delivered_at: now })
           .in('id', ids)
           .is('delivered_at', null);
+
+       
 
         const { data: updatedRows, error } = await supabaseClient
           .from('messages')
@@ -1900,6 +1902,8 @@ function openOrderSheet(action) {
   $("orderSheetConfirm").textContent = isDeliver ? "Yes, delivered" : "Yes, I received it";
   $("orderSheetCheckRow").style.display = isDeliver ? "none" : "flex";
   $("orderSheetDeliveryCheckRow").style.display = isDeliver ? "flex" : "none";
+  $("orderSheetCheckRow").classList.remove("is-checked");
+  $("orderSheetDeliveryCheckRow").classList.remove("is-checked");
   $("orderSheetCheck").checked = false;
   $("orderSheetDeliveryCheck").checked = false;
   $("orderSheetConfirm").disabled = true;
@@ -1991,8 +1995,14 @@ $("orderBtn").addEventListener("click", () => {
   else if (orderRole === "buyer" && orderStatus === "pending") showOrderToast("You can confirm after the seller marks the order as delivered.");
   else if (orderRole === "buyer" && orderStatus === "delivered") openOrderSheet("received");
 });
-$("orderSheetCheck").addEventListener("change", (e) => { $("orderSheetConfirm").disabled = !e.target.checked; });
-$("orderSheetDeliveryCheck").addEventListener("change", (e) => { $("orderSheetConfirm").disabled = !e.target.checked; });
+$("orderSheetCheck").addEventListener("change", (e) => {
+  $("orderSheetCheckRow").classList.toggle("is-checked", e.target.checked);
+  $("orderSheetConfirm").disabled = !e.target.checked;
+});
+$("orderSheetDeliveryCheck").addEventListener("change", (e) => {
+  $("orderSheetDeliveryCheckRow").classList.toggle("is-checked", e.target.checked);
+  $("orderSheetConfirm").disabled = !e.target.checked;
+});
 $("orderSheetCancel").addEventListener("click", closeOrderSheet);
 $("orderSheet").addEventListener("click", (e) => { if (e.target === $("orderSheet")) closeOrderSheet(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeOrderSheet(); });
