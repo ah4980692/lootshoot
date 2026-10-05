@@ -196,6 +196,10 @@
     box-shadow: 0 4px 10px rgba(12,75,50,0.12);
   }
 
+  .header-chat-badge.show {
+    display: flex;
+  }
+
   /* Layout */
 
   .dashboard {
@@ -2923,6 +2927,7 @@
 
   setTimeout(() => {
     refreshGlobalUnreadNotificationBadge();
+    refreshHeaderChatBadge();
   }, 500);
 
   supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -2931,6 +2936,8 @@
       setTimeout(async () => {
         await syncProfileFromSupabase();
         await refreshGlobalUnreadNotificationBadge();
+        await refreshHeaderChatBadge();
+        await setupChatBadgeRealtime();
       }, 500);
     }
 
@@ -4965,6 +4972,9 @@
   let notificationRealtimeChannel = null;
   let notificationRealtimeUserId = null;
 
+  let offerRealtimeChannel = null;
+  let offerRealtimeUserId = null;
+
   function cleanupNotificationRealtimeBadge() {
     if (!notificationRealtimeChannel) {
       return;
@@ -4988,6 +4998,31 @@
 
     notificationRealtimeChannel = null;
     notificationRealtimeUserId = null;
+  }
+
+  function cleanupOfferRealtimeBadge() {
+    if (!offerRealtimeChannel) {
+      return;
+    }
+
+    try {
+      if (typeof offerRealtimeChannel.unsubscribe === 'function') {
+        offerRealtimeChannel.unsubscribe();
+      }
+    } catch (error) {
+      console.warn('Could not unsubscribe offer realtime channel:', error);
+    }
+
+    try {
+      if (typeof supabaseClient.removeChannel === 'function') {
+        supabaseClient.removeChannel(offerRealtimeChannel);
+      }
+    } catch (error) {
+      // ignore removeChannel cleanup errors
+    }
+
+    offerRealtimeChannel = null;
+    offerRealtimeUserId = null;
   }
 
   async function setupNotificationRealtimeBadge() {
@@ -5043,8 +5078,324 @@
     }
   }
 
+  async function setupOfferRealtimeBadge() {
+    try {
+      const user = (typeof getAuthenticatedUser === 'function') ? await getAuthenticatedUser() : null;
+
+      if (!user || !user.id) {
+        cleanupOfferRealtimeBadge();
+        return;
+      }
+
+      if (offerRealtimeChannel && offerRealtimeUserId === user.id) {
+        return;
+      }
+
+      cleanupOfferRealtimeBadge();
+      offerRealtimeUserId = user.id;
+
+      offerRealtimeChannel = supabaseClient
+        .channel('public:offers:seller-dashboard-pending-offer-badge')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'offers'
+        }, async (payload) => {
+          try {
+            const newOffer = payload?.new;
+            if (!newOffer || !newOffer.id) {
+              return;
+            }
+
+            const offerStatus = String(newOffer.status || '').trim().toLowerCase();
+            if (offerStatus !== 'pending') {
+              return;
+            }
+
+            const offerAdId = newOffer.ad_id;
+            if (!offerAdId) {
+              return;
+            }
+
+            if (newOffer.seller_id && String(newOffer.seller_id) !== String(offerRealtimeUserId)) {
+              return;
+            }
+
+            const { data: ads, error: adLookupError } = await supabaseClient
+              .from('ads')
+              .select('id, seller_id')
+              .eq('id', offerAdId)
+              .limit(1);
+
+            if (adLookupError) {
+              console.warn('Could not verify pending offer ownership:', adLookupError);
+              return;
+            }
+
+            const relatedAd = Array.isArray(ads) && ads.length ? ads[0] : null;
+            if (!relatedAd || String(relatedAd.seller_id) !== String(offerRealtimeUserId)) {
+              return;
+            }
+
+            await refreshGlobalUnreadNotificationBadge();
+          } catch (error) {
+            console.warn('Could not refresh pending offer badge realtime:', error);
+          }
+        })
+        .subscribe();
+
+      if (!window.__offerBadgeUnloadBound) {
+        window.__offerBadgeUnloadBound = true;
+        window.addEventListener('beforeunload', cleanupOfferRealtimeBadge, { once: true });
+      }
+    } catch (error) {
+      console.warn('Could not subscribe to pending offer badge realtime updates:', error);
+    }
+  }
+
+  /* =========================================================
+     HEADER CHAT (MESSAGES) BADGE
+     Counts unread incoming messages across all of the user's
+     conversations (buying + selling), plus one per conversation
+     whose intro message has not been opened yet (same logic as
+     the chat list in chat.html).
+  ========================================================= */
+
+  let chatBadgeRealtimeChannel = null;
+  let chatBadgeRealtimeUserId = null;
+  let chatBadgeRefreshInFlight = false;
+  let chatBadgeRefreshQueued = false;
+  let chatBadgeDebounceTimer = null;
+  let chatBadgePollTimer = null;
+
+  function updateHeaderChatBadge(count) {
+
+    const badge = document.getElementById("globalChatBadge");
+
+    if (!badge) {
+      return;
+    }
+
+    if (count > 0) {
+      badge.textContent = count > 99 ? "99+" : String(count);
+      badge.classList.add("show");
+    } else {
+      badge.textContent = "";
+      badge.classList.remove("show");
+    }
+
+  }
+
+  async function refreshHeaderChatBadge() {
+
+    // Avoid overlapping requests; if one is running, run again right after it
+    if (chatBadgeRefreshInFlight) {
+      chatBadgeRefreshQueued = true;
+      return;
+    }
+
+    chatBadgeRefreshInFlight = true;
+
+    try {
+
+      const user = await getAuthenticatedUser();
+
+      if (!user || !user.id) {
+        updateHeaderChatBadge(0);
+        return;
+      }
+
+      const { data: conversations, error: conversationsError } = await supabaseClient
+        .from("conversations")
+        .select("id")
+        .or(`buyer_id.eq.${user.id},seller_id.eq.${user.id}`);
+
+      if (conversationsError) {
+        throw conversationsError;
+      }
+
+      const conversationIds = (conversations || []).map(c => c.id).filter(Boolean);
+
+      if (!conversationIds.length) {
+        updateHeaderChatBadge(0);
+        return;
+      }
+
+      const { count: unreadMessageCount, error: messagesError } = await supabaseClient
+        .from("messages")
+        .select("id", { count: "exact", head: true })
+        .in("conversation_id", conversationIds)
+        .neq("sender_id", user.id)
+        .eq("is_read", false);
+
+      if (messagesError) {
+        throw messagesError;
+      }
+
+      const unreadIntroCount = conversationIds.filter(
+        id => localStorage.getItem(`intro_read_${id}`) !== "true"
+      ).length;
+
+      // Total unread messages + unread intros.
+      // To show "number of chats with unread" instead, replace this line with a
+      // per-conversation count (needs conversation_id from the messages query).
+      updateHeaderChatBadge((unreadMessageCount || 0) + unreadIntroCount);
+
+    } catch (error) {
+
+      console.warn("Could not refresh header chat badge:", error);
+
+    } finally {
+
+      chatBadgeRefreshInFlight = false;
+
+      if (chatBadgeRefreshQueued) {
+        chatBadgeRefreshQueued = false;
+        refreshHeaderChatBadge();
+      }
+
+    }
+
+  }
+
+  // Debounced so a burst of realtime events results in one refresh
+  function scheduleHeaderChatBadgeRefresh() {
+
+    clearTimeout(chatBadgeDebounceTimer);
+
+    chatBadgeDebounceTimer = setTimeout(() => {
+      refreshHeaderChatBadge();
+    }, 250);
+
+  }
+
+  function cleanupChatBadgeRealtime() {
+
+    if (!chatBadgeRealtimeChannel) {
+      return;
+    }
+
+    try {
+      if (typeof supabaseClient.removeChannel === "function") {
+        supabaseClient.removeChannel(chatBadgeRealtimeChannel);
+      }
+    } catch (error) {
+      // ignore cleanup errors
+    }
+
+    chatBadgeRealtimeChannel = null;
+    chatBadgeRealtimeUserId = null;
+
+  }
+
+  async function setupChatBadgeRealtime() {
+
+    try {
+
+      const user = await getAuthenticatedUser();
+
+      if (!user || !user.id) {
+        cleanupChatBadgeRealtime();
+        return;
+      }
+
+      if (chatBadgeRealtimeChannel && chatBadgeRealtimeUserId === user.id) {
+        return;
+      }
+
+      cleanupChatBadgeRealtime();
+      chatBadgeRealtimeUserId = user.id;
+
+      chatBadgeRealtimeChannel = supabaseClient
+        .channel("public:messages:seller-dashboard-chat-badge")
+        // New message arrives
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "messages"
+        }, (payload) => {
+          const msg = payload?.new;
+          if (!msg) return;
+          // Own messages never change the unread count
+          if (String(msg.sender_id) === String(chatBadgeRealtimeUserId)) return;
+          scheduleHeaderChatBadgeRefresh();
+        })
+        // Messages marked read/delivered (e.g. after opening a chat)
+        .on("postgres_changes", {
+          event: "UPDATE",
+          schema: "public",
+          table: "messages"
+        }, () => {
+          scheduleHeaderChatBadgeRefresh();
+        })
+        // New conversation = new unread intro message
+        .on("postgres_changes", {
+          event: "INSERT",
+          schema: "public",
+          table: "conversations"
+        }, () => {
+          scheduleHeaderChatBadgeRefresh();
+        })
+        .subscribe((status) => {
+          if (status === "SUBSCRIBED") {
+            // Catch anything that arrived while the channel was connecting
+            scheduleHeaderChatBadgeRefresh();
+          }
+        });
+
+      if (!window.__chatBadgeUnloadBound) {
+        window.__chatBadgeUnloadBound = true;
+        window.addEventListener("beforeunload", cleanupChatBadgeRealtime, { once: true });
+      }
+
+    } catch (error) {
+
+      console.warn("Could not subscribe to chat badge realtime updates:", error);
+
+    }
+
+  }
+
+  // Re-check when the user comes back to this page / tab (e.g. after reading
+  // messages in chat.html and pressing back, including bfcache restores)
+  window.addEventListener("pageshow", () => {
+    refreshHeaderChatBadge();
+    setupChatBadgeRealtime();
+  });
+
+  window.addEventListener("focus", () => {
+    refreshHeaderChatBadge();
+  });
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible") {
+      refreshHeaderChatBadge();
+    }
+  });
+
+  // chat.html stores "intro read" in localStorage; react to it from other tabs
+  window.addEventListener("storage", (event) => {
+    if (event.key && event.key.startsWith("intro_read_")) {
+      refreshHeaderChatBadge();
+    }
+  });
+
+  // Safety net in case a realtime event is missed (e.g. dropped connection)
+  if (chatBadgePollTimer) {
+    clearInterval(chatBadgePollTimer);
+  }
+
+  chatBadgePollTimer = setInterval(() => {
+    if (document.visibilityState === "visible") {
+      refreshHeaderChatBadge();
+    }
+  }, 20000);
+
   (async () => {
     await setupNotificationRealtimeBadge();
+    await setupOfferRealtimeBadge();
+    await setupChatBadgeRealtime();
+    await refreshHeaderChatBadge();
   })();
 </script>
 </body>
