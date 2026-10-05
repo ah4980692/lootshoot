@@ -435,17 +435,24 @@ function autoGrowInput() {
 
 /* ---------- Realtime ---------- */
 
-function removeConversationSubscription() {
+// Removes ONLY the messages channel. Used before (re)subscribing to messages so it
+// can never tear down the separate deal channel.
+function removeMessageSubscription() {
   if (activeChannel) {
     supabaseClient.removeChannel(activeChannel);
     activeChannel = null;
   }
+}
+
+// Full cleanup (leaving / switching conversations): messages channel + deal channel
+function removeConversationSubscription() {
+  removeMessageSubscription();
   removeDealSubscription();
 }
 
 function subscribeToConversationMessages(conversationId) {
   if (!conversationId) return;
-  removeConversationSubscription();
+  removeMessageSubscription();
 
   activeChannel = supabaseClient.channel(`chat-conversation-${conversationId}`);
   activeChannel
@@ -502,6 +509,7 @@ function removeDealSubscription() {
 function syncOrderUiFromDeal(deal) {
   if (!deal || !currentConversationId) return;
 
+  // Merge the (possibly partial) updated row into the existing deal object
   const mergedDeal = {
     ...(currentDealData || {}),
     ...(deal || {})
@@ -526,29 +534,23 @@ function syncOrderUiFromDeal(deal) {
 function subscribeToCurrentDealUpdates() {
   if (!currentConversationId || !currentDealId) return;
 
+  // Always drop any previous deal channel first so there is never more than one
   removeDealSubscription();
 
+  const dealIdForChannel = currentDealId;
   dealChannel = supabaseClient.channel(`deal-updates-${currentConversationId}`);
   dealChannel
     .on("postgres_changes", {
       event: "UPDATE",
       schema: "public",
       table: "deals",
-      filter: `id=eq.${currentDealId}`
+      filter: `id=eq.${dealIdForChannel}`
     }, (payload) => {
       const nextDeal = payload?.new;
-      if (!nextDeal || !currentConversationId) return;
-
-      const mergedDeal = {
-        ...(currentDealData || {}),
-        ...nextDeal
-      };
-      if (!mergedDeal.id) {
-        mergedDeal.id = currentDealId || currentConversation?.deal_id || null;
-      }
-      currentDealData = mergedDeal;
-      currentDealId = mergedDeal.id || currentDealId;
-      syncOrderUiFromDeal(mergedDeal);
+      if (!nextDeal || !currentConversationId || !currentDealId) return;
+      // Ignore anything that is not the currently open deal
+      if (String(nextDeal.id) !== String(currentDealId)) return;
+      syncOrderUiFromDeal(nextDeal);
     })
     .subscribe((status) => {
       if (status !== "SUBSCRIBED") console.warn("Deal realtime status:", status);
