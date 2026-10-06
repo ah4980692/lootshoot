@@ -510,7 +510,7 @@
           Sign in →
         </button>
 
-        <small style="text-align:center;display:block;color:#6d777f;margin-top:8px;">Don't have an account? <a href="#" id="openSellerFromSignIn">Become a seller</a></small>
+        <small style="text-align:center;display:block;color:#6d777f;margin-top:8px;">Don't have an account? <a href="#" id="openSellerFromSignIn">Create an account</a></small>
 
       </form>
 
@@ -614,6 +614,39 @@
         el.textContent = text || '';
       }
 
+      // ============================================
+      // SIGNUP ERROR DISPLAY (password mismatch, email already registered)
+      // Styled inline so it is always visible, regardless of CSS
+      // ============================================
+      const passwordError = document.getElementById('passwordError');
+      const sellerPasswordInput = document.getElementById('sellerPassword');
+      const sellerConfirmInput = document.getElementById('sellerConfirmPassword');
+
+      function setSignupError(msg) {
+        if (!passwordError) return;
+        passwordError.textContent = msg || '';
+        passwordError.style.cssText = msg
+          ? 'display:block;color:#ff5c5c;font-size:13px;font-weight:600;margin:4px 0 8px;'
+          : 'display:none;';
+      }
+
+      // Live check while typing
+      function checkPasswordMatch() {
+        const mismatch =
+          sellerConfirmInput.value &&
+          sellerPasswordInput.value !== sellerConfirmInput.value;
+
+        setSignupError(mismatch ? 'Passwords do not match' : '');
+        sellerConfirmInput.style.borderColor = mismatch ? '#ff5c5c' : '';
+
+        return !mismatch;
+      }
+
+      if (sellerPasswordInput && sellerConfirmInput) {
+        sellerPasswordInput.addEventListener('input', checkPasswordMatch);
+        sellerConfirmInput.addEventListener('input', checkPasswordMatch);
+      }
+
       // Seller signup
       const sellerForm = document.getElementById('sellerForm');
 
@@ -630,15 +663,20 @@
           const whatsapp = document.getElementById('sellerWhatsApp').value.trim();
           const confirmPassword = document.getElementById('sellerConfirmPassword').value;
 
+          // Password mismatch warning
           if (password !== confirmPassword) {
-            document.getElementById('passwordError').textContent = 'Passwords do not match';
+            setSignupError('Passwords do not match');
+            sellerConfirmInput.style.borderColor = '#ff5c5c';
+            sellerConfirmInput.focus();
+            passwordError.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
           }
 
-          document.getElementById('passwordError').textContent = '';
+          setSignupError('');
+          sellerConfirmInput.style.borderColor = '';
 
           if (!email) {
-            setFormError(sellerForm, 'Enter your email');
+            setSignupError('Enter your email');
             return;
           }
 
@@ -660,16 +698,28 @@
 
             if (error) {
               showToast('Signup error: ' + error.message);
-              setFormError(sellerForm, error.message);
+              setSignupError(error.message);
+              return;
+            }
+
+            // Email already registered:
+            // Supabase returns a user with an empty identities array
+            if (
+              data?.user &&
+              Array.isArray(data.user.identities) &&
+              data.user.identities.length === 0
+            ) {
+              setSignupError('This email is already registered. Please sign in instead.');
+              showToast('This email is already registered');
               return;
             }
 
             // Save signup details so the OTP page can create the seller profile
-sessionStorage.setItem('signupEmail', email);
-sessionStorage.setItem('signupUsername', username);
-sessionStorage.setItem('signupWhatsApp', whatsapp);
+            sessionStorage.setItem('signupEmail', email);
+            sessionStorage.setItem('signupUsername', username);
+            sessionStorage.setItem('signupWhatsApp', whatsapp);
 
-showToast('OTP sent to your email');
+            showToast('OTP sent to your email');
 
             // Open the separate OTP page
             window.location.href = 'otp.html';
@@ -677,6 +727,7 @@ showToast('OTP sent to your email');
           } catch (err) {
             console.error('signup error', err);
             showToast('Signup failed: ' + (err?.message || err));
+            setSignupError('Signup failed: ' + (err?.message || err));
           }
         }, { passive: false });
       }
