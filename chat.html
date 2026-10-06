@@ -758,8 +758,12 @@ function renderConversationList(conversations) {
   if (!container) return;
 
   const items = Array.isArray(conversations) ? conversations : [];
-  const buyingUnread = conversationsCache[TABS.buying]?.filter((c) => Number(c.unreadCount || 0) > 0).length || 0;
-  const sellingUnread = conversationsCache[TABS.selling]?.filter((c) => Number(c.unreadCount || 0) > 0).length || 0;
+
+  // Tab badges show the TOTAL number of unread messages in that tab
+  // (sum of each conversation's unreadCount), not the number of chats with unread.
+  const sumUnread = (list) => (Array.isArray(list) ? list : []).reduce((total, c) => total + Number(c.unreadCount || 0), 0);
+  const buyingUnread = sumUnread(conversationsCache[TABS.buying]);
+  const sellingUnread = sumUnread(conversationsCache[TABS.selling]);
   const activeTabUnread = currentTab === TABS.buying ? buyingUnread : sellingUnread;
 
   const tabMarkup = `
