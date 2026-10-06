@@ -380,6 +380,7 @@ let replyingTo = null;
 let currentOtherName = "User";
 let currentConversation = null;
 let currentAdTitle = "Product";
+let currentAdType = null;
 let currentBuyerName = "Buyer";
 let currentSellerName = "Seller";
 let currentDealData = null;
@@ -570,6 +571,9 @@ const CHAT_IMAGE_PREFIX = "CHAT_IMAGE:";
 const CHAT_REPLY_PREFIX = "CHAT_REPLY:";
 const CHAT_IMAGE_BASE = `${supabaseUrl}/storage/v1/object/public/chat-images/`;
 
+// Trade Shield system message sent after the buyer marks an Accounts order as received
+const TRADE_SHIELD_MESSAGE = "This chat will remain open for 2 days. If the buyer encounters any issue with the account during this period, they can contact the seller here to discuss and resolve the matter.\n\nThe payment will be released to the seller after the 2-day Trade Shield period ends.";
+
 // A reply is stored as "CHAT_REPLY:<messageId>\n<body>"; body may itself be text or a CHAT_IMAGE message
 function parseMessageText(text) {
   if (typeof text !== "string") return { replyId: null, body: "" };
@@ -577,11 +581,13 @@ function parseMessageText(text) {
   return match ? { replyId: match[1], body: match[2] } : { replyId: null, body: text };
 }
 
-// Order status updates ("X has marked the order as delivered/received.") are system
-// messages. They are recognised by their exact wording and shown as a centered notice.
+// Order status updates ("X has marked the order as delivered/received.") and the
+// Trade Shield notice are system messages. They are recognised by their exact
+// wording and shown as a centered notice.
 function getSystemMessageText(text) {
   if (typeof text !== "string") return null;
   const trimmed = text.trim();
+  if (trimmed === TRADE_SHIELD_MESSAGE) return trimmed;
   return /^.+ has marked the order as (delivered|received)\.$/.test(trimmed) ? trimmed : null;
 }
 
@@ -957,14 +963,15 @@ function formatMessageTime(iso) {
 async function getAdDetails(adId) {
   if (!adId) return { title: "Ad", price: "Rs 0", image: null, id: null };
   try {
-    const { data, error } = await supabaseClient.from("ads").select("id, title, price, images").eq("id", adId).maybeSingle();
+    const { data, error } = await supabaseClient.from("ads").select("id, title, price, images, type").eq("id", adId).maybeSingle();
     if (error) { console.warn("Could not load ad details:", error); return { title: "Ad", price: "Rs 0", image: null, id: null }; }
     const image = normalizeAdImage(data?.images);
     return {
       title: data?.title || "Ad",
       price: data?.price ? `Rs ${data.price}` : "Rs 0",
       image,
-      id: data?.id || null
+      id: data?.id || null,
+      type: data?.type || null
     };
   } catch (e) {
     console.warn("Could not load ad details:", e);
@@ -1135,6 +1142,7 @@ async function renderConversationThread(conversationId) {
       adDetails = await getAdDetails(deal.ad_id);
       adTitle = adDetails.title;
     }
+    currentAdType = adDetails.type || null;
     currentDealId = deal?.id || conversation.deal_id || null;
     currentDealData = deal || null;
     if (deal) {
@@ -1998,6 +2006,32 @@ async function onOrderConfirm(action) {
       }
     } catch (insertError) {
       console.warn("Could not add order status message:", insertError);
+    }
+
+    // Accounts deals only: after the buyer's "received" message, add the Trade Shield notice.
+    // Uses the same messages insert + addMessage path (deduplicated by message id) so the
+    // seller receives it through the existing messages Realtime subscription.
+    const adTypeNormalized = String(currentAdType || "").trim().toLowerCase();
+    if (action === "received" && (adTypeNormalized === "accounts" || adTypeNormalized === "account")) {
+      try {
+        const { data: tradeShieldMessage, error: tradeShieldError } = await supabaseClient
+          .from("messages")
+          .insert([{
+            conversation_id: currentConversationId,
+            sender_id: currentUserId,
+            message: TRADE_SHIELD_MESSAGE
+          }])
+          .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
+          .single();
+
+        if (tradeShieldError) {
+          console.warn("Could not add Trade Shield message:", tradeShieldError);
+        } else if (tradeShieldMessage) {
+          addMessage(tradeShieldMessage);
+        }
+      } catch (tradeShieldError) {
+        console.warn("Could not add Trade Shield message:", tradeShieldError);
+      }
     }
   } catch (error) {
     console.error(`Failed to ${action} order:`, error);
