@@ -28,6 +28,36 @@
   />
 
   <link rel="stylesheet" href="style1.css" />
+
+  <style>
+    /* Fixed +92 prefix for the WhatsApp field */
+    .phone-field {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid rgba(128, 128, 128, 0.4);
+      border-radius: 10px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .phone-prefix {
+      display: flex;
+      align-items: center;
+      padding: 0 12px;
+      font-weight: 600;
+      background: rgba(128, 128, 128, 0.15);
+      border-right: 1px solid rgba(128, 128, 128, 0.4);
+    }
+    .phone-field input {
+      flex: 1;
+      min-width: 0;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: transparent !important;
+      margin: 0 !important;
+      outline: none;
+    }
+  </style>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 
@@ -43,7 +73,6 @@
     </a>
 
     <nav>
-      <a href="#marketplace">Marketplace</a>
       <a href="#how-it-works">How it works</a>
       <a href="#faq">FAQ</a>
     </nav>
@@ -324,76 +353,6 @@
   </footer>
 
 
-  <!-- CHECKOUT MODAL KEPT FOR NOW -->
-  <div class="modal-backdrop" id="checkoutModal">
-
-    <div class="modal">
-
-      <button class="modal-close" id="closeModal">×</button>
-
-      <label>Secure order setup</label>
-
-      <h2>
-        Lock in <span id="modalPackage">Surge</span>.
-      </h2>
-
-      <div class="selected">
-        <span>
-          <small>SELECTED DROP</small>
-          <b id="modalAmount">+5,000 Popularity</b>
-        </span>
-
-        <strong id="modalPrice">₹499</strong>
-      </div>
-
-
-      <form id="checkoutForm">
-
-        <label>
-          Player ID
-          <input
-            id="playerId"
-            required
-            placeholder="e.g. 51234567890"
-            inputmode="numeric"
-          >
-        </label>
-
-
-        <label>
-          Region
-          <select>
-            <option>India</option>
-            <option>South Asia</option>
-            <option>Middle East</option>
-            <option>Europe</option>
-            <option>North America</option>
-          </select>
-        </label>
-
-
-        <div class="quantity">
-          <span>QUANTITY</span>
-          <button type="button" id="minus">−</button>
-          <b id="quantity">1</b>
-          <button type="button" id="plus">+</button>
-        </div>
-
-
-        <button class="button button-green full" type="submit">
-          Continue to payment →
-        </button>
-
-        <small class="demo-note">
-          Demo checkout • Connect Stripe to accept live payments
-        </small>
-
-      </form>
-
-    </div>
-  </div>
-
-
   <!-- SELLER SIGNUP MODAL -->
   <div class="modal-backdrop" id="sellerModal">
 
@@ -450,12 +409,18 @@
 
         <label>
           WhatsApp number
-          <input
-            id="sellerWhatsApp"
-            type="tel"
-            required
-            placeholder="e.g. +923411234567"
-          >
+          <div class="phone-field">
+            <span class="phone-prefix">+92</span>
+            <input
+              id="sellerWhatsApp"
+              type="tel"
+              inputmode="numeric"
+              autocomplete="tel-national"
+              maxlength="14"
+              required
+              placeholder="3411234567"
+            >
+          </div>
         </label>
 
         <div class="password-error" id="passwordError"></div>
@@ -494,7 +459,7 @@
 
         <label>
           Email 
-          <input id="signinIdentifier" type="text" required placeholder="Enter your email">
+          <input id="signinIdentifier" type="email" required placeholder="Enter your email">
         </label>
 
         <label>
@@ -542,13 +507,17 @@
         </button>
       </div>
 
-      <div class="reset-step hidden" data-step="otp">
+            <div class="reset-step hidden" data-step="otp">
         <p class="reset-subtitle">A code was sent to <strong id="resetEmailDisplay"></strong></p>
 
-        <label>
-          Enter OTP
-          <input id="otpCode" type="text" required placeholder="123456" maxlength="6">
-        </label>
+        <div class="otp-inputs reset-otp-inputs">
+          <input type="text" class="otp-input reset-otp-input" maxlength="1" inputmode="numeric" autocomplete="one-time-code" aria-label="Digit 1">
+          <input type="text" class="otp-input reset-otp-input" maxlength="1" inputmode="numeric" aria-label="Digit 2">
+          <input type="text" class="otp-input reset-otp-input" maxlength="1" inputmode="numeric" aria-label="Digit 3">
+          <input type="text" class="otp-input reset-otp-input" maxlength="1" inputmode="numeric" aria-label="Digit 4">
+          <input type="text" class="otp-input reset-otp-input" maxlength="1" inputmode="numeric" aria-label="Digit 5">
+          <input type="text" class="otp-input reset-otp-input" maxlength="1" inputmode="numeric" aria-label="Digit 6">
+        </div>
 
         <button class="button button-green full" type="button" id="verifyOtpButton">
           Verify code →
@@ -584,21 +553,13 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('Auth script loaded');
 
       // Supabase initialization
       const supabaseUrl = 'https://saguwhkijrdiwiabxvyv.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
       const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      // small toast helper
-      function showToast(msg, timeout = 3000) {
-        const t = document.getElementById('toast');
-        if (!t) { console.log('Toast missing:', msg); return; }
-        t.textContent = msg;
-        t.classList.add('visible');
-        setTimeout(() => t.classList.remove('visible'), timeout);
-      }
+      // NOTE: showToast() comes from script1.js (shared by all pages)
 
       // helper to show inline error under a form
       function setFormError(form, text) {
@@ -615,12 +576,14 @@
       }
 
       // ============================================
-      // SIGNUP ERROR DISPLAY (password mismatch, email already registered)
-      // Styled inline so it is always visible, regardless of CSS
+      // SIGNUP ERROR DISPLAY
+      // (password mismatch, email already registered, bad WhatsApp, etc.)
+      // Inline only, no toast, so the user sees one message.
       // ============================================
       const passwordError = document.getElementById('passwordError');
       const sellerPasswordInput = document.getElementById('sellerPassword');
       const sellerConfirmInput = document.getElementById('sellerConfirmPassword');
+      const sellerWhatsAppInput = document.getElementById('sellerWhatsApp');
 
       function setSignupError(msg) {
         if (!passwordError) return;
@@ -630,7 +593,7 @@
           : 'display:none;';
       }
 
-      // Live check while typing
+      // Live password match check while typing
       function checkPasswordMatch() {
         const mismatch =
           sellerConfirmInput.value &&
@@ -647,21 +610,46 @@
         sellerConfirmInput.addEventListener('input', checkPasswordMatch);
       }
 
-      // Seller signup
+      // ============================================
+      // WHATSAPP FIELD: +92 is fixed, user types only the number after it
+      // ============================================
+      function normalizePkNumber(value) {
+        let digits = value.replace(/\D/g, '');
+
+        // If they paste a full number like +923411234567 or 923411234567
+        if (digits.startsWith('92') && digits.length > 10) {
+          digits = digits.slice(2);
+        }
+
+        // Remove leading zeros (03411234567 -> 3411234567)
+        digits = digits.replace(/^0+/, '');
+
+        return digits.slice(0, 10);
+      }
+
+      if (sellerWhatsAppInput) {
+        sellerWhatsAppInput.addEventListener('input', () => {
+          sellerWhatsAppInput.value = normalizePkNumber(sellerWhatsAppInput.value);
+        });
+      }
+
+      // ============================================
+      // SELLER SIGNUP
+      // ============================================
       const sellerForm = document.getElementById('sellerForm');
 
       if (sellerForm) {
+        const signupButton = sellerForm.querySelector('button[type="submit"]');
+
         sellerForm.addEventListener('submit', async (e) => {
           e.preventDefault();
           e.stopImmediatePropagation();
 
-          console.log('seller signup submit');
-
           const email = document.getElementById('sellerEmail').value.trim();
-          const password = document.getElementById('sellerPassword').value;
+          const password = sellerPasswordInput.value;
           const username = document.getElementById('sellerUsername').value.trim();
-          const whatsapp = document.getElementById('sellerWhatsApp').value.trim();
-          const confirmPassword = document.getElementById('sellerConfirmPassword').value;
+          const confirmPassword = sellerConfirmInput.value;
+          const whatsappDigits = normalizePkNumber(sellerWhatsAppInput.value);
 
           // Password mismatch warning
           if (password !== confirmPassword) {
@@ -672,15 +660,28 @@
             return;
           }
 
-          setSignupError('');
           sellerConfirmInput.style.borderColor = '';
+
+          // WhatsApp must be a valid Pakistani mobile number: 10 digits starting with 3
+          if (!/^3\d{9}$/.test(whatsappDigits)) {
+            setSignupError('Enter a valid WhatsApp number after +92 (e.g. 3411234567)');
+            sellerWhatsAppInput.focus();
+            return;
+          }
 
           if (!email) {
             setSignupError('Enter your email');
             return;
           }
 
-          showToast('Creating your account...');
+          setSignupError('');
+
+          const whatsapp = '+92' + whatsappDigits;
+
+          // Prevent double submit
+          const originalText = signupButton.textContent;
+          signupButton.disabled = true;
+          signupButton.textContent = 'Creating account...';
 
           try {
             const { data, error } = await supabaseClient.auth.signUp({
@@ -697,7 +698,6 @@
             console.log('signup result', { data, error });
 
             if (error) {
-              showToast('Signup error: ' + error.message);
               setSignupError(error.message);
               return;
             }
@@ -710,36 +710,37 @@
               data.user.identities.length === 0
             ) {
               setSignupError('This email is already registered. Please sign in instead.');
-              showToast('This email is already registered');
               return;
             }
 
-            // Save signup details so the OTP page can create the seller profile
+            // Save signup details for the OTP page
             sessionStorage.setItem('signupEmail', email);
             sessionStorage.setItem('signupUsername', username);
             sessionStorage.setItem('signupWhatsApp', whatsapp);
-
-            showToast('OTP sent to your email');
 
             // Open the separate OTP page
             window.location.href = 'otp.html';
 
           } catch (err) {
             console.error('signup error', err);
-            showToast('Signup failed: ' + (err?.message || err));
             setSignupError('Signup failed: ' + (err?.message || err));
+          } finally {
+            signupButton.disabled = false;
+            signupButton.textContent = originalText;
           }
         }, { passive: false });
       }
 
-      // Sign in
+      // ============================================
+      // SIGN IN
+      // ============================================
       const signInForm = document.getElementById('signInForm');
 
       if (signInForm) {
+        const signInSubmitButton = signInForm.querySelector('button[type="submit"]');
+
         signInForm.addEventListener('submit', async (e) => {
           e.preventDefault();
-
-          console.log('signin submit');
 
           setFormError(signInForm, '');
 
@@ -756,6 +757,11 @@
             return;
           }
 
+          // Prevent double submit
+          const originalText = signInSubmitButton.textContent;
+          signInSubmitButton.disabled = true;
+          signInSubmitButton.textContent = 'Signing in...';
+
           try {
             const { data, error } =
               await supabaseClient.auth.signInWithPassword({
@@ -766,13 +772,9 @@
             console.log('signin result', { data, error });
 
             if (error) {
-              showToast('Sign in failed: ' + error.message);
               setFormError(signInForm, error.message);
               return;
             }
-
-            showToast('Signed in successfully');
-            setFormError(signInForm, '');
 
             if (data?.session) {
               sessionStorage.setItem('sellerAuthSession', JSON.stringify(data.session));
@@ -789,13 +791,14 @@
             sessionStorage.setItem('sellerSessionUsername', sessionUsername);
             sessionStorage.setItem('sellerSessionWhatsApp', sessionWhatsApp);
 
-            console.log('user signed in', data?.user);
             window.location.href = 'seller-dashboard.html';
 
           } catch (err) {
             console.error('signin exception', err);
-            showToast('Sign in error: ' + (err?.message || err));
             setFormError(signInForm, err?.message || String(err));
+          } finally {
+            signInSubmitButton.disabled = false;
+            signInSubmitButton.textContent = originalText;
           }
         });
       }
