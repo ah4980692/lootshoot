@@ -762,7 +762,8 @@ a { color: inherit; text-decoration: none; }
   color: #4a5b54;
 }
 
-.signin-form input[type="text"],
+  .signin-form input[type="text"],
+.signin-form input[type="email"],
 .signin-form input[type="password"] {
   width: 100%;
   height: 38px;
@@ -1768,4 +1769,38 @@ a { color: inherit; text-decoration: none; }
     font-size: 12px !important;
   }
   .otp-resend-text, .otp-back-link { font-size: 11px !important; }
+}
+  .otp-resend-text, .otp-back-link { font-size: 11px !important; }
+}
+
+/* Forgot-password OTP boxes (match the signup OTP page) */
+.forgot-modal .otp-inputs {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin: 4px 0 8px;
+}
+
+.forgot-modal input.otp-input {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 2px solid #dfe5e2;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  text-align: center;
+  color: #111827;
+  background: #ffffff;
+}
+
+.forgot-modal input.otp-input:hover {
+  border-color: #15965a;
+}
+
+.forgot-modal input.otp-input:focus {
+  outline: none;
+  border-color: #15965a;
+  box-shadow: 0 0 0 3px rgba(21, 150, 90, 0.1);
+  background: #f9fdf9;
 }
