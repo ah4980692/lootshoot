@@ -1229,7 +1229,7 @@ async function renderConversationThread(conversationId) {
 
     subscribeToCurrentDealUpdates();
 
-    const messageMarkup = preparedMessages.length
+    const messagesMarkup = preparedMessages.length
       ? (() => {
           let html = "";
           let lastDateKey = "";
@@ -1244,6 +1244,11 @@ async function renderConversationThread(conversationId) {
           return html;
         })()
       : `<div class="conversation-thread-empty"><div class="chat-empty-icon">💬</div><div class="chat-empty-title">No messages yet</div><div class="chat-empty-text">Say hello and start the conversation.</div></div>`;
+
+    // The green order notice is always the very first item in the thread
+    const viewerRole = conversation.buyer_id === user.id ? "buyer" : "seller";
+    const messageMarkup =
+      orderNoticeHtml(viewerRole, buyerName, sellerName, adTitle) + messagesMarkup;
 
     const thread = document.querySelector(".conversation-thread");
     if (!thread) {
@@ -1867,8 +1872,8 @@ function resolveDealOrderStatus(deal) {
 }
 
 function orderNoticeHtml(role, buyerName = "Buyer", sellerName = "Seller", productTitle = "Product") {
-  const introText = `${buyerName} has purchased "<b>${productTitle}</b>" listed by ${sellerName}. You can communicate, complete, and confirm the deal right here.`;
-  
+  const introText = `${esc(buyerName)} has purchased "<b>${esc(productTitle)}</b>" listed by ${esc(sellerName)}. You can communicate, complete, and confirm the deal right here.`;
+
   const stepsHtml = `
     <div style="margin-top: 10px;">
       <div style="font-weight: 600; margin-bottom: 8px;">How this works</div>
@@ -1879,7 +1884,7 @@ function orderNoticeHtml(role, buyerName = "Buyer", sellerName = "Seller", produ
       </div>
     </div>
   `;
-  
+
   return `<div class="order-notice">${ORDER_ICON_INFO}<div>${introText}${stepsHtml}</div></div>`;
 }
 
