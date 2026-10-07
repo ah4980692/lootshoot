@@ -179,6 +179,40 @@
       cursor: not-allowed;
     }
 
+    /* WhatsApp field: fixed +92 prefix, user types only the number after it */
+    .phone-field {
+      display: flex;
+      align-items: stretch;
+      border: 1px solid #d7dfdb;
+      border-radius: 11px;
+      overflow: hidden;
+      background: #fff;
+    }
+
+    .phone-field:focus-within {
+      border-color: #1d8b58;
+      box-shadow: 0 0 0 3px rgba(29, 139, 88, 0.1);
+    }
+
+    .phone-prefix {
+      display: flex;
+      align-items: center;
+      padding: 0 14px;
+      font-weight: 700;
+      color: #172027;
+      background: #f3f5f4;
+      border-right: 1px solid #d7dfdb;
+    }
+
+    .phone-field input {
+      flex: 1;
+      min-width: 0;
+      border: 0 !important;
+      border-radius: 0 !important;
+      box-shadow: none !important;
+      background: transparent !important;
+    }
+
     .hint {
       margin: 6px 0 0;
       font-size: 12px;
@@ -345,13 +379,25 @@
             WhatsApp Number
           </label>
 
-          <input
-            id="whatsappInput"
-            type="tel"
-            required
-            maxlength="30"
-            placeholder="e.g. +923411234567"
-          />
+          <div class="phone-field">
+
+            <span class="phone-prefix">+92</span>
+
+            <input
+              id="whatsappInput"
+              type="tel"
+              inputmode="numeric"
+              autocomplete="tel-national"
+              required
+              maxlength="14"
+              placeholder="3411234567"
+            />
+
+          </div>
+
+          <p class="hint">
+            Enter the number after +92 (e.g. 3411234567).
+          </p>
 
         </div>
 
@@ -497,6 +543,43 @@
 
 
       // ==========================================
+      // WHATSAPP NUMBER (same rule as signup)
+      // +92 is fixed; user types only the 10 digits after it
+      // ==========================================
+
+      function normalizePkNumber(value) {
+
+        let digits =
+          String(value || "").replace(/\D/g, "");
+
+        // If they paste a full number like +923411234567 or 923411234567
+        if (
+          digits.startsWith("92") &&
+          digits.length > 10
+        ) {
+          digits = digits.slice(2);
+        }
+
+        // Remove leading zeros (03411234567 -> 3411234567)
+        digits = digits.replace(/^0+/, "");
+
+        return digits.slice(0, 10);
+      }
+
+      whatsappInput.addEventListener(
+        "input",
+        () => {
+
+          whatsappInput.value =
+            normalizePkNumber(
+              whatsappInput.value
+            );
+
+        }
+      );
+
+
+      // ==========================================
       // MESSAGE
       // ==========================================
 
@@ -563,7 +646,7 @@
         ) {
 
           window.location.href =
-            "index1.html";
+            "index.html";
 
           return;
         }
@@ -635,8 +718,9 @@
         nameInput.value =
           username;
 
+        // Show only the part after +92
         whatsappInput.value =
-          whatsapp;
+          normalizePkNumber(whatsapp);
 
         emailInput.value =
           email;
@@ -776,8 +860,10 @@
           const username =
             nameInput.value.trim();
 
-          const whatsapp =
-            whatsappInput.value.trim();
+          const whatsappDigits =
+            normalizePkNumber(
+              whatsappInput.value
+            );
 
 
           // Validate name
@@ -792,16 +878,23 @@
           }
 
 
-          // Validate WhatsApp
-          if (!whatsapp) {
+          // Validate WhatsApp: 10 digits starting with 3 (after +92)
+          if (!/^3\d{9}$/.test(whatsappDigits)) {
 
             setMessage(
-              "Please enter your WhatsApp number.",
+              "Enter a valid WhatsApp number after +92 (e.g. 3411234567).",
               "error"
             );
 
+            whatsappInput.focus();
+
             return;
           }
+
+
+          // Saved in the same format as signup: +92xxxxxxxxxx
+          const whatsapp =
+            "+92" + whatsappDigits;
 
 
           saveBtn.disabled =
