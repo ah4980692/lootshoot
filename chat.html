@@ -982,9 +982,14 @@ async function getAdDetails(adId) {
 async function getSellerProfile(userId) {
   if (!userId) return null;
   try {
-    const { data, error } = await supabaseClient.from("sellers").select("id, username, avatar_url").eq("id", userId).maybeSingle();
+    const { data, error } = await supabaseClient.rpc("get_public_seller", { p_seller_id: userId });
     if (error) { console.warn("Could not load profile:", error); return null; }
-    return data;
+    if (!data) return null;
+    return {
+      id: userId,
+      username: data.username || "",
+      avatar_url: data.avatar_url || ""
+    };
   } catch (e) {
     console.warn("Could not load profile:", e);
     return null;
@@ -1229,7 +1234,7 @@ async function renderConversationThread(conversationId) {
 
     subscribeToCurrentDealUpdates();
 
-    const messagesMarkup = preparedMessages.length
+    const messageMarkup = preparedMessages.length
       ? (() => {
           let html = "";
           let lastDateKey = "";
@@ -1244,11 +1249,6 @@ async function renderConversationThread(conversationId) {
           return html;
         })()
       : `<div class="conversation-thread-empty"><div class="chat-empty-icon">💬</div><div class="chat-empty-title">No messages yet</div><div class="chat-empty-text">Say hello and start the conversation.</div></div>`;
-
-    // The green order notice is always the very first item in the thread
-    const viewerRole = conversation.buyer_id === user.id ? "buyer" : "seller";
-    const messageMarkup =
-      orderNoticeHtml(viewerRole, buyerName, sellerName, adTitle) + messagesMarkup;
 
     const thread = document.querySelector(".conversation-thread");
     if (!thread) {
@@ -1872,8 +1872,8 @@ function resolveDealOrderStatus(deal) {
 }
 
 function orderNoticeHtml(role, buyerName = "Buyer", sellerName = "Seller", productTitle = "Product") {
-  const introText = `${esc(buyerName)} has purchased "<b>${esc(productTitle)}</b>" listed by ${esc(sellerName)}. You can communicate, complete, and confirm the deal right here.`;
-
+  const introText = `${buyerName} has purchased "<b>${productTitle}</b>" listed by ${sellerName}. You can communicate, complete, and confirm the deal right here.`;
+  
   const stepsHtml = `
     <div style="margin-top: 10px;">
       <div style="font-weight: 600; margin-bottom: 8px;">How this works</div>
@@ -1884,7 +1884,7 @@ function orderNoticeHtml(role, buyerName = "Buyer", sellerName = "Seller", produ
       </div>
     </div>
   `;
-
+  
   return `<div class="order-notice">${ORDER_ICON_INFO}<div>${introText}${stepsHtml}</div></div>`;
 }
 
