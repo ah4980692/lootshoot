@@ -264,20 +264,15 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ';
         const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-        const { data: activeDeal, error } = await supabaseClient
-          .from('deals')
-          .select('id')
-          .eq('ad_id', adIdToCheck)
-          .eq('status', 'active')
-          .limit(1)
-          .maybeSingle();
+        const { data: hasActiveDeal, error } = await supabaseClient
+          .rpc('ad_has_active_deal', { p_ad_id: adId });
 
         if (error) {
-          console.warn('buy-now > could not check active deal for ad', adIdToCheck, error);
+          console.warn('make-offer > could not check active deal for ad', adId, error);
           return false;
         }
 
-        return Boolean(activeDeal);
+        return hasActiveDeal === true;
       } catch (err) {
         console.warn('buy-now > unexpected error checking active deal for ad', adIdToCheck, err);
         return false;
