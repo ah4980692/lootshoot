@@ -4303,21 +4303,22 @@
 
         const buyerIds = [...new Set(offers.map(offer => offer.buyer_id).filter(Boolean))];
         if (buyerIds.length) {
-          const { data: buyerProfiles, error: buyerProfilesError } = await supabaseClient
-            .from("sellers")
-            .select("id, username, avatar_url")
-            .in("id", buyerIds);
+          await Promise.all(buyerIds.map(async buyerId => {
+            const { data: buyerProfile, error: buyerProfileError } = await supabaseClient
+              .rpc("get_public_seller", { p_seller_id: buyerId });
 
-          if (buyerProfilesError) {
-            console.warn("Could not load buyer usernames for offers:", buyerProfilesError);
-          } else if (buyerProfiles) {
-            buyerProfiles.forEach(profile => {
-              buyersById[profile.id] = {
-                username: profile.username || "Buyer",
-                avatarUrl: profile.avatar_url || ""
+            if (buyerProfileError) {
+              console.warn("Could not load buyer username for offer:", buyerProfileError);
+              return;
+            }
+
+            if (buyerProfile) {
+              buyersById[buyerId] = {
+                username: buyerProfile.username || "Buyer",
+                avatarUrl: buyerProfile.avatar_url || ""
               };
-            });
-          }
+            }
+          }));
         }
       }
 
