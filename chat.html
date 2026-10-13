@@ -654,8 +654,9 @@ function getDateSeparatorHtml(iso) {
 }
 
 function messageHtml(m) {
-  // System messages (order status updates) are centered and styled differently
-  const systemText = getSystemMessageText(m.message);
+  // System messages (order status updates) are centered and styled differently.
+  // Only messages the database flagged as system messages are shown this way.
+  const systemText = m.is_system === true ? String(m.message || "").trim() : null;
   if (systemText) {
     return `<div class="system-message" data-id="${esc(String(m.id))}"><div class="system-message-pill">${esc(systemText)}<span class="system-message-time">${esc(formatMessageTime(m.created_at))}</span></div></div>`;
   }
@@ -687,7 +688,7 @@ async function markIncomingMessageStatus(message) {
       .eq("id", message.id)
       .eq("conversation_id", currentConversationId)
       .neq("sender_id", currentUserId)
-      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
+      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read, is_system")
       .single();
 
     if (error) {
@@ -979,6 +980,8 @@ async function getAdDetails(adId) {
   }
 }
 
+// Other users' names and avatars come from the get_public_seller function,
+// which returns only the username and avatar (never email or WhatsApp).
 async function getSellerProfile(userId) {
   if (!userId) return null;
   try {
@@ -1100,7 +1103,7 @@ async function getConversationMessageRows(conversationId) {
   try {
     const { data, error } = await supabaseClient
       .from("messages")
-      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
+      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read, is_system")
       .eq("conversation_id", conversationId)
       .order("created_at", { ascending: true });
     if (error) throw error;
@@ -1194,7 +1197,7 @@ async function renderConversationThread(conversationId) {
           .in('id', ids)
           .eq('conversation_id', conversation.id)
           .neq('sender_id', user.id)
-          .select('id, conversation_id, sender_id, message, created_at, delivered_at, is_read');
+          .select('id, conversation_id, sender_id, message, created_at, delivered_at, is_read, is_system');
 
         if (!error && Array.isArray(updatedRows)) {
           updatedRows.forEach(r => { updatedMap[r.id] = r; });
@@ -1234,7 +1237,7 @@ async function renderConversationThread(conversationId) {
 
     subscribeToCurrentDealUpdates();
 
-    const messageMarkup = preparedMessages.length
+    const messagesMarkup = preparedMessages.length
       ? (() => {
           let html = "";
           let lastDateKey = "";
@@ -1249,6 +1252,11 @@ async function renderConversationThread(conversationId) {
           return html;
         })()
       : `<div class="conversation-thread-empty"><div class="chat-empty-icon">💬</div><div class="chat-empty-title">No messages yet</div><div class="chat-empty-text">Say hello and start the conversation.</div></div>`;
+
+    // The green order notice is always the very first item in the thread
+    const viewerRole = conversation.buyer_id === user.id ? "buyer" : "seller";
+    const messageMarkup =
+      orderNoticeHtml(viewerRole, buyerName, sellerName, adTitle) + messagesMarkup;
 
     const thread = document.querySelector(".conversation-thread");
     if (!thread) {
@@ -1475,7 +1483,7 @@ async function uploadAndSendPendingImage() {
     const { data, error } = await supabaseClient
       .from("messages")
       .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: `${replyPrefix()}${CHAT_IMAGE_PREFIX}${imageUrl}` }])
-      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
+      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read, is_system")
       .single();
 
     if (error) throw error;
@@ -1608,7 +1616,7 @@ async function sendMessage() {
     const { data, error } = await supabaseClient
       .from("messages")
       .insert([{ conversation_id: currentConversationId, sender_id: user.id, message: replyPrefix() + text }])
-      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
+      .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read, is_system")
       .single();
     if (error) throw error;
 
@@ -1872,8 +1880,8 @@ function resolveDealOrderStatus(deal) {
 }
 
 function orderNoticeHtml(role, buyerName = "Buyer", sellerName = "Seller", productTitle = "Product") {
-  const introText = `${buyerName} has purchased "<b>${productTitle}</b>" listed by ${sellerName}. You can communicate, complete, and confirm the deal right here.`;
-  
+  const introText = `${esc(buyerName)} has purchased "<b>${esc(productTitle)}</b>" listed by ${esc(sellerName)}. You can communicate, complete, and confirm the deal right here.`;
+
   const stepsHtml = `
     <div style="margin-top: 10px;">
       <div style="font-weight: 600; margin-bottom: 8px;">How this works</div>
@@ -1884,7 +1892,7 @@ function orderNoticeHtml(role, buyerName = "Buyer", sellerName = "Seller", produ
       </div>
     </div>
   `;
-  
+
   return `<div class="order-notice">${ORDER_ICON_INFO}<div>${introText}${stepsHtml}</div></div>`;
 }
 
@@ -1985,58 +1993,11 @@ async function onOrderConfirm(action) {
       showOrderToast("Order confirmed as received.");
     }
 
-    if (!currentConversationId || !currentUserId) {
-      return;
-    }
-
-    const autoMessage = action === "delivered"
-      ? `${currentSellerName || "Seller"} has marked the order as delivered.`
-      : `${currentBuyerName || "Buyer"} has marked the order as received.`;
-
-    try {
-      const { data: insertedMessage, error: insertError } = await supabaseClient
-        .from("messages")
-        .insert([{
-          conversation_id: currentConversationId,
-          sender_id: currentUserId,
-          message: autoMessage
-        }])
-        .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
-        .single();
-
-      if (insertError) {
-        console.warn("Could not add order status message:", insertError);
-      } else if (insertedMessage) {
-        addMessage(insertedMessage);
-      }
-    } catch (insertError) {
-      console.warn("Could not add order status message:", insertError);
-    }
-
-    // Accounts deals only: after the buyer's "received" message, add the Trade Shield notice.
-    // Uses the same messages insert + addMessage path (deduplicated by message id) so the
-    // seller receives it through the existing messages Realtime subscription.
-    const adTypeNormalized = String(currentAdType || "").trim().toLowerCase();
-    if (action === "received" && (adTypeNormalized === "accounts" || adTypeNormalized === "account")) {
-      try {
-        const { data: tradeShieldMessage, error: tradeShieldError } = await supabaseClient
-          .from("messages")
-          .insert([{
-            conversation_id: currentConversationId,
-            sender_id: currentUserId,
-            message: TRADE_SHIELD_MESSAGE
-          }])
-          .select("id, conversation_id, sender_id, message, created_at, delivered_at, is_read")
-          .single();
-
-        if (tradeShieldError) {
-          console.warn("Could not add Trade Shield message:", tradeShieldError);
-        } else if (tradeShieldMessage) {
-          addMessage(tradeShieldMessage);
-        }
-      } catch (tradeShieldError) {
-        console.warn("Could not add Trade Shield message:", tradeShieldError);
-      }
+    // The database adds the order notice itself (and the Trade Shield
+    // notice for accounts). Load whatever is new into the open chat.
+    if (currentConversationId) {
+      const rows = await getConversationMessageRows(currentConversationId);
+      rows.forEach((row) => addMessage(row));
     }
   } catch (error) {
     console.error(`Failed to ${action} order:`, error);
