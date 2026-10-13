@@ -325,20 +325,15 @@
     async function checkActiveDeal(adId) {
       if (!adId) return false;
       try {
-        const { data: activeDeal, error } = await supabaseClient
-          .from('deals')
-          .select('id')
-          .eq('ad_id', adId)
-          .eq('status', 'active')
-          .limit(1)
-          .maybeSingle();
+        const { data: hasActiveDeal, error } = await supabaseClient
+          .rpc('ad_has_active_deal', { p_ad_id: adId });
 
         if (error) {
           console.warn('make-offer > could not check active deal for ad', adId, error);
           return false;
         }
 
-        return Boolean(activeDeal);
+        return hasActiveDeal === true;
       } catch (err) {
         console.warn('make-offer > unexpected error checking active deal for ad', adId, err);
         return false;
