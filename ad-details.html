@@ -113,9 +113,8 @@
 
     .image-slider {
       width: 100%;
-      height: auto;
+      aspect-ratio: 16 / 9;
       display: flex;
-      align-items: flex-start;
       overflow-x: auto;
       scroll-snap-type: x mandatory;
       scroll-behavior: smooth;
@@ -129,10 +128,10 @@
 
     .slide {
       min-width: 100%;
-      height: auto;
+      height: 100%;
       scroll-snap-align: start;
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: center;
       position: relative;
       overflow: hidden;
@@ -154,9 +153,14 @@
       position: relative;
       z-index: 1;
       width: 100%;
-      height: auto !important;
+      height: 100% !important;
       object-fit: contain;
       display: block;
+    }
+
+    .slide .no-image {
+      height: 100%;
+      aspect-ratio: auto;
     }
 
     .slide img {
@@ -1450,22 +1454,40 @@
 
   /* =========================================
      ACTIVE DEAL CHECK
-     Returns true when a deal with status 'active'
-     exists for the given ad id. On error, returns
-     false (do not assume locked on query error).
+     Returns true when the ad is locked by a deal.
+     It first asks the ad_has_active_deal database
+     function, which works for every visitor. If that
+     function is not available yet, it falls back to a
+     direct check (which only sees deals the signed-in
+     user is part of). On error, returns false (do not
+     assume locked on query error).
   ========================================= */
   async function checkActiveDeal(adId) {
     if (!adId) return false;
     try {
-      const { data: hasActiveDeal, error } = await supabaseClient
+      const { data: hasActiveDeal, error: rpcError } = await supabaseClient
         .rpc('ad_has_active_deal', { p_ad_id: adId });
+
+      if (!rpcError && typeof hasActiveDeal === 'boolean') {
+        return hasActiveDeal;
+      }
+
+      console.warn('ad_has_active_deal is not available, using direct check:', rpcError);
+
+      const { data: activeDeal, error } = await supabaseClient
+        .from('deals')
+        .select('id')
+        .eq('ad_id', adId)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
 
       if (error) {
         console.warn('Could not check active deal for ad', adId, error);
         return false;
       }
 
-      return hasActiveDeal === true;
+      return Boolean(activeDeal);
     } catch (err) {
       console.warn('Unexpected error while checking active deal for ad', adId, err);
       return false;
@@ -1593,18 +1615,12 @@
 
       function fitSliderToActiveImage() {
 
+        // The image area has a fixed 16:9 shape, so only the counter needs updating
         const index = Math.round(
           slider.scrollLeft / slider.clientWidth
         );
 
-        const activeSlide = slider.children[index];
-        const activeImage = activeSlide?.querySelector(".slide-image");
-
         updateImageCounter(index);
-
-        if (activeImage?.complete && activeImage.offsetHeight) {
-          slider.style.height = `${activeImage.offsetHeight}px`;
-        }
 
       }
 
