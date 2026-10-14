@@ -908,6 +908,42 @@
 
           try {
 
+            // ==================================
+            // USERNAME MUST BE UNIQUE
+            // (ignores capitals and extra spaces;
+            // your own current name is allowed)
+            // ==================================
+
+            const {
+              data: usernameFree,
+              error: usernameCheckError
+            } =
+              await supabaseClient.rpc(
+                "is_username_available",
+                {
+                  p_username: username
+                }
+              );
+
+
+            if (usernameCheckError) {
+
+              throw new Error(
+                "Could not check the username. Please try again."
+              );
+            }
+
+
+            if (usernameFree === false) {
+
+              nameInput.focus();
+
+              throw new Error(
+                "This username is already taken. Please choose another one."
+              );
+            }
+
+
             let avatarUrl =
               currentAvatarUrl;
 
@@ -1009,6 +1045,15 @@
 
 
             if (updateError) {
+
+              // 23505 = the database refused a duplicate name
+              // (for example, someone took it a moment ago)
+              if (updateError.code === "23505") {
+
+                throw new Error(
+                  "This username is already taken. Please choose another one."
+                );
+              }
 
               throw new Error(
                 "Profile update failed: " +
