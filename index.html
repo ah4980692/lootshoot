@@ -507,7 +507,7 @@
         </button>
       </div>
 
-            <div class="reset-step hidden" data-step="otp">
+      <div class="reset-step hidden" data-step="otp">
         <p class="reset-subtitle">A code was sent to <strong id="resetEmailDisplay"></strong></p>
 
         <div class="otp-inputs reset-otp-inputs">
@@ -684,6 +684,22 @@
           signupButton.textContent = 'Creating account...';
 
           try {
+            // Username must be unique (ignoring capitals and extra spaces)
+            const { data: usernameFree, error: usernameError } =
+              await supabaseClient.rpc('is_username_available', { p_username: username });
+
+            if (usernameError) {
+              console.error('username check error', usernameError);
+              setSignupError('Could not check the username. Please try again.');
+              return;
+            }
+
+            if (usernameFree === false) {
+              setSignupError('This username is already taken. Please choose another one.');
+              document.getElementById('sellerUsername').focus();
+              return;
+            }
+
             const { data, error } = await supabaseClient.auth.signUp({
               email,
               password,
@@ -783,7 +799,7 @@
 
             const sessionEmail = data?.user?.email || identifier;
             const sessionUsername = data?.user?.user_metadata?.username || sessionEmail.split('@')[0];
-            const sessionWhatsApp = data?.user?.user_metadata?.whatsapp || sessionStorage.getItem('signupWhatsApp') || '+92 300 0000000';
+            const sessionWhatsApp = data?.user?.user_metadata?.whatsapp || sessionStorage.getItem('signupWhatsApp') || '';
 
             sessionStorage.setItem('sellerSessionUserId', data?.user?.id || '');
             localStorage.setItem('sellerSessionUserId', data?.user?.id || '');
