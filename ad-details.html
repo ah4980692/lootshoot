@@ -170,6 +170,57 @@
       display: block;
     }
 
+    /* VIDEO SLIDE (accounts only, shown after the photos) */
+
+    .video-slide {
+      background: #10281b;
+    }
+
+    .video-poster {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      border: 0;
+      background: #10281b;
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+    }
+
+    .slide .video-poster-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .video-play {
+      position: relative;
+      z-index: 1;
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: rgba(17, 24, 39, 0.68);
+      color: #ffffff;
+      display: grid;
+      place-items: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .video-poster:hover .video-play {
+      background: rgba(21, 150, 90, 0.9);
+    }
+
+    .video-frame {
+      width: 100%;
+      height: 100%;
+      border: 0;
+      display: block;
+    }
+
     .no-image {
       width: 100%;
       aspect-ratio: 16 / 9;
@@ -212,6 +263,7 @@
     }
 
     .dot {
+      position: relative;
       flex: 0 0 64px;
       width: 64px;
       height: 52px;
@@ -233,6 +285,21 @@
     .dot.active {
       border-color: #25a56a;
       box-shadow: 0 0 0 1px rgba(37, 165, 106, 0.2);
+    }
+
+    .dot-video {
+      background: #10281b;
+    }
+
+    .dot-play {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      background: rgba(16, 40, 27, 0.38);
+      color: #ffffff;
+      font-size: 14px;
+      pointer-events: none;
     }
 
     @media (max-width: 380px) {
@@ -1293,6 +1360,84 @@
 
 
   /* =========================================
+     BUNNY STREAM (ad videos)
+     These two values are public. The Bunny API key
+     is never used on this page.
+  ========================================= */
+
+  const BUNNY_LIBRARY_ID = "779246";
+  const BUNNY_CDN_HOSTNAME = "vz-62dd5ed1-61d.b-cdn.net";
+
+  // A video is shown only on account ads, once the server marked it ready
+  function isVideoReady(ad) {
+
+    const type = String(ad.type || "").trim().toLowerCase();
+
+    return (
+      (type === "account" || type === "accounts") &&
+      ad.video_status === "ready" &&
+      /^[0-9a-fA-F-]{36}$/.test(String(ad.video_id || ""))
+    );
+
+  }
+
+  function videoThumbUrl(videoId) {
+    return `https://${BUNNY_CDN_HOSTNAME}/${videoId}/thumbnail.jpg`;
+  }
+
+  // Thumbnail with a play button. The player is loaded only when tapped.
+  function showVideoPoster(slideEl, videoId) {
+
+    slideEl.innerHTML = `
+      <button type="button" class="video-poster" aria-label="Play video">
+        <img
+          class="video-poster-img"
+          src="${escapeHTML(videoThumbUrl(videoId))}"
+          alt=""
+        >
+        <span class="video-play" aria-hidden="true">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+      </button>
+    `;
+
+    const posterImg = slideEl.querySelector(".video-poster-img");
+
+    // The thumbnail may not exist yet right after an upload: keep the dark background
+    posterImg.addEventListener("error", () => {
+      posterImg.style.display = "none";
+    });
+
+    slideEl
+      .querySelector(".video-poster")
+      .addEventListener("click", () => playVideo(slideEl, videoId));
+
+  }
+
+  function playVideo(slideEl, videoId) {
+
+    slideEl.innerHTML = `
+      <iframe
+        class="video-frame"
+        src="https://iframe.mediadelivery.net/embed/${BUNNY_LIBRARY_ID}/${escapeHTML(videoId)}?autoplay=true&loop=false&muted=false&preload=true&responsive=true"
+        allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture; fullscreen"
+        allowfullscreen
+      ></iframe>
+    `;
+
+  }
+
+  // Back to the thumbnail (this also stops the playback)
+  function stopVideo(slideEl, videoId) {
+
+    if (slideEl.querySelector(".video-frame")) {
+      showVideoPoster(slideEl, videoId);
+    }
+
+  }
+
+
+  /* =========================================
      SUPABASE
   ========================================= */
 
@@ -1532,7 +1677,7 @@
     } = await supabaseClient
       .from("ads")
       .select(
-        "id, type, title, price, description, images, created_at, seller_id"
+        "id, type, title, price, description, images, created_at, seller_id, video_id, video_status"
       )
       .eq("id", adId);
 
@@ -1548,6 +1693,30 @@
       console.error("No ad matched this id:", adId);
       showNotFound();
       return;
+    }
+
+    // A video that Bunny was still reading: ask the server to check it again
+    // (this only works for signed-in visitors; others just see the ad without it)
+    if (ad.video_id && ad.video_status === "processing") {
+
+      try {
+
+        const { data: checkData } = await supabaseClient.functions.invoke(
+          "bunny-video",
+          { body: { action: "finish", ad_id: ad.id } }
+        );
+
+        if (checkData && checkData.ok === true && checkData.status === "ready") {
+          ad.video_status = "ready";
+        } else if (checkData && checkData.ok === false) {
+          ad.video_id = null;
+          ad.video_status = null;
+        }
+
+      } catch (checkError) {
+        console.warn("Could not re-check the video:", checkError);
+      }
+
     }
 
     await renderAd(ad);
@@ -1592,8 +1761,12 @@
         ? ad.images
         : [];
 
+    const hasVideo = isVideoReady(ad);
 
-    if (!images.length) {
+    const totalSlides = images.length + (hasVideo ? 1 : 0);
+
+
+    if (!totalSlides) {
 
       slider.innerHTML = `
         <div class="slide" style="background: #f4faf6; padding: 40px 20px;">
@@ -1609,8 +1782,12 @@
 
     } else {
 
+      // The video (if any) is the last slide, after all photos
+      const videoIndex = images.length;
+      let videoSlide = null;
+
       function updateImageCounter(index) {
-        imageCounter.textContent = `${index + 1}/${images.length}`;
+        imageCounter.textContent = `${index + 1}/${totalSlides}`;
       }
 
       function fitSliderToActiveImage() {
@@ -1621,6 +1798,11 @@
         );
 
         updateImageCounter(index);
+
+        // Stop the video when the buyer swipes away from it
+        if (videoSlide && index !== videoIndex) {
+          stopVideo(videoSlide, ad.video_id);
+        }
 
       }
 
@@ -1689,6 +1871,46 @@
 
         }
       );
+
+
+      /* VIDEO SLIDE + THUMBNAIL (accounts only) */
+
+      if (hasVideo) {
+
+        videoSlide = document.createElement("div");
+        videoSlide.className = "slide video-slide";
+
+        showVideoPoster(videoSlide, ad.video_id);
+
+        slider.appendChild(videoSlide);
+
+
+        const videoDot = document.createElement("button");
+
+        videoDot.type = "button";
+        videoDot.setAttribute("aria-label", "View video");
+        videoDot.className = "dot dot-video" + (videoIndex === 0 ? " active" : "");
+
+        videoDot.innerHTML = `
+          <img src="${escapeHTML(videoThumbUrl(ad.video_id))}" alt="">
+          <span class="dot-play" aria-hidden="true">▶</span>
+        `;
+
+        videoDot.querySelector("img").addEventListener("error", (e) => {
+          e.target.style.display = "none";
+        });
+
+        dots.appendChild(videoDot);
+
+        videoDot.addEventListener("click", () => {
+          updateImageCounter(videoIndex);
+          slider.scrollTo({
+            left: videoIndex * slider.clientWidth,
+            behavior: "smooth"
+          });
+        });
+
+      }
 
 
       /* UPDATE DOT WHEN SWIPING */
