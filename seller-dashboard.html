@@ -13,6 +13,8 @@
 >
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.1.0/dist/tus.min.js"></script>
+<script src="ad-video.js"></script>
 
 <style>
 
@@ -2136,6 +2138,7 @@
             </div>
 
           </div>
+          <div id="adVideoBox"></div>
 
           <button type="submit" class="publish-button" id="publishButton">
             Publish Offer
@@ -3489,6 +3492,10 @@
   const typeOptions = document.querySelectorAll(".type-option");
   const offerTypeInput = document.getElementById("offerType");
 
+  // Video box (shown for Account ads only)
+  const adVideoPicker = createAdVideoPicker(document.getElementById("adVideoBox"));
+  adVideoPicker.show(false);
+
   typeOptions.forEach(option => {
 
     option.addEventListener("click", () => {
@@ -3499,10 +3506,11 @@
 
       offerTypeInput.value = option.dataset.type;
 
+      adVideoPicker.show(adVideoIsAccountType(option.dataset.type));
+
     });
 
   });
-
 
   /* =========================================================
      PHOTO UPLOAD
@@ -3782,6 +3790,29 @@
 
       if (insertError) {
         throw insertError;
+      }
+
+      // Optional video (accounts only): the ad exists now, so upload the video to it
+      const videoFile = adVideoIsAccountType(type) ? adVideoPicker.getFile() : null;
+
+      if (videoFile) {
+        publishButton.textContent = "Uploading video...";
+
+        const videoResult = await adVideoUpload(supabaseClient, adId, videoFile, (percent, text) => {
+          publishButton.textContent = text ? text : `Uploading video ${percent}%`;
+          adVideoPicker.setProgress(percent, text);
+        });
+
+        if (!videoResult.ok) {
+          showFormMessage(
+            `Your ad was submitted, but the video could not be uploaded: ${videoResult.error} You can add it later from Edit Ad.`,
+            "error"
+          );
+          setTimeout(() => {
+            window.location.href = "offer-submitted.html";
+          }, 6000);
+          return;
+        }
       }
 
       window.location.href = "offer-submitted.html";
