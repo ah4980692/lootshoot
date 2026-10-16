@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Seller - LootShoot</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "DM Sans", sans-serif;
+      color: #092f36;
+      min-height: 100vh;
+      background: linear-gradient(180deg, #ffffff 0%, #f5fcf9 40%, #effbf6 100%);
+    }
+
+    button {
+      font-family: inherit;
+    }
+
+    /* TOP BAR */
+
+    .topbar {
+      height: 64px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid #dcefe7;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .topbar-inner {
+      max-width: 1200px;
+      height: 100%;
+      margin: 0 auto;
+      padding: 0 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .back-btn {
+      width: 38px;
+      height: 38px;
+      border: 1px solid #dcefe7;
+      background: #ffffff;
+      color: #092f36;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(20, 70, 45, 0.06);
+    }
+
+    .topbar-title {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.15rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    /* PAGE */
+
+    .page {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 22px 16px 70px;
+    }
+
+    /* PROFILE CARD */
+
+    .profile-card {
+      max-width: 520px;
+      margin: 0 auto 22px;
+      padding: 26px 20px 22px;
+      background: #ffffff;
+      border: 1px solid #dcefe7;
+      border-radius: 22px;
+      box-shadow: 0 8px 30px rgba(16, 90, 65, 0.07);
+      text-align: center;
+    }
+
+    .avatar {
+      width: 92px;
+      height: 92px;
+      margin: 0 auto 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(145deg, #15965a, #17b56c);
+      color: #ffffff;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 32px;
+      font-weight: 700;
+      overflow: hidden;
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .seller-name {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      word-break: break-word;
+    }
+
+    .seller-meta {
+      margin-top: 4px;
+      color: #6d8a8f;
+      font-size: 13px;
+    }
+
+    .stats {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .stat {
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: #eef9f2;
+      border: 1px solid #d5ebe2;
+      color: #216f45;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .profile-message {
+      padding: 14px 0;
+      color: #6d8a8f;
+      font-size: 14px;
+    }
+
+    /* FILTER CHIPS */
+
+    .chips {
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      margin: 0 0 18px;
+    }
+
+    .chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      flex: 0 0 auto;
+      padding: 10px 20px;
+      border: 1px solid #d5ebe2;
+      border-radius: 25px;
+      background: #ffffff;
+      color: #12363d;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .chip:hover {
+      border-color: #15965a;
+    }
+
+    .chip.active {
+      background: #15965a;
+      border-color: #15965a;
+      color: #ffffff;
+    }
+
+    /* ADS GRID */
+
+    .listings {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      overflow: hidden;
+      background: #ffffff;
+      border: 1px solid #dceee7;
+      border-radius: 17px;
+      box-shadow: 0 7px 25px rgba(16, 90, 65, 0.08);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      cursor: pointer;
+    }
+
+    .card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 30px rgba(16, 90, 65, 0.13);
+    }
+
+    .card-image {
+      height: 155px;
+      position: relative;
+      overflow: hidden;
+      background: #dff2e9;
+    }
+
+    .card-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .badge {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      padding: 6px 12px;
+      border-radius: 20px;
+      background: #6ff0bb;
+      color: #06352a;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .video-badge {
+      position: absolute;
+      left: 10px;
+      bottom: 10px;
+      padding: 5px 10px;
+      border-radius: 20px;
+      background: rgba(17, 24, 39, 0.72);
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .card-content {
+      padding: 15px;
+    }
+
+    .card-title {
+      margin-bottom: 5px;
+      color: #092f36;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 16px;
+      line-height: 1.3;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-info {
+      margin: 0;
+      color: #7a979b;
+      font-size: 12px;
+      line-height: 1.5;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .price {
+      margin: 10px 0;
+      color: #15965a;
+      font-size: 20px;
+      font-weight: 800;
+    }
+
+    .details {
+      width: 100%;
+      height: 39px;
+      border: 1px solid #64d4aa;
+      border-radius: 20px;
+      background: #ffffff;
+      color: #15965a;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: 0.2s ease;
+    }
+
+    .details:hover {
+      background: #15965a;
+      color: #ffffff;
+    }
+
+    .details span {
+      margin-left: 6px;
+    }
+
+    /* EMPTY STATE */
+
+    .empty {
+      max-width: 420px;
+      margin: 40px auto;
+      text-align: center;
+      color: #6f8c90;
+    }
+
+    .empty h3 {
+      margin-bottom: 7px;
+      color: #123b42;
+      font-family: "Space Grotesk", sans-serif;
+    }
+
+    [hidden] {
+      display: none !important;
+    }
+
+    @media (max-width: 1050px) {
+
+      .listings {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+    }
+
+    @media (max-width: 650px) {
+
+      .page {
+        padding: 16px 12px 50px;
+      }
+
+      .profile-card {
+        padding: 22px 16px 18px;
+        border-radius: 20px;
+      }
+
+      .avatar {
+        width: 80px;
+        height: 80px;
+        font-size: 28px;
+      }
+
+      .seller-name {
+        font-size: 1.4rem;
+      }
+
+      .chip {
+        padding: 9px 16px;
+        font-size: 12px;
+      }
+
+      .listings {
+        gap: 10px;
+      }
+
+      .card-image {
+        height: 115px;
+      }
+
+      .card-content {
+        padding: 10px;
+      }
+
+      .card-title {
+        font-size: 13px;
+      }
+
+      .card-info {
+        font-size: 10px;
+      }
+
+      .price {
+        margin: 7px 0;
+        font-size: 16px;
+      }
+
+      .details {
+        height: 33px;
+        font-size: 10px;
+      }
+
+      .badge {
+        top: 7px;
+        left: 7px;
+        padding: 5px 8px;
+        font-size: 8px;
+      }
+
+      .video-badge {
+        left: 7px;
+        bottom: 7px;
+        padding: 4px 8px;
+        font-size: 9px;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+
+      <button class="back-btn" id="backBtn" type="button" aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+
+      <div class="topbar-title">Seller profile</div>
+
+    </div>
+  </header>
+
+  <main class="page">
+
+    <section class="profile-card" id="profileCard">
+      <div class="profile-message">Loading...</div>
+    </section>
+
+    <div class="chips" id="chips" hidden></div>
+
+    <section class="listings" id="listings"></section>
+
+    <div class="empty" id="emptyState" hidden>
+      <h3 id="emptyTitle">No ads right now</h3>
+      <p id="emptyText">This seller has no active ads at the moment.</p>
+    </div>
+
+  </main>
+
+  <script>
+
+    /* =========================================
+       SUPABASE
+    ========================================= */
+
+    const supabaseUrl =
+      "https://saguwhkijrdiwiabxvyv.supabase.co";
+
+    const supabaseKey =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+
+    const supabaseClient =
+      window.supabase.createClient(supabaseUrl, supabaseKey);
+
+
+    /* =========================================
+       ELEMENTS + STATE
+    ========================================= */
+
+    const profileCard = document.getElementById("profileCard");
+    const chipsBar = document.getElementById("chips");
+    const listings = document.getElementById("listings");
+    const emptyState = document.getElementById("emptyState");
+    const emptyTitle = document.getElementById("emptyTitle");
+    const emptyText = document.getElementById("emptyText");
+    const backBtn = document.getElementById("backBtn");
+
+    const params = new URLSearchParams(window.location.search);
+    const sellerId = params.get("id");
+
+    let allAds = [];
+    let selectedCategory = "all";
+
+
+    /* =========================================
+       HELPERS
+    ========================================= */
+
+    function escapeHTML(value) {
+
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+
+    }
+
+    function getInitials(name) {
+
+      if (!name) {
+        return "S";
+      }
+
+      return name
+        .split(" ")
+        .map(part => part[0])
+        .join("")
+        .slice(0, 2)
+        .toUpperCase();
+
+    }
+
+    function getCategory(type) {
+
+      const normalized = String(type || "").toLowerCase();
+
+      if (normalized === "account" || normalized === "accounts") {
+        return "accounts";
+      }
+
+      if (normalized === "pop") {
+        return "pop";
+      }
+
+      return "other";
+
+    }
+
+    function getCategoryLabel(category) {
+
+      if (category === "accounts") {
+        return "Account";
+      }
+
+      if (category === "pop") {
+        return "POP";
+      }
+
+      return "Other Item";
+
+    }
+
+    function hasReadyVideo(ad) {
+
+      return (
+        getCategory(ad.type) === "accounts" &&
+        ad.video_status === "ready" &&
+        Boolean(ad.video_id)
+      );
+
+    }
+
+
+    /* =========================================
+       BACK BUTTON
+    ========================================= */
+
+    backBtn.addEventListener("click", () => {
+
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.location.href = "seller-dashboard.html";
+      }
+
+    });
+
+
+    /* =========================================
+       OPEN AN AD
+       The back button on the ad page brings the
+       visitor back to this seller page.
+    ========================================= */
+
+    function openAd(adId) {
+
+      sessionStorage.setItem("adDetailsReturnUrl", window.location.href);
+      sessionStorage.setItem("fromIframe", "false");
+      sessionStorage.removeItem("adDetailsFromMyAds");
+      sessionStorage.removeItem("adDetailsIsApproved");
+
+      window.location.href =
+        "ad-details.html?id=" + encodeURIComponent(adId);
+
+    }
+
+
+    /* =========================================
+       RENDER PROFILE
+    ========================================= */
+
+    function renderProfile(seller, adCount) {
+
+      const name = seller.username || "Seller";
+
+      document.title = `${name} - LootShoot`;
+
+      const avatarHTML = seller.avatar_url
+        ? `<img src="${escapeHTML(seller.avatar_url)}" alt="${escapeHTML(name)}">`
+        : escapeHTML(getInitials(name));
+
+      let memberSince = "";
+
+      if (seller.created_at) {
+
+        const joined = new Date(seller.created_at);
+
+        if (!Number.isNaN(joined.getTime())) {
+          memberSince = `Member since ${joined.toLocaleDateString("en-US", { month: "long", year: "numeric" })}`;
+        }
+
+      }
+
+      profileCard.innerHTML = `
+        <div class="avatar">${avatarHTML}</div>
+        <div class="seller-name">${escapeHTML(name)}</div>
+        ${memberSince ? `<div class="seller-meta">${escapeHTML(memberSince)}</div>` : ""}
+        <div class="stats">
+          <span class="stat">${adCount} active ${adCount === 1 ? "ad" : "ads"}</span>
+        </div>
+      `;
+
+    }
+
+    function renderNotFound() {
+
+      document.title = "Seller not found - LootShoot";
+
+      profileCard.innerHTML = `
+        <div class="profile-message">This seller could not be found.</div>
+      `;
+
+      chipsBar.hidden = true;
+      listings.innerHTML = "";
+      emptyState.hidden = true;
+
+    }
+
+
+    /* =========================================
+       FILTER CHIPS
+       Only shown when the seller has more than one type of ad
+    ========================================= */
+
+    function renderChips() {
+
+      const counts = { accounts: 0, pop: 0, other: 0 };
+
+      allAds.forEach(ad => {
+        counts[getCategory(ad.type)] += 1;
+      });
+
+      const kinds = Object.keys(counts).filter(key => counts[key] > 0);
+
+      if (kinds.length < 2) {
+        chipsBar.hidden = true;
+        selectedCategory = "all";
+        return;
+      }
+
+      const chips = [
+        { key: "all", label: `All (${allAds.length})` }
+      ];
+
+      if (counts.accounts) chips.push({ key: "accounts", label: `Accounts (${counts.accounts})` });
+      if (counts.pop) chips.push({ key: "pop", label: `POP (${counts.pop})` });
+      if (counts.other) chips.push({ key: "other", label: `Other items (${counts.other})` });
+
+      chipsBar.innerHTML = chips.map(chip => `
+        <button
+          type="button"
+          class="chip ${chip.key === selectedCategory ? "active" : ""}"
+          data-category="${chip.key}"
+        >${escapeHTML(chip.label)}</button>
+      `).join("");
+
+      chipsBar.hidden = false;
+
+      chipsBar.querySelectorAll(".chip").forEach(button => {
+
+        button.addEventListener("click", () => {
+
+          selectedCategory = button.dataset.category;
+
+          chipsBar.querySelectorAll(".chip").forEach(chip => {
+            chip.classList.toggle("active", chip === button);
+          });
+
+          renderAds();
+
+        });
+
+      });
+
+    }
+
+
+    /* =========================================
+       RENDER ADS
+    ========================================= */
+
+    function buildCard(ad) {
+
+      const card = document.createElement("article");
+      card.className = "card";
+
+      const image =
+        Array.isArray(ad.images) && ad.images.length
+          ? ad.images[0]
+          : "";
+
+      const imageHTML = image
+        ? `<img src="${escapeHTML(image)}" alt="${escapeHTML(ad.title || "Ad image")}">`
+        : "";
+
+      card.innerHTML = `
+
+        <div class="card-image">
+
+          ${imageHTML}
+
+          <span class="badge">
+            ${escapeHTML(getCategoryLabel(getCategory(ad.type)))}
+          </span>
+
+          ${hasReadyVideo(ad) ? `<span class="video-badge">▶ Video</span>` : ""}
+
+        </div>
+
+        <div class="card-content">
+
+          <h3 class="card-title">
+            ${escapeHTML(ad.title || "Untitled Ad")}
+          </h3>
+
+          <p class="card-info">
+            ${escapeHTML(ad.description || "")}
+          </p>
+
+          <div class="price">
+            Rs. ${Number(ad.price || 0).toLocaleString()}
+          </div>
+
+          <button type="button" class="details">
+            View Details <span>→</span>
+          </button>
+
+        </div>
+
+      `;
+
+      card.addEventListener("click", () => openAd(ad.id));
+
+      card.querySelector(".details").addEventListener("click", (event) => {
+        event.stopPropagation();
+        openAd(ad.id);
+      });
+
+      return card;
+
+    }
+
+    function renderAds() {
+
+      listings.innerHTML = "";
+
+      const visibleAds = allAds.filter(ad =>
+        selectedCategory === "all" || getCategory(ad.type) === selectedCategory
+      );
+
+      if (!visibleAds.length) {
+
+        emptyTitle.textContent = "No ads right now";
+        emptyText.textContent = "This seller has no active ads at the moment.";
+        emptyState.hidden = false;
+        return;
+
+      }
+
+      emptyState.hidden = true;
+
+      visibleAds.forEach(ad => {
+        listings.appendChild(buildCard(ad));
+      });
+
+    }
+
+
+    /* =========================================
+       LOAD THE SELLER + THEIR ADS
+    ========================================= */
+
+    async function loadPage() {
+
+      if (!sellerId || !/^[0-9a-fA-F-]{36}$/.test(sellerId)) {
+        renderNotFound();
+        return;
+      }
+
+      // Public seller info (username, avatar, member since). Never email or WhatsApp.
+      const { data: seller, error: sellerError } =
+        await supabaseClient.rpc("get_public_seller", { p_seller_id: sellerId });
+
+      if (sellerError || !seller) {
+        console.error("Could not load seller:", sellerError);
+        renderNotFound();
+        return;
+      }
+
+      // Only approved ads that have not expired yet
+      const nowIso = new Date().toISOString();
+
+      const { data: ads, error: adsError } = await supabaseClient
+        .from("ads")
+        .select("id, type, title, price, description, images, created_at, expires_at, video_id, video_status")
+        .eq("seller_id", sellerId)
+        .eq("status", "approved")
+        .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+        .order("created_at", { ascending: false });
+
+      if (adsError) {
+        console.error("Could not load ads:", adsError);
+      }
+
+      allAds = ads || [];
+
+      renderProfile(seller, allAds.length);
+      renderChips();
+      renderAds();
+
+    }
+
+    loadPage();
+
+  </script>
+
+</body>
+</html>
