@@ -199,6 +199,8 @@ async function adVideoUpload(client, adId, file, onProgress) {
 
 /* =========================================================
    The "Choose video" box shown inside the ad forms
+   (works like the photo boxes: the picked video fills the
+   box as a preview, with a cross to remove it)
 ========================================================= */
 
 function adVideoInjectStyles() {
@@ -211,14 +213,97 @@ function adVideoInjectStyles() {
     .advid [hidden]{display:none !important}
     .advid-title{font-weight:700;font-size:14px;margin-bottom:6px;color:#123c2a}
     .advid-title span{font-weight:500;color:#718078}
-    .advid-note{font-size:13px;color:#7b8982;margin-bottom:10px;line-height:1.5}
+    .advid-note{font-size:13px;color:#7b8982;margin-top:7px;line-height:1.5}
     .advid-existing{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin-bottom:10px;border:1px solid #d8e7de;border-radius:10px;background:#eef9f2;font-size:13px;color:#123c2a}
     .advid-btn{border:1px solid #d8e7de;background:#fff;color:#0c4b32;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
     .advid-btn:hover{background:#eef9f2}
     .advid-btn.danger{color:#a83232}
     .advid-btn.small{padding:6px 10px;font-size:12px}
-    .advid-pick{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-    .advid-file{font-size:13px;color:#123c2a;word-break:break-all}
+
+    /* Same grid as the photo boxes, so the video box is the same size */
+    .advid-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:10px;
+      margin-top:4px;
+    }
+
+    /* Empty "+ Video" box */
+    .advid-choose{
+      aspect-ratio:1 / 1;
+      width:100%;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      gap:4px;
+      border:1px dashed #d8e7de;
+      border-radius:10px;
+      background:#eef9f2;
+      color:#718078;
+      font-size:0.68rem;
+      font-weight:700;
+      padding:0;
+      line-height:1.2;
+      cursor:pointer;
+      font-family:inherit;
+    }
+    .advid-choose:hover{background:#eef9f2}
+    .advid-choose-icon{
+      font-size:1.3rem;
+      line-height:1;
+      color:#25a56a;
+    }
+
+    /* Filled box with the video preview */
+    .advid-thumb{
+      position:relative;
+      aspect-ratio:1 / 1;
+      border-radius:10px;
+      overflow:hidden;
+      border:1px solid #d8e7de;
+      background:#0c1f17;
+    }
+    .advid-preview{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+      pointer-events:none;
+    }
+    .advid-play{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%);
+      width:30px;
+      height:30px;
+      border-radius:50%;
+      background:rgba(0,0,0,0.55);
+      color:#fff;
+      font-size:0.75rem;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding-left:2px;
+      pointer-events:none;
+    }
+    .advid-clear{
+      position:absolute;
+      top:4px;
+      right:4px;
+      width:22px;
+      height:22px;
+      border:none;
+      border-radius:50%;
+      background:rgba(0,0,0,0.55);
+      color:#fff;
+      font-size:0.8rem;
+      cursor:pointer;
+      padding:0;
+      line-height:1;
+    }
+
     .advid-progress{margin-top:12px}
     .advid-bar{height:8px;border-radius:999px;background:#e7eee9;overflow:hidden}
     .advid-fill{height:100%;width:0;background:#25a56a;transition:width .2s}
@@ -237,18 +322,26 @@ function createAdVideoPicker(container, options) {
   container.innerHTML = `
     <div class="advid" hidden>
       <div class="advid-title">Video <span>(optional)</span></div>
-      <div class="advid-note">Accounts only. Up to 3 minutes and 300 MB. It is shown after your photos and is reviewed with your ad.</div>
 
       <div class="advid-existing" hidden>
         <span class="advid-existing-text"></span>
         <button type="button" class="advid-btn danger small advid-remove-existing">Remove video</button>
       </div>
 
-      <div class="advid-pick">
-        <button type="button" class="advid-btn advid-choose">Choose video</button>
-        <span class="advid-file"></span>
-        <button type="button" class="advid-btn small advid-clear" hidden>Clear</button>
+      <div class="advid-grid">
+        <button type="button" class="advid-choose" aria-label="Choose video">
+          <span class="advid-choose-icon">+</span>
+          <span class="advid-choose-label">Add video</span>
+        </button>
+
+        <div class="advid-thumb" hidden>
+          <video class="advid-preview" muted playsinline preload="metadata"></video>
+          <span class="advid-play" aria-hidden="true">▶</span>
+          <button type="button" class="advid-clear" aria-label="Remove video">×</button>
+        </div>
       </div>
+
+      <div class="advid-note">Up to 3 minutes.</div>
 
       <input type="file" class="advid-input" accept="video/mp4,video/quicktime,video/webm,.mp4,.mov,.m4v,.webm" hidden>
 
@@ -266,27 +359,61 @@ function createAdVideoPicker(container, options) {
   const existingText = container.querySelector(".advid-existing-text");
   const removeExistingBtn = container.querySelector(".advid-remove-existing");
   const chooseBtn = container.querySelector(".advid-choose");
+  const chooseLabel = container.querySelector(".advid-choose-label");
+  const thumb = container.querySelector(".advid-thumb");
+  const preview = container.querySelector(".advid-preview");
   const clearBtn = container.querySelector(".advid-clear");
-  const fileLabel = container.querySelector(".advid-file");
   const input = container.querySelector(".advid-input");
   const progressBox = container.querySelector(".advid-progress");
   const fillBar = container.querySelector(".advid-fill");
   const statusText = container.querySelector(".advid-status");
   const errorBox = container.querySelector(".advid-error");
 
+  const DEFAULT_CHOOSE_LABEL = "Add video";
+
   let file = null;
   let visible = false;
+  let previewUrl = "";
 
   function setError(message) {
     errorBox.textContent = message || "";
     errorBox.hidden = !message;
   }
 
+  function releasePreview() {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      previewUrl = "";
+    }
+
+    preview.removeAttribute("src");
+    preview.load();
+  }
+
+  function showEmptyBox() {
+    thumb.hidden = true;
+    chooseBtn.hidden = false;
+    chooseBtn.disabled = false;
+    chooseLabel.textContent = DEFAULT_CHOOSE_LABEL;
+  }
+
+  function showFilledBox(pickedFile) {
+    releasePreview();
+
+    previewUrl = URL.createObjectURL(pickedFile);
+    // #t=0.1 makes the browser show a frame instead of a black box
+    preview.src = previewUrl + "#t=0.1";
+
+    chooseBtn.hidden = true;
+    thumb.hidden = false;
+    thumb.title = `${pickedFile.name} (${adVideoFormatSize(pickedFile.size)})`;
+  }
+
   function clearFile() {
     file = null;
-    fileLabel.textContent = "";
-    clearBtn.hidden = true;
     input.value = "";
+    releasePreview();
+    showEmptyBox();
   }
 
   function hideProgress() {
@@ -313,8 +440,8 @@ function createAdVideoPicker(container, options) {
     if (!picked) return;
 
     setError("");
-    fileLabel.textContent = "Checking video...";
-    clearBtn.hidden = true;
+    chooseBtn.disabled = true;
+    chooseLabel.textContent = "Checking...";
 
     const problem = await adVideoValidateFile(picked);
 
@@ -325,8 +452,7 @@ function createAdVideoPicker(container, options) {
     }
 
     file = picked;
-    fileLabel.textContent = `${picked.name} (${adVideoFormatSize(picked.size)})`;
-    clearBtn.hidden = false;
+    showFilledBox(picked);
   });
 
   return {
