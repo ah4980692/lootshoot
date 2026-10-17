@@ -493,6 +493,49 @@
       line-height: 1.65;
       white-space: pre-wrap;
       word-wrap: break-word;
+      overflow-wrap: anywhere;
+    }
+
+    /* DESCRIPTION: max 9 lines, then "Read More" */
+
+    .description.clamped {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 9;
+      line-clamp: 9;
+      overflow: hidden;
+    }
+
+    .read-more-btn {
+      display: none;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin: 12px auto 0;
+      padding: 6px 10px;
+      border: none;
+      background: transparent;
+      color: var(--green);
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .read-more-btn.show {
+      display: flex;
+    }
+
+    .read-more-btn:hover {
+      color: var(--green-dark);
+    }
+
+    .read-more-btn svg {
+      transition: transform 0.2s ease;
+    }
+
+    .read-more-btn.expanded svg {
+      transform: rotate(180deg);
     }
 
     .date {
@@ -943,7 +986,6 @@
   </style>
 
 </head>
-
 <body>
 
 <div class="page">
@@ -1750,6 +1792,61 @@
 
 
   /* =========================================
+     DESCRIPTION "READ MORE"
+     The description shows at most 9 lines (CSS
+     class .clamped). If the text is longer, the
+     Read More button appears and toggles the
+     full text.
+  ========================================= */
+
+  function setupReadMore(descEl, btn) {
+
+    if (!descEl || !btn) {
+      return;
+    }
+
+    const label = btn.querySelector(".read-more-label");
+
+    function checkOverflow() {
+
+      // Only measure while collapsed
+      if (!descEl.classList.contains("clamped")) {
+        return;
+      }
+
+      const isOverflowing = descEl.scrollHeight > descEl.clientHeight + 1;
+
+      btn.classList.toggle("show", isOverflowing);
+
+    }
+
+    btn.addEventListener("click", () => {
+
+      const isCollapsed = descEl.classList.contains("clamped");
+
+      descEl.classList.toggle("clamped", !isCollapsed);
+      btn.classList.toggle("expanded", isCollapsed);
+      btn.setAttribute("aria-expanded", String(isCollapsed));
+
+      if (label) {
+        label.textContent = isCollapsed ? "Read Less" : "Read More";
+      }
+
+    });
+
+    checkOverflow();
+
+    // Fonts can change the line wrapping after they load
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(checkOverflow);
+    }
+
+    window.addEventListener("resize", checkOverflow);
+
+  }
+
+
+  /* =========================================
      LOAD AD FROM SUPABASE
   ========================================= */
 
@@ -2116,7 +2213,12 @@
           Description
         </div>
 
-        <div class="description"></div>
+        <div class="description clamped" id="adDescription"></div>
+
+        <button type="button" class="read-more-btn" id="readMoreBtn" aria-expanded="false">
+          <span class="read-more-label">Read More</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
 
         ${
           createdDate
@@ -2156,8 +2258,13 @@
 
     `;
 
-    details.querySelector(".description").textContent =
+    const descriptionEl = details.querySelector(".description");
+
+    descriptionEl.textContent =
       ad.description || "";
+
+    // Limit the description to 9 lines and show "Read More" only if needed
+    setupReadMore(descriptionEl, details.querySelector("#readMoreBtn"));
 
     // Check active deal status for this ad (initial load)
     const isLocked = await checkActiveDeal(ad.id);
