@@ -101,6 +101,7 @@
     background: var(--primary);
     color: white;
     padding: 18px 24px;
+    min-height: 78px; /* FIX: keeps banner height same as B (42px + 18px + 18px) */
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1413,6 +1414,7 @@
 
     .dashboard-header {
       padding: 15px;
+      min-height: 72px; /* FIX: mobile banner height same as B (42px + 15px + 15px) */
     }
 
     .brand {
@@ -2003,7 +2005,7 @@
 
       <div class="seller-name" id="sellerName">Seller</div>
 
-      <button type="button" class="header-chat-button" id="headerChatButton" aria-label="Messages" title="Messages" style="position:relative">
+      <button type="button" class="header-chat-button" id="headerChatButton" aria-label="Messages" title="Messages" style="position:relative;display:none;">
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M7 18.5L3.5 21V6.5A2.5 2.5 0 0 1 6 4h12a2.5 2.5 0 0 1 2.5 2.5v9A2.5 2.5 0 0 1 18 18H7Z"></path>
           <path d="M8 9h8"></path>
@@ -2012,7 +2014,7 @@
         <span id="globalChatBadge" class="header-chat-badge" aria-hidden="true"></span>
       </button>
 
-      <div class="seller-avatar" id="headerAvatar">
+      <div class="seller-avatar" id="headerAvatar" style="display:none !important;" aria-hidden="true">
         <span id="headerAvatarInitials">S</span>
         <img id="headerAvatarImage" src="" alt="" style="display:none;">
       </div>
@@ -3703,8 +3705,14 @@
       return;
     }
 
-    if (!description) {
+        if (!description) {
       showFormMessage("Add a short description.", "error");
+      return;
+    }
+
+    // NEW: require at least one photo
+    if (offerPhotoFiles.length < 1) {
+      showFormMessage("Add at least one photo.", "error");
       return;
     }
 
@@ -5509,6 +5517,44 @@
     await setupChatBadgeRealtime();
     await refreshHeaderChatBadge();
   })();
+
+  /* =========================================================
+     HEADER MESSAGE ICON: only for signed-in users
+     Uses the same sign-in check as Notifications, Sell Now,
+     My Ads and My Profile.
+  ========================================================= */
+
+  async function updateHeaderChatButtonVisibility() {
+
+    const button = document.getElementById("headerChatButton");
+
+    if (!button) {
+      return;
+    }
+
+    try {
+
+      const user = await getAuthenticatedUser();
+
+      // "" lets the normal style (shown) apply again
+      button.style.display = user ? "" : "none";
+
+    } catch (error) {
+
+      button.style.display = "none";
+
+    }
+
+  }
+
+  updateHeaderChatButtonVisibility();
+
+  // Sign in / sign out in another tab, or coming back to this page
+  supabaseClient.auth.onAuthStateChange(() => {
+    setTimeout(updateHeaderChatButtonVisibility, 0);
+  });
+
+  window.addEventListener("pageshow", updateHeaderChatButtonVisibility);
 </script>
 </body>
 </html>
