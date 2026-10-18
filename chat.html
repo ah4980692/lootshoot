@@ -1329,6 +1329,14 @@ async function initializeChat() {
       loadConversations(TABS.selling, true)
     ]);
     
+    // Open on the tab that has at least one chat. If both tabs have chats
+    // (or neither does), stay on the first tab (Buying).
+    const hasBuyingChats = conversationsCache[TABS.buying].length > 0;
+    const hasSellingChats = conversationsCache[TABS.selling].length > 0;
+    if (!hasBuyingChats && hasSellingChats) {
+      currentTab = TABS.selling;
+    }
+    
     // Show the active tab after both are loaded (renders once with all caches populated)
     await showTab(currentTab);
   } catch (error) {
