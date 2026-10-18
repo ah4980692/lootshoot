@@ -265,6 +265,17 @@
       background: transparent;
       color: #153b41;
       font-size: 14px;
+      -webkit-appearance: none;
+      appearance: none;
+    }
+
+    /* Hide the default clear (x) / search decorations on type="search" */
+    .search-box input::-webkit-search-decoration,
+    .search-box input::-webkit-search-cancel-button,
+    .search-box input::-webkit-search-results-button,
+    .search-box input::-webkit-search-results-decoration {
+      -webkit-appearance: none;
+      display: none;
     }
 
     .search-box input::placeholder {
@@ -895,10 +906,25 @@
               ⌕
             </span>
 
+            <!--
+              type="search" + autocomplete="off" + a non-login-looking name
+              stops the keyboard from showing the autofill bar
+              (location / card / key icons).
+            -->
             <input
-              type="text"
+              type="search"
               id="searchInput"
+              name="listing-filter"
               placeholder="Search accounts, POP & items..."
+              autocomplete="off"
+              autocorrect="off"
+              autocapitalize="off"
+              spellcheck="false"
+              inputmode="search"
+              enterkeyhint="search"
+              aria-label="Search listings"
+              data-lpignore="true"
+              data-form-type="other"
             >
 
           </div>
@@ -1415,6 +1441,17 @@
       () => {
         saveExploreState();
         filterListings();
+      }
+    );
+
+    /* Pressing the keyboard's Search key just closes the keyboard */
+    searchInput.addEventListener(
+      "keydown",
+      event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          searchInput.blur();
+        }
       }
     );
 
