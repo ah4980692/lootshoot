@@ -2739,7 +2739,7 @@
       return "✓";
     }
 
-    if (normalized.includes("reject") || normalized.includes("removed")) {
+        if (normalized.includes("reject") || normalized.includes("removed") || normalized.includes("closed")) {
       return "!";
     }
 
@@ -3871,7 +3871,7 @@
   ========================================================= */
 
   function isBuyingNotificationTitle(title) {
-    return ["Offer Sent", "Offer Rejected", "Offer Accepted", "Payment Approved"].includes(title);
+        return ["Offer Sent", "Offer Rejected", "Offer Accepted", "Payment Approved", "Offer Closed"].includes(title);
   }
 
   function isSellingNotificationTitle(title) {
@@ -3997,6 +3997,7 @@
         .neq("title", "Offer Rejected")
         .neq("title", "Offer Accepted")
         .neq("title", "Payment Approved")
+        .neq("title", "Offer Closed")
         .neq("title", "New Order")
         .order("created_at", { ascending: false });
 
@@ -4140,7 +4141,7 @@
         .from("notifications")
         .select("id, user_id, title, message, is_read, created_at")
         .eq("user_id", user.id)
-        .or("title.eq.Offer Sent,title.eq.Offer Rejected,title.eq.Offer Accepted,title.eq.Payment Approved")
+                .or("title.eq.Offer Sent,title.eq.Offer Rejected,title.eq.Offer Accepted,title.eq.Payment Approved,title.eq.Offer Closed")
         .order("created_at", { ascending: false });
 
       if (error) {
@@ -4570,14 +4571,21 @@
       }
 
       // Update the offer status from "pending" to "rejected"
-      const { error: updateError } = await supabaseClient
+           const { data: rejectedRows, error: updateError } = await supabaseClient
         .from("offers")
         .update({ status: "rejected", updated_at: new Date().toISOString() })
         .eq("id", offerId)
-        .eq("seller_id", user.id);
+        .eq("seller_id", user.id)
+        .eq("status", "pending")
+        .select("id");
 
       if (updateError) {
         throw new Error("Failed to update offer: " + updateError.message);
+      }
+
+      if (!rejectedRows || rejectedRows.length === 0) {
+        loadSellingOffers();
+        throw new Error("This offer is no longer available. The product may have been bought.");
       }
 
       // Note: Cooldown clearing happens on the buyer's side when they detect the offer is no longer pending
@@ -4784,15 +4792,21 @@
       }
 
       // Update the offer status from "pending" to "accepted"
-      const { error: updateOfferError } = await supabaseClient
+            const { data: acceptedRows, error: updateOfferError } = await supabaseClient
         .from("offers")
         .update({ status: "accepted", updated_at: new Date().toISOString() })
         .eq("id", offerId)
         .eq("seller_id", user.id)
-        .eq("status", "pending");
+        .eq("status", "pending")
+        .select("id");
 
       if (updateOfferError) {
         throw new Error("Failed to update offer: " + updateOfferError.message);
+      }
+
+      if (!acceptedRows || acceptedRows.length === 0) {
+        loadSellingOffers();
+        throw new Error("This offer is no longer available. The product may have been bought.");
       }
 
       // Note: Cooldown clearing happens on the buyer's side when they detect the offer is no longer pending
