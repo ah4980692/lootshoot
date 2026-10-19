@@ -3499,6 +3499,26 @@
   }
 
   /* =========================================================
+     PUBLISH LOCK (Sell Now)
+  ========================================================= */
+
+  const appShellEl = document.querySelector(".app-shell");
+
+  // True while an offer is being published: the whole page is locked
+  let isPublishing = false;
+
+  // Locks / unlocks the whole page (no visual change). `inert` blocks
+  // clicks, typing, selection and keyboard focus on everything inside.
+  function setPublishing(publishing) {
+    isPublishing = publishing;
+    appShellEl.inert = publishing;
+
+    if (publishing && document.activeElement && document.activeElement !== document.body) {
+      document.activeElement.blur();
+    }
+  }
+
+  /* =========================================================
      CREATE OFFER — TYPE SELECT
   ========================================================= */
 
@@ -3512,6 +3532,8 @@
   typeOptions.forEach(option => {
 
     option.addEventListener("click", () => {
+
+      if (isPublishing) return;
 
       typeOptions.forEach(item => {
         item.classList.toggle("selected", item === option);
@@ -3633,6 +3655,7 @@
       removeBtn.textContent = "×";
 
       removeBtn.addEventListener("click", () => {
+        if (isPublishing) return;
         offerPhotoFiles.splice(index, 1);
         renderPhotoGrid();
       });
@@ -3649,9 +3672,17 @@
 
   }
 
-  photoAddBtn.addEventListener("click", () => offerPhotosInput.click());
+  photoAddBtn.addEventListener("click", () => {
+    if (isPublishing) return;
+    offerPhotosInput.click();
+  });
 
   offerPhotosInput.addEventListener("change", () => {
+
+    if (isPublishing) {
+      offerPhotosInput.value = "";
+      return;
+    }
 
     const newFiles = Array.from(offerPhotosInput.files || []);
 
@@ -3685,6 +3716,8 @@
   offerForm.addEventListener("submit", async e => {
 
     e.preventDefault();
+
+    if (isPublishing) return;
 
     formMessage.className = "message";
     formMessage.textContent = "";
@@ -3734,6 +3767,7 @@
 
     const publishButton = document.getElementById("publishButton");
 
+    setPublishing(true);
     publishButton.disabled = true;
     publishButton.textContent = "Publishing...";
 
@@ -3858,6 +3892,7 @@
         "error"
       );
 
+      setPublishing(false);
       publishButton.disabled = false;
       publishButton.textContent = "Publish Offer";
 
