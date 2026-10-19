@@ -189,7 +189,7 @@ body.is-swiping,body.is-swiping *{user-select:none;-webkit-user-select:none;curs
 .order-btn{display:inline-flex;align-items:center;border:none;border-radius:999px;padding:7px 11px;font-size:12px;font-weight:700;line-height:1;white-space:nowrap;cursor:pointer;transition:background .15s,transform .1s,opacity .15s}
 .order-btn.ready{background:var(--accent);color:#fff}
 .order-btn.ready:active{transform:scale(.96)}
-.order-btn.locked{background:rgba(255,255,255,.14);color:rgba(255,255,255,.6);cursor:not-allowed}
+.order-btn.locked{background:rgba(255,255,255,.14);color:rgba(255,255,255,.6);cursor:pointer}
 .order-btn.waiting{background:rgba(255,255,255,.14);color:var(--light-green);cursor:default}
 .order-btn.done{background:var(--light-green);color:var(--primary);cursor:default}
 
@@ -1329,14 +1329,6 @@ async function initializeChat() {
       loadConversations(TABS.selling, true)
     ]);
     
-    // Open on the tab that has at least one chat. If both tabs have chats
-    // (or neither does), stay on the first tab (Buying).
-    const hasBuyingChats = conversationsCache[TABS.buying].length > 0;
-    const hasSellingChats = conversationsCache[TABS.selling].length > 0;
-    if (!hasBuyingChats && hasSellingChats) {
-      currentTab = TABS.selling;
-    }
-    
     // Show the active tab after both are loaded (renders once with all caches populated)
     await showTab(currentTab);
   } catch (error) {
@@ -1935,7 +1927,7 @@ function setOrderState(role, status) {
   btn.textContent = html;
   btn.setAttribute("aria-label", label);
   btn.setAttribute("aria-disabled", cls.includes("ready") ? "false" : "true");
-  btn.disabled = orderRequestInFlight || cls.includes("locked") || cls.includes("waiting") || cls.includes("done");
+    btn.disabled = orderRequestInFlight;
   $("orderActions").classList.add("show");
 }
 
@@ -2021,9 +2013,27 @@ async function onOrderConfirm(action) {
 
 $("orderBtn").addEventListener("click", () => {
   if (orderRequestInFlight) return;
-  if (orderRole === "seller" && orderStatus === "pending") openOrderSheet("delivered");
-  else if (orderRole === "buyer" && orderStatus === "pending") showOrderToast("You can confirm after the seller marks the order as delivered.");
-  else if (orderRole === "buyer" && orderStatus === "delivered") openOrderSheet("received");
+
+  // Order finished: tell each side what happened
+  if (orderStatus === "completed") {
+    showOrderToast(
+      orderRole === "buyer"
+        ? "You have already confirmed that you received this order."
+        : "The buyer has confirmed receiving this order. The deal is complete."
+    );
+    return;
+  }
+
+  if (orderRole === "seller") {
+    if (orderStatus === "pending") openOrderSheet("delivered");
+    else showOrderToast("Waiting for the buyer to confirm that they received the order.");
+    return;
+  }
+
+  if (orderRole === "buyer") {
+    if (orderStatus === "pending") showOrderToast("Waiting for the seller to mark the order as delivered.");
+    else if (orderStatus === "delivered") openOrderSheet("received");
+  }
 });
 $("orderSheetCheck").addEventListener("change", (e) => {
   $("orderSheetCheckRow").classList.toggle("is-checked", e.target.checked);
