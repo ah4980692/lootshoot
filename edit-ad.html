@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Edit Ad - LootShoot</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.1.0/dist/tus.min.js"></script>
+  <script src="ad-video.js"></script>
   <style>
     :root {
       --primary: #0c4b32;
@@ -371,6 +373,8 @@
             <div class="image-note">Up to 10 photos, JPG or PNG.</div>
           </div>
 
+          <div id="adVideoBox"></div>
+
           <button type="submit" class="publish-button" id="saveButton">Save Changes</button>
 
           <div class="review-note">
@@ -401,6 +405,45 @@
     const photoGrid = document.getElementById("photoGrid");
     const photoAddBtn = document.getElementById("photoAddBtn");
     const offerPhotosInput = document.getElementById("offerPhotos");
+    const pageEl = document.querySelector(".page");
+
+    // True while changes are being saved: the whole page is locked
+    let isSaving = false;
+
+    // Locks / unlocks the whole page (no visual change). `inert` blocks
+    // clicks, typing, selection and keyboard focus on everything inside.
+    function setSaving(saving) {
+      isSaving = saving;
+      pageEl.inert = saving;
+
+      if (saving && document.activeElement && document.activeElement !== document.body) {
+        document.activeElement.blur();
+      }
+    }
+
+    // The video the ad has right now (null id = no video)
+    let currentVideo = { id: null, status: null };
+
+    // Video box (shown for Account ads only)
+    const adVideoPicker = createAdVideoPicker(document.getElementById("adVideoBox"), {
+      onRemoveExisting: async () => {
+        if (isSaving) return;
+        if (!window.confirm("Remove this video from your ad?")) return;
+
+        const result = await adVideoRemove(supabaseClient, adId);
+
+        if (!result.ok) {
+          adVideoPicker.setError(result.error);
+          return;
+        }
+
+        adVideoPicker.setError("");
+        currentVideo = { id: null, status: null };
+        adVideoPicker.setExisting(null);
+      }
+    });
+
+    adVideoPicker.show(false);
 
     const MAX_OFFER_PHOTOS = 10;
 
@@ -476,9 +519,11 @@
 
     typeButtons.forEach(button => {
       button.addEventListener("click", () => {
+        if (isSaving) return;
         typeButtons.forEach(btn => btn.classList.remove("selected"));
         button.classList.add("selected");
         typeInput.value = button.dataset.type;
+        adVideoPicker.show(adVideoIsAccountType(button.dataset.type));
       });
     });
 
@@ -504,6 +549,7 @@
         removeBtn.textContent = "×";
 
         removeBtn.addEventListener("click", () => {
+          if (isSaving) return;
           if (item.kind === "existing") {
             currentImageUrls = currentImageUrls.filter(url => url !== item.url);
           } else {
@@ -520,9 +566,17 @@
       photoAddBtn.style.display = allImages.length >= MAX_OFFER_PHOTOS ? "none" : "flex";
     }
 
-    photoAddBtn.addEventListener("click", () => offerPhotosInput.click());
+    photoAddBtn.addEventListener("click", () => {
+      if (isSaving) return;
+      offerPhotosInput.click();
+    });
 
     offerPhotosInput.addEventListener("change", () => {
+      if (isSaving) {
+        offerPhotosInput.value = "";
+        return;
+      }
+
       const newFiles = Array.from(offerPhotosInput.files || []);
       const imageFiles = newFiles.filter(file => file.type.startsWith("image/"));
       const room = MAX_OFFER_PHOTOS - (currentImageUrls.length + newImageFiles.length);
@@ -534,6 +588,7 @@
 
     if (backBtn) {
       backBtn.addEventListener("click", () => {
+        if (isSaving) return;
         const returnUrl = sessionStorage.getItem("editAdReturnUrl") || sessionStorage.getItem("adDetailsReturnUrl") || sessionStorage.getItem("editAdPreviousPage") || "seller-dashboard.html?tab=my-ads";
         sessionStorage.removeItem("editAdReturnUrl");
         sessionStorage.removeItem("editAdPreviousPage");
@@ -556,7 +611,7 @@
 
       const { data, error } = await supabaseClient
         .from("ads")
-        .select("id, title, price, description, type, images, pending_delete_images")
+        .select("id, title, price, description, type, images, pending_delete_images, video_id, video_status")
         .eq("id", adId)
         .single();
 
@@ -582,10 +637,34 @@
       }
 
       renderPhotoGrid();
+
+      // Video box
+      adVideoPicker.show(adVideoIsAccountType(data.type));
+
+      currentVideo = { id: data.video_id || null, status: data.video_status || null };
+      adVideoPicker.setExisting(
+        currentVideo.id ? { video_id: currentVideo.id, video_status: currentVideo.status } : null
+      );
+
+      // A video that was still being read earlier: check it again now
+      if (currentVideo.id && currentVideo.status === "processing") {
+        const result = await adVideoCheck(supabaseClient, adId);
+
+        if (result.ok && result.status === "ready") {
+          currentVideo.status = "ready";
+          adVideoPicker.setExisting({ video_id: currentVideo.id, video_status: "ready" });
+        } else if (!result.ok && result.final) {
+          currentVideo = { id: null, status: null };
+          adVideoPicker.setExisting(null);
+          adVideoPicker.setError(result.error);
+        }
+      }
     }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+
+      if (isSaving) return;
 
       if (!adId) {
         showMessage("Ad id is missing.", true);
@@ -607,6 +686,7 @@
         return;
       }
 
+      setSaving(true);
       saveButton.disabled = true;
       saveButton.textContent = "Saving...";
 
@@ -678,6 +758,36 @@
 
         if (error) throw error;
 
+        // ---- Video (accounts only) ----
+        const isAccount = adVideoIsAccountType(type);
+        const videoFile = isAccount ? adVideoPicker.getFile() : null;
+
+        // If the ad is no longer an account, its video is removed
+        if (!isAccount && currentVideo.id) {
+          await adVideoRemove(supabaseClient, adId);
+          currentVideo = { id: null, status: null };
+        }
+
+        if (videoFile) {
+          saveButton.textContent = "Uploading video...";
+          adVideoPicker.setError("");
+
+          const videoResult = await adVideoUpload(supabaseClient, adId, videoFile, (percent, text) => {
+            saveButton.textContent = text ? text : `Uploading video ${percent}%`;
+            adVideoPicker.setProgress(percent, text);
+          });
+
+          if (!videoResult.ok) {
+            adVideoPicker.hideProgress();
+            showMessage("Your changes were saved, but the video could not be uploaded.", true);
+            adVideoPicker.setError(videoResult.error);
+            setSaving(false);
+            saveButton.disabled = false;
+            saveButton.textContent = "Save Changes";
+            return;
+          }
+        }
+
         showMessage("Ad updated successfully.");
         setTimeout(() => {
           const returnUrl = sessionStorage.getItem("editAdReturnUrl") || sessionStorage.getItem("adDetailsReturnUrl") || sessionStorage.getItem("editAdPreviousPage") || "seller-dashboard.html?tab=my-ads";
@@ -689,6 +799,7 @@
       } catch (error) {
         console.error("Update error:", error);
         showMessage("Could not update the ad. Please try again.", true);
+        setSaving(false);
         saveButton.disabled = false;
         saveButton.textContent = "Save Changes";
       }
