@@ -1,226 +1,409 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta
-    name="description"
-    content="LootShoot — Terms & Conditions."
-  />
-  <title>LootShoot — Terms & Conditions</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="LootShoot Terms & Conditions.">
+  <title>Terms &amp; Conditions - LootShoot</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
     href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
     rel="stylesheet"
-  />
-  <link rel="stylesheet" href="style1.css" />
+  >
 
   <style>
-    /* Spacing for paragraphs and bullet lists inside each numbered term */
-    .terms-content li p {
+
+    :root {
+      --primary: #0c4b32;
+      --accent: #15965a;
+      --bg: #f4faf6;
+      --ink: #123c2a;
+      --muted: #5e6f66;
+      --line: #dcebe3;
+      --soft: #eef9f2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 84px;
+    }
+
+    body {
+      font-family: "DM Sans", Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* Top bar */
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .topbar-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .back-link {
+      font-family: inherit;
+      background: transparent;
+      cursor: pointer;
+      color: #d9f5e5;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Page */
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    .doc {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 36px 32px 40px;
+      box-shadow: 0 10px 34px rgba(12, 75, 50, 0.06);
+    }
+
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 2.2rem;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .updated {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 22px;
+    }
+
+    .intro {
+      max-width: 68ch;
+      margin-bottom: 8px;
+    }
+
+    /* Numbered terms */
+
+    ol {
+      margin: 22px 0 0 1.5em;
+      max-width: 68ch;
+    }
+
+    ol > li {
+      padding-left: 6px;
+      margin-bottom: 26px;
+    }
+
+    ol > li::marker {
+      color: var(--accent);
+      font-family: "Space Grotesk", sans-serif;
+      font-weight: 700;
+    }
+
+    ol > li > strong {
+      display: block;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.15rem;
+      line-height: 1.35;
+      letter-spacing: -0.015em;
+      margin-bottom: 6px;
+    }
+
+    li p {
       margin: 0 0 8px;
     }
 
-    .terms-content li ul {
-      margin: 6px 0 8px;
-      padding-left: 20px;
+    li ul {
+      margin: 6px 0 10px 1.2em;
     }
 
-    .terms-content li ul li {
-      margin-bottom: 4px;
-      padding-left: 2px;
+    li ul li {
+      margin-bottom: 5px;
+      padding-left: 4px;
     }
 
-    .terms-content a {
-      color: #15965a;
-      font-weight: 600;
+    li ul li::marker {
+      color: var(--accent);
     }
+
+    /* Footer */
+
+    .footer {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      color: var(--muted);
+      font-size: 13.5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      justify-content: space-between;
+    }
+
+    .footer a {
+      color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+
+      body {
+        font-size: 15.5px;
+      }
+
+      .page {
+        padding: 18px 12px 44px;
+      }
+
+      .doc {
+        padding: 24px 18px 30px;
+        border-radius: 16px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      .topbar-inner {
+        padding: 12px 14px;
+      }
+
+      .brand {
+        font-size: 18px;
+      }
+
+      ol {
+        margin-left: 1.3em;
+      }
+
+    }
+
   </style>
 </head>
 
-<body class="terms-page">
+<body>
 
-  <header class="site-header">
-    <a class="brand" href="index.html">
-      <span class="brand-mark">✥</span>
-      <span>
-        <b>LOOT<span>SHOOT</span></b>
-        <small>BUILT FOR GAMERS</small>
-      </span>
-    </a>
-
-    <nav>
-      <a href="index.html#how-it-works">How it works</a>
-      <a href="index.html#faq">FAQ</a>
-    </nav>
-
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">LOOTSHOOT</a>
+      <button type="button" class="back-link" id="backButton" aria-label="Go back to the previous page">← Back</button>
+    </div>
   </header>
 
-  <main class="terms-shell">
-    <div class="terms-card">
-      <div class="terms-hero">
-        <button type="button" class="back-button" aria-label="Go back to previous page">
-          <span aria-hidden="true">←</span> Back
-        </button>
-        <h1>LootShoot — <span>Terms & Conditions</span></h1>
-        <div class="terms-meta">Last updated: October 2026</div>
-      </div>
+  <main class="page" id="top">
 
-      <div class="terms-content">
-        <p>
-          By using LootShoot, creating an account, listing an item, making an offer, or purchasing an item, you agree to these Terms and Conditions.
-        </p>
+    <article class="doc">
 
-        <ol>
+      <h1>Terms &amp; Conditions</h1>
+      <p class="updated">Last updated: October 2026</p>
 
-          <li><strong>Marketplace</strong>
-            <p>LootShoot is an online marketplace that connects buyers and sellers of gaming-related products and digital items.</p>
-            <p>LootShoot is not the owner or seller of items listed by users. Sellers are responsible for the items they list and the information they provide.</p>
-            <p>LootShoot is an independent marketplace and is not affiliated with, endorsed by, or officially connected to PUBG Mobile, KRAFTON, or Tencent.</p>
-          </li>
+      <p class="intro">
+        By using LootShoot, creating an account, listing an item, making an offer, or purchasing an item, you agree to these Terms and Conditions.
+      </p>
 
-          <li><strong>User Accounts</strong>
-            <p>You must provide accurate information when creating an account.</p>
-            <p>You are responsible for keeping your account secure and for all activity carried out through your account.</p>
-            <p>You must not create an account using false information, impersonate another person, or use LootShoot for fraudulent or illegal activities.</p>
-            <p>LootShoot may suspend or restrict accounts that violate these Terms.</p>
-          </li>
+      <ol>
 
-          <li><strong>Listings</strong>
-            <p>Sellers must provide accurate information about their items, including the description and price.</p>
-            <p>Sellers must not include personal contact information, such as phone numbers, WhatsApp numbers, email addresses, social media handles, or other contact details, anywhere in a listing, including the title, description, images, or other listing fields.</p>
-            <p>Listings may be reviewed and approved by LootShoot before becoming publicly available.</p>
-            <p>LootShoot may reject, hide, edit, or remove listings that violate these Terms or marketplace rules.</p>
-            <p>Listings may automatically expire after the applicable listing period.</p>
-          </li>
+        <li><strong>Marketplace</strong>
+          <p>LootShoot is an online marketplace that connects buyers and sellers of gaming-related products and digital items.</p>
+          <p>LootShoot is not the owner or seller of items listed by users. Sellers are responsible for the items they list and the information they provide.</p>
+          <p>LootShoot is an independent marketplace and is not affiliated with, endorsed by, or officially connected to PUBG Mobile, KRAFTON, or Tencent.</p>
+        </li>
 
-          <li><strong>Prohibited Items and Activities</strong>
-            <p>Users must not use LootShoot to sell or promote:</p>
-            <ul>
-              <li>Stolen or unlawfully obtained items.</li>
-              <li>Fraudulent or counterfeit items.</li>
-              <li>Hacked or compromised gaming accounts.</li>
-              <li>Gaming accounts or digital items that the seller does not have the right to transfer.</li>
-              <li>Illegal products or services.</li>
-              <li>Fraudulent payment methods or stolen financial information.</li>
-              <li>Any other item or activity prohibited by LootShoot.</li>
-            </ul>
-            <p>Fraud, scams, account abuse, and attempts to bypass LootShoot's transaction system are prohibited.</p>
-          </li>
+        <li><strong>User Accounts</strong>
+          <p>You must provide accurate information when creating an account.</p>
+          <p>You are responsible for keeping your account secure and for all activity carried out through your account.</p>
+          <p>You must not create an account using false information, impersonate another person, or use LootShoot for fraudulent or illegal activities.</p>
+          <p>LootShoot may suspend or restrict accounts that violate these Terms.</p>
+        </li>
 
-          <li><strong>Gaming Accounts</strong>
-            <p>Sellers are responsible for ensuring that they have the right to sell and transfer any gaming account they list.</p>
-            <p>Buyers understand that gaming accounts may be subject to the rules and actions of the relevant game publisher.</p>
-            <p>LootShoot does not guarantee that a third-party game publisher will allow an account to remain active or allow its transfer.</p>
-          </li>
+        <li><strong>Listings</strong>
+          <p>Sellers must provide accurate information about their items, including the description and price.</p>
+          <p>Sellers must not include personal contact information, such as phone numbers, WhatsApp numbers, email addresses, social media handles, or other contact details, anywhere in a listing, including the title, description, images, or other listing fields.</p>
+          <p>Listings may be reviewed and approved by LootShoot before becoming publicly available.</p>
+          <p>LootShoot may reject, hide, edit, or remove listings that violate these Terms or marketplace rules.</p>
+          <p>Listings may automatically expire after the applicable listing period.</p>
+        </li>
 
-          <li><strong>Account Purchases and Recovery Risks</strong>
-            <p>Buyers acknowledge that purchasing a third-party gaming account carries risks, including loss of access, recovery of the account by a previous owner, or restrictions imposed by the game publisher.</p>
-            <p>Sellers must provide accurate listing information. After an account has been sold, sellers must not recover, reclaim, or interfere with it in any way, including by changing or resetting login or recovery details, requesting access through the game publisher, or helping anyone else do so. Violations may result in listing removal, account suspension or termination, and other action under these Terms.</p>
-            <p>If you suspect that an account has been recovered or that you have been the victim of fraud, you should report it to LootShoot as soon as possible through the LootShoot chat or at the contact email below, and include any relevant details or evidence.</p>
-            <p>LootShoot will review reported issues in line with the Disputes and 24-Hour Trade Shield sections of these Terms and its applicable dispute and refund policies. Although LootShoot takes reasonable steps to discourage fraudulent activity, it cannot guarantee permanent access to a third-party gaming account or prevent every recovery attempt.</p>
-            <p>Nothing in these Terms limits or excludes LootShoot's liability where it cannot be limited or excluded under applicable law.</p>
-          </li>
+        <li><strong>Prohibited Items and Activities</strong>
+          <p>Users must not use LootShoot to sell or promote:</p>
+          <ul>
+            <li>Stolen or unlawfully obtained items.</li>
+            <li>Fraudulent or counterfeit items.</li>
+            <li>Hacked or compromised gaming accounts.</li>
+            <li>Gaming accounts or digital items that the seller does not have the right to transfer.</li>
+            <li>Illegal products or services.</li>
+            <li>Fraudulent payment methods or stolen financial information.</li>
+            <li>Any other item or activity prohibited by LootShoot.</li>
+          </ul>
+          <p>Fraud, scams, account abuse, and attempts to bypass LootShoot's transaction system are prohibited.</p>
+        </li>
 
-          <li><strong>Offers</strong>
-            <p>Buyers may make offers on eligible listings.</p>
-            <p>An offer is not a completed purchase until it has been accepted and the required payment process has been completed.</p>
-            <p>Sellers may accept or reject offers.</p>
-            <p>Fake, abusive, or fraudulent offers are prohibited.</p>
-          </li>
+        <li><strong>Gaming Accounts</strong>
+          <p>Sellers are responsible for ensuring that they have the right to sell and transfer any gaming account they list.</p>
+          <p>Buyers understand that gaming accounts may be subject to the rules and actions of the relevant game publisher.</p>
+          <p>LootShoot does not guarantee that a third-party game publisher will allow an account to remain active or allow its transfer.</p>
+        </li>
 
-          <li><strong>Payments</strong>
-            <p>Buyers must follow LootShoot's payment instructions and pay the correct amount.</p>
-            <p>Where required, buyers must submit valid payment evidence.</p>
-            <p>False, edited, duplicated, or fraudulent payment screenshots are prohibited.</p>
-            <p>LootShoot may review and reject suspicious or invalid payment submissions.</p>
-          </li>
+        <li><strong>Account Purchases and Recovery Risks</strong>
+          <p>Buyers acknowledge that purchasing a third-party gaming account carries risks, including loss of access, recovery of the account by a previous owner, or restrictions imposed by the game publisher.</p>
+          <p>Sellers must provide accurate listing information. After an account has been sold, sellers must not recover, reclaim, or interfere with it in any way, including by changing or resetting login or recovery details, requesting access through the game publisher, or helping anyone else do so. Violations may result in listing removal, account suspension or termination, and other action under these Terms.</p>
+          <p>If you suspect that an account has been recovered or that you have been the victim of fraud, you should report it to LootShoot as soon as possible through the LootShoot chat or at the contact email below, and include any relevant details or evidence.</p>
+          <p>LootShoot will review reported issues in line with the Disputes and 24-Hour Trade Shield sections of these Terms and its applicable dispute and refund policies. Although LootShoot takes reasonable steps to discourage fraudulent activity, it cannot guarantee permanent access to a third-party gaming account or prevent every recovery attempt.</p>
+          <p>Nothing in these Terms limits or excludes LootShoot's liability where it cannot be limited or excluded under applicable law.</p>
+        </li>
 
-          <li><strong>Orders and Delivery</strong>
-            <p>Sellers must provide the purchased item as described in the listing.</p>
-            <p>After delivering the item, the seller may mark the order as delivered.</p>
-            <p>The buyer may confirm receipt after receiving the item.</p>
-            <p>Buyers should not confirm receipt before receiving and checking their purchase.</p>
-          </li>
+        <li><strong>Offers</strong>
+          <p>Buyers may make offers on eligible listings.</p>
+          <p>An offer is not a completed purchase until it has been accepted and the required payment process has been completed.</p>
+          <p>Sellers may accept or reject offers.</p>
+          <p>Fake, abusive, or fraudulent offers are prohibited.</p>
+        </li>
 
-          <li><strong>24-Hour Trade Shield for Accounts</strong>
-            <p>The 24-hour Trade Shield applies only to Account purchases.</p>
-            <p>After the buyer confirms receipt of an Account, the Trade Shield period begins.</p>
-            <p>During this 24-hour period, the buyer may contact the seller through the LootShoot chat regarding an issue with the purchased Account.</p>
-            <p>The seller is responsible for cooperating reasonably with the buyer to resolve legitimate Account-related issues.</p>
-            <p>After the 24-hour Trade Shield period ends, the payment may be released to the seller according to LootShoot's transaction process.</p>
-            <p>Trade Shield does not guarantee a refund or a particular outcome in every dispute.</p>
-          </li>
+        <li><strong>Payments</strong>
+          <p>Buyers must follow LootShoot's payment instructions and pay the correct amount.</p>
+          <p>Where required, buyers must submit valid payment evidence.</p>
+          <p>False, edited, duplicated, or fraudulent payment screenshots are prohibited.</p>
+          <p>LootShoot may review and reject suspicious or invalid payment submissions.</p>
+        </li>
 
-          <li><strong>Disputes</strong>
-            <p>Buyers and sellers should first attempt to resolve transaction issues through LootShoot's chat system.</p>
-            <p>LootShoot may review relevant listings, payment information, transaction records, and messages when investigating a dispute.</p>
-            <p>LootShoot may take appropriate action based on the available evidence and these Terms.</p>
-          </li>
+        <li><strong>Orders and Delivery</strong>
+          <p>Sellers must provide the purchased item as described in the listing.</p>
+          <p>After delivering the item, the seller may mark the order as delivered.</p>
+          <p>The buyer may confirm receipt after receiving the item.</p>
+          <p>Buyers should not confirm receipt before receiving and checking their purchase.</p>
+        </li>
 
-          <li><strong>Messaging</strong>
-            <p>LootShoot's messaging system is intended for communication related to marketplace transactions.</p>
-            <p>Users must not use it for harassment, threats, scams, malicious links, illegal activities, or attempts to defraud another user.</p>
-          </li>
+        <li><strong>24-Hour Trade Shield for Accounts</strong>
+          <p>The 24-hour Trade Shield applies only to Account purchases.</p>
+          <p>After the buyer confirms receipt of an Account, the Trade Shield period begins.</p>
+          <p>During this 24-hour period, the buyer may contact the seller through the LootShoot chat regarding an issue with the purchased Account.</p>
+          <p>The seller is responsible for cooperating reasonably with the buyer to resolve legitimate Account-related issues.</p>
+          <p>After the 24-hour Trade Shield period ends, the payment may be released to the seller according to LootShoot's transaction process.</p>
+          <p>Trade Shield does not guarantee a refund or a particular outcome in every dispute.</p>
+        </li>
 
-          <li><strong>Off-Platform Transactions</strong>
-            <p>Users should use LootShoot's provided transaction and payment process where applicable.</p>
-            <p>Users who move a transaction outside LootShoot to avoid marketplace rules, payment verification, or transaction protections do so at their own risk.</p>
-            <p>LootShoot is not responsible for transactions completed entirely outside the platform.</p>
-          </li>
+        <li><strong>Disputes</strong>
+          <p>Buyers and sellers should first attempt to resolve transaction issues through LootShoot's chat system.</p>
+          <p>LootShoot may review relevant listings, payment information, transaction records, and messages when investigating a dispute.</p>
+          <p>LootShoot may take appropriate action based on the available evidence and these Terms.</p>
+        </li>
 
-          <li><strong>User Content</strong>
-            <p>Users are responsible for the images, descriptions, and other content they upload.</p>
-            <p>You must have the right to upload and use the content you submit.</p>
-            <p>LootShoot may remove content that violates these Terms or marketplace rules.</p>
-          </li>
+        <li><strong>Messaging</strong>
+          <p>LootShoot's messaging system is intended for communication related to marketplace transactions.</p>
+          <p>Users must not use it for harassment, threats, scams, malicious links, illegal activities, or attempts to defraud another user.</p>
+        </li>
 
-          <li><strong>Service Availability</strong>
-            <p>LootShoot may occasionally be unavailable because of maintenance, technical problems, third-party services, or other circumstances.</p>
-            <p>LootShoot does not guarantee uninterrupted or error-free operation.</p>
-          </li>
+        <li><strong>Off-Platform Transactions</strong>
+          <p>Users should use LootShoot's provided transaction and payment process where applicable.</p>
+          <p>Users who move a transaction outside LootShoot to avoid marketplace rules, payment verification, or transaction protections do so at their own risk.</p>
+          <p>LootShoot is not responsible for transactions completed entirely outside the platform.</p>
+        </li>
 
-          <li><strong>Account Suspension</strong>
-            <p>LootShoot may suspend or terminate an account or remove listings if a user violates these Terms, engages in fraud, abuses the marketplace, or creates a security or safety risk.</p>
-          </li>
+        <li><strong>User Content</strong>
+          <p>Users are responsible for the images, descriptions, and other content they upload.</p>
+          <p>You must have the right to upload and use the content you submit.</p>
+          <p>LootShoot may remove content that violates these Terms or marketplace rules.</p>
+        </li>
 
-          <li><strong>Changes to These Terms</strong>
-            <p>LootShoot may update these Terms from time to time.</p>
-            <p>Updated Terms will be posted on this page with a revised "Last updated" date.</p>
-          </li>
+        <li><strong>Service Availability</strong>
+          <p>LootShoot may occasionally be unavailable because of maintenance, technical problems, third-party services, or other circumstances.</p>
+          <p>LootShoot does not guarantee uninterrupted or error-free operation.</p>
+        </li>
 
-          <li><strong>Contact</strong>
-            <p>For questions, complaints, or transaction-related concerns, you may contact LootShoot at <a href="mailto:lootshoot.support@gmail.com">lootshoot.support@gmail.com</a>.</p>
-          </li>
+        <li><strong>Account Suspension</strong>
+          <p>LootShoot may suspend or terminate an account or remove listings if a user violates these Terms, engages in fraud, abuses the marketplace, or creates a security or safety risk.</p>
+        </li>
 
-          <li><strong>Acceptance</strong>
-            <p>By using LootShoot, you acknowledge that you have read, understood, and agreed to these Terms and Conditions.</p>
-            <p>If you do not agree with these Terms, please do not use LootShoot.</p>
-          </li>
+        <li><strong>Changes to These Terms</strong>
+          <p>LootShoot may update these Terms from time to time.</p>
+          <p>Updated Terms will be posted on this page with a revised "Last updated" date.</p>
+        </li>
 
-        </ol>
-      </div>
-    </div>
+        <li><strong>Contact</strong>
+          <p>For questions, complaints, or transaction-related concerns, you may contact LootShoot at <a href="mailto:lootshoot.support@gmail.com">lootshoot.support@gmail.com</a>.</p>
+        </li>
+
+        <li><strong>Acceptance</strong>
+          <p>By using LootShoot, you acknowledge that you have read, understood, and agreed to these Terms and Conditions.</p>
+          <p>If you do not agree with these Terms, please do not use LootShoot.</p>
+        </li>
+
+      </ol>
+
+    </article>
+
   </main>
 
-  <footer class="footer wrap">
-    <div>
-      <b>LOOT<span>SHOOT</span></b>
-      <small>
-        Independent digital service • Not affiliated with PUBG Mobile
-      </small>
-    </div>
-
-    <span><a href="terms.html">Privacy</a>　 <a href="terms.html">Terms</a>　 © 2026 LootShoot</span>
+  <footer class="footer">
+    <span>© 2026 LootShoot</span>
+    <span>
+      <a href="privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="#top">Back to top</a>
+    </span>
   </footer>
 
   <script>
+
     document.addEventListener('DOMContentLoaded', () => {
-      const backButton = document.querySelector('.back-button');
+
+      const backButton = document.getElementById('backButton');
+
       if (!backButton) return;
 
       backButton.addEventListener('click', () => {
+
         const referrer = document.referrer;
 
         // Go back to the page the user came from, if it is on this site
@@ -241,8 +424,12 @@
         } else {
           window.location.href = 'index.html';
         }
+
       });
+
     });
+
   </script>
+
 </body>
 </html>
