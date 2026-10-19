@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="LootShoot — Your offer has been sent to the seller."
+  />
+
+  <title>LootShoot — Offer Sent</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+
+  <link
+    rel="preconnect"
+    href="https://fonts.gstatic.com"
+    crossorigin
+  />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  />
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #ffffff;
+      color: #111827;
+      font-family: "DM Sans", Arial, sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .sent-card {
+      width: 100%;
+      max-width: 380px;
+      text-align: center;
+    }
+
+    .plane-badge {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 28px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #eafaf1, #dff3eb);
+      display: grid;
+      place-items: center;
+      box-shadow: 0 12px 30px rgba(21, 150, 90, 0.15);
+      overflow: hidden;
+    }
+
+    .plane-badge svg {
+      width: 42px;
+      height: 42px;
+      animation: fly 2.4s ease-in-out infinite;
+    }
+
+    @keyframes fly {
+      0%, 15% {
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+      45% {
+        transform: translate(34px, -34px);
+        opacity: 0;
+      }
+      46% {
+        transform: translate(-34px, 34px);
+        opacity: 0;
+      }
+      75%, 100% {
+        transform: translate(0, 0);
+        opacity: 1;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .plane-badge svg {
+        animation: none;
+      }
+    }
+
+    h1 {
+      margin: 0 0 14px;
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 24px;
+      letter-spacing: -0.02em;
+      color: #111827;
+    }
+
+    p {
+      margin: 0 0 30px;
+      color: #6d777f;
+      font-size: 14px;
+      line-height: 1.7;
+    }
+
+    p strong {
+      color: #111827;
+    }
+
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 13px 24px;
+      border: none;
+      border-radius: 30px;
+      background: #15965a;
+      color: #ffffff;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      box-shadow: 0 8px 22px rgba(21, 150, 90, 0.22);
+      transition: 0.2s ease;
+    }
+
+    .back-button:hover {
+      background: #107e4b;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="sent-card">
+
+    <div class="plane-badge">
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="#15965a"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        aria-hidden="true"
+      >
+        <path d="m22 2-7 20-4-9-9-4Z" />
+        <path d="M22 2 11 13" />
+      </svg>
+    </div>
+
+    <h1>Offer sent</h1>
+
+    <p id="statusText">
+      Your offer has been sent to the seller. You will be notified once the
+      seller accepts or rejects it.
+    </p>
+
+    <a id="backButton" class="back-button" href="explore.html">
+      Back to Ad →
+    </a>
+
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+
+    const adId = params.get("id");
+    const amount = Number(params.get("amount"));
+
+    const textEl = document.getElementById("statusText");
+    const buttonEl = document.getElementById("backButton");
+
+    // Show the offer amount in the text
+    if (Number.isFinite(amount) && amount > 0) {
+      textEl.textContent = "";
+
+      textEl.append("Your offer of ");
+
+      const strong = document.createElement("strong");
+      strong.textContent = "Rs. " + amount.toLocaleString("en-US");
+      textEl.appendChild(strong);
+
+      textEl.append(
+        " has been sent to the seller. You will be notified once the seller accepts or rejects it."
+      );
+    }
+
+    // "Back to Ad" goes to that specific ad
+    if (adId) {
+      buttonEl.href = "ad-details.html?id=" + encodeURIComponent(adId);
+    }
+  </script>
+</body>
+</html>
