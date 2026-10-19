@@ -189,7 +189,7 @@
       );
     }
 
-    // "Back to Ad" goes to that specific ad
+    // "Back to Ad" goes to that specific AD
     if (adId) {
       buttonEl.href = "ad-details.html?id=" + encodeURIComponent(adId);
     }
