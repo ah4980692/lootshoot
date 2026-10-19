@@ -296,18 +296,6 @@
         <div class="offer-note" id="offerNote">Enter the amount you are willing to pay</div>
         <div id="offerLockNotice" style="display:none; color: #c62828; font-size: 0.92rem; font-weight: 700; line-height: 1.5; margin-top: 8px;" aria-live="polite"></div>
       </div>
-
-      <div class="card" id="offerSuccess" hidden>
-        <div style="font-size: 1.05rem; line-height: 1.7; color: var(--ink);">
-          <div style="font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; color: var(--green);">Offer Sent</div>
-          <div>
-            Your offer of <strong id="successOfferAmount">Rs. 0</strong> has been sent to the seller.
-          </div>
-          <div style="margin-top: 10px;">
-            You will be notified once the seller accepts or rejects it.
-          </div>
-        </div>
-      </div>
     </div>
   </div>
 
@@ -370,12 +358,19 @@
     const productImagePlaceholder = document.getElementById('productImagePlaceholder');
     const backBtn = document.querySelector('.back-btn');
     const sendOfferBtn = document.getElementById('sendOfferBtn');
-    const offerSuccess = document.getElementById('offerSuccess');
-    const successOfferAmount = document.getElementById('successOfferAmount');
     const offerLockNotice = document.getElementById('offerLockNotice');
-    const OFFER_COOLDOWN_MS = 1800000;
-    let offerCooldownInterval = null;
+
+    const PENDING_OFFER_POLL_MS = 10000;
+    let pendingPollTimer = null;
     let isSubmittingOffer = false;
+
+    // True once the offer is sent and the page is moving to offer-sent.html
+    let isRedirecting = false;
+
+    // The buyer's current pending offer for this ad (null = none)
+    let pendingOffer = null;
+    // True when the ad has an active deal
+    let activeDealLocked = false;
 
     async function fetchCurrentAdForOffer() {
       if (!adId) return null;
@@ -395,11 +390,13 @@
       }
     }
 
-    async function getPendingOfferForBuyer(buyerId, adId) {
+    // Returns the buyer's pending offer for this ad, or null if there is none.
+    // With strict = true, a failed lookup throws instead of returning null.
+    async function getPendingOfferForBuyer(buyerId, adId, strict = false) {
       try {
         const { data, error } = await supabaseClient
           .from('offers')
-          .select('id, status, created_at')
+          .select('id, status, created_at, offer_amount')
           .eq('buyer_id', buyerId)
           .eq('ad_id', adId)
           .eq('status', 'pending')
@@ -407,6 +404,7 @@
 
         if (error) {
           console.error('make-offer > Error checking pending offers:', error);
+          if (strict) throw error;
           return null;
         }
 
@@ -417,6 +415,7 @@
         return data; // Returns null if no pending offer exists
       } catch (error) {
         console.error('make-offer > Unexpected error checking pending offers:', error);
+        if (strict) throw error;
         return null;
       }
     }
@@ -470,168 +469,90 @@
       }
     }
 
-    function getOfferCooldownKey() {
-      return `offerCooldown_${adId}`;
+    function formatNumber(value) {
+      const num = Number(value || 0);
+      return Number.isFinite(num) ? num.toLocaleString('en-US') : '0';
     }
 
-    function getOfferCooldownExpiry() {
-      const rawValue = localStorage.getItem(getOfferCooldownKey());
-      const expiry = Number(rawValue || 0);
-      console.log('[OFFER COOLDOWN] adId:', adId);
-      console.log('[OFFER COOLDOWN] existing expiry:', expiry);
-      return Number.isFinite(expiry) ? expiry : 0;
+    function showNotice(text) {
+      offerLockNotice.style.display = 'block';
+      offerLockNotice.textContent = text;
     }
 
-    function getRemainingOfferCooldownMs() {
-      const expiry = getOfferCooldownExpiry();
-      if (!expiry) {
-        console.log('[OFFER COOLDOWN] remaining before submit: 0');
-        return 0;
-      }
-
-      const remainingMs = expiry - Date.now();
-      console.log('[OFFER COOLDOWN] remaining before submit:', remainingMs);
-
-      if (remainingMs <= 0) {
-        localStorage.removeItem(getOfferCooldownKey());
-        console.log('[OFFER COOLDOWN] expired cooldown removed for adId:', adId);
-        return 0;
-      }
-
-      return remainingMs;
-    }
-
-    function hideOfferCooldownWarning() {
+    function hideNotice() {
       offerLockNotice.style.display = 'none';
       offerLockNotice.textContent = '';
     }
 
-    function showOfferCooldownWarning(remainingMinutes) {
-      offerLockNotice.style.display = 'block';
-      offerLockNotice.textContent = `An offer has already been sent. Please wait ${remainingMinutes} minute${remainingMinutes !== 1 ? 's' : ''} before sending another offer.`;
-      console.log('[OFFER COOLDOWN] warning shown:', {
-        adId,
-        remainingMinutes,
-        text: offerLockNotice.textContent
-      });
-    }
+    // Single place that decides the state of the Send button and the notice
+    function refreshSendButtonState() {
+      if (activeDealLocked) {
+        sendOfferBtn.disabled = true;
+        sendOfferBtn.style.opacity = '';
+        sendOfferBtn.style.cursor = '';
+        showNotice('This ad is locked because it has an active deal.');
+        return;
+      }
 
-    function setOfferCooldown() {
-      const expiry = Date.now() + OFFER_COOLDOWN_MS;
-      localStorage.setItem(getOfferCooldownKey(), String(expiry));
-      console.log('[OFFER COOLDOWN] new expiry:', {
-        adId,
-        key: getOfferCooldownKey(),
-        expiry,
-        expiryIso: new Date(expiry).toISOString()
-      });
-    }
-
-    function updateSendOfferButtonState() {
-      const remainingMs = getRemainingOfferCooldownMs();
-      if (remainingMs > 0) {
+      if (pendingOffer) {
         sendOfferBtn.disabled = true;
         sendOfferBtn.style.opacity = '0.6';
         sendOfferBtn.style.cursor = 'not-allowed';
+        showNotice(
+          `Your offer of Rs. ${formatNumber(pendingOffer.offer_amount)} is still pending. ` +
+          `You can't send a new offer until the seller accepts or rejects it.`
+        );
         return;
       }
 
       sendOfferBtn.disabled = false;
       sendOfferBtn.style.opacity = '1';
       sendOfferBtn.style.cursor = 'pointer';
-      hideOfferCooldownWarning();
+      hideNotice();
     }
 
-    function startOfferCooldownTimer() {
-      if (offerCooldownInterval) {
-        clearInterval(offerCooldownInterval);
-      }
+    function startPendingOfferPolling() {
+      if (pendingPollTimer) return;
+      pendingPollTimer = setInterval(syncPendingOfferState, PENDING_OFFER_POLL_MS);
+    }
 
-      offerCooldownInterval = setInterval(() => {
-        const remainingMs = getRemainingOfferCooldownMs();
-        if (!remainingMs) {
-          clearOfferCooldown();
-          updateSendOfferButtonState();
-          clearInterval(offerCooldownInterval);
-          offerCooldownInterval = null;
-          console.log('[OFFER COOLDOWN] cooldown expired; button enabled again.');
-          return;
+    function stopPendingOfferPolling() {
+      if (!pendingPollTimer) return;
+      clearInterval(pendingPollTimer);
+      pendingPollTimer = null;
+    }
+
+    // Checks the database for the buyer's pending offer and updates the page.
+    // While an offer is pending it re-checks every few seconds, so the button
+    // unlocks by itself once the seller accepts or rejects.
+    async function syncPendingOfferState() {
+      if (isSubmittingOffer || isRedirecting) return;
+
+      try {
+        const buyerUserId = await getCurrentBuyerUserId();
+        if (!buyerUserId) return;
+
+        const latest = await getPendingOfferForBuyer(buyerUserId, adId, true);
+
+        const previousId = pendingOffer ? pendingOffer.id : null;
+        const latestId = latest ? latest.id : null;
+        const changed = previousId !== latestId;
+
+        pendingOffer = latest;
+
+        if (latest) {
+          startPendingOfferPolling();
+        } else {
+          stopPendingOfferPolling();
         }
 
-        sendOfferBtn.disabled = true;
-        sendOfferBtn.style.opacity = '0.6';
-        sendOfferBtn.style.cursor = 'not-allowed';
-      }, 1000);
-    }
-
-    function clearOfferCooldown() {
-      localStorage.removeItem(getOfferCooldownKey());
-    }
-
-    function getOfferLockKey() {
-      return `lootshoot_offer_lock_${adId}`;
-    }
-
-    function getLockedUntil() {
-      const lockKey = getOfferLockKey();
-      const value = Number(sessionStorage.getItem(lockKey) || localStorage.getItem(lockKey) || 0);
-      return Number.isFinite(value) ? value : 0;
-    }
-
-    function setOfferLock() {
-      const lockKey = getOfferLockKey();
-      const expiresAt = Date.now() + (OFFER_LOCK_SECONDS * 1000);
-      sessionStorage.setItem(lockKey, String(expiresAt));
-      localStorage.setItem(lockKey, String(expiresAt));
-    }
-
-    function getRemainingOfferLockMs() {
-      const lockExpiresAt = getLockedUntil();
-      if (!lockExpiresAt) return 0;
-      const remaining = lockExpiresAt - Date.now();
-      return remaining > 0 ? remaining : 0;
-    }
-
-    function hideOfferLockWarning() {
-      offerLockNotice.style.display = 'none';
-      offerLockNotice.textContent = '';
-    }
-
-    function showOfferLockWarning() {
-      const remainingMs = getRemainingOfferLockMs();
-      if (!remainingMs) {
-        hideOfferLockWarning();
-        return;
-      }
-
-      const remainingSeconds = Math.ceil(remainingMs / 1000);
-      const minutes = Math.floor(remainingSeconds / 60);
-      const seconds = remainingSeconds % 60;
-
-      offerLockNotice.style.display = 'block';
-      offerLockNotice.textContent = `Please wait ${minutes} minute${minutes === 1 ? '' : 's'} ${seconds} second${seconds === 1 ? '' : 's'} before sending another offer.`;
-    }
-
-    function startOfferLockTimer() {
-      if (window.offerLockInterval) {
-        clearInterval(window.offerLockInterval);
-      }
-
-      window.offerLockInterval = setInterval(() => {
-        const remainingMs = getRemainingOfferLockMs();
-        if (!remainingMs) {
-          hideOfferLockWarning();
-          clearInterval(window.offerLockInterval);
-          return;
+        if (changed) {
+          refreshSendButtonState();
         }
-
-        showOfferLockWarning();
-      }, 1000);
-    }
-
-    function formatNumber(value) {
-      const num = Number(value || 0);
-      return Number.isFinite(num) ? num.toLocaleString('en-US') : '0';
+      } catch (error) {
+        // Lookup failed: keep the current state and try again on the next check
+        console.warn('make-offer > Could not refresh pending offer state:', error);
+      }
     }
 
     async function getCurrentBuyerUserId() {
@@ -834,10 +755,9 @@
         try {
           const locked = await checkActiveDeal(ad.id);
           if (locked) {
+            activeDealLocked = true;
             addLockIconToSendButton();
-            sendOfferBtn.disabled = true;
-            offerLockNotice.style.display = 'block';
-            offerLockNotice.textContent = 'This ad is locked because it has an active deal.';
+            refreshSendButtonState();
           }
         } catch (e) {
           // Do not assume locked on error
@@ -869,80 +789,14 @@
     });
 
     sendOfferBtn.addEventListener('click', async () => {
+      if (isSubmittingOffer) {
+        console.log('make-offer > Prevented duplicate offer submission from same click.');
+        return;
+      }
+
       const numericValue = Math.max(0, normalizeNumeric(offerInput.value));
       if (!numericValue) {
         offerInput.focus();
-        return;
-      }
-
-      // Double-check active deal immediately before creating offer
-      try {
-        const lockedNow = await checkActiveDeal(adId);
-        if (lockedNow) {
-          offerLockNotice.style.display = 'block';
-          offerLockNotice.textContent = 'This ad is locked because it has an active deal.';
-          alert('This ad is locked because it already has an active deal.');
-          return;
-        }
-      } catch (e) {
-        console.warn('make-offer > error checking active deal before submit', e);
-      }
-
-      try {
-        const buyerUserId = await getCurrentBuyerUserId();
-        if (!buyerUserId) {
-          console.warn('make-offer > No authenticated buyer found before checking cooldown.');
-          return;
-        }
-
-        // Check if buyer has a pending offer in the database (cross-device check)
-        const pendingOffer = await getPendingOfferForBuyer(buyerUserId, adId);
-        if (pendingOffer) {
-          // Buyer has a pending offer - calculate remaining time from database creation time
-          const createdAt = new Date(pendingOffer.created_at).getTime();
-          const remainingMs = (createdAt + OFFER_COOLDOWN_MS) - Date.now();
-
-          if (remainingMs > 0) {
-            console.log('[OFFER COOLDOWN] pending offer found in database, blocking submission:', {
-              adId,
-              buyerId: buyerUserId,
-              offerId: pendingOffer.id,
-              remainingMs
-            });
-
-            // Update localStorage with the correct expiry from database
-            const correctExpiry = createdAt + OFFER_COOLDOWN_MS;
-            localStorage.setItem(getOfferCooldownKey(), String(correctExpiry));
-
-            const remainingMinutes = Math.ceil(remainingMs / 60000);
-            showOfferCooldownWarning(remainingMinutes);
-            return;
-          }
-        }
-
-        // No pending offer in database, check if localStorage cooldown needs cleanup
-        const localStorageCooldownMs = getRemainingOfferCooldownMs();
-        if (localStorageCooldownMs > 0 && !pendingOffer) {
-          // localStorage has cooldown but no pending offer in database - clear it
-          console.log('[OFFER COOLDOWN] clearing expired/completed offer from localStorage:', { adId });
-          localStorage.removeItem(getOfferCooldownKey());
-        }
-      } catch (error) {
-        console.error('make-offer > Error checking pending offer status:', error);
-        // Continue with submission attempt - let normal error handling take over
-      }
-
-      const existingCooldownMs = getRemainingOfferCooldownMs();
-      console.log('[OFFER COOLDOWN] existing cooldown before this click (ms):', existingCooldownMs);
-      if (existingCooldownMs > 0) {
-        console.log('[OFFER COOLDOWN] existing cooldown branch: true');
-        const remainingMinutes = Math.ceil(existingCooldownMs / 60000);
-        showOfferCooldownWarning(remainingMinutes);
-        return;
-      }
-
-      if (isSubmittingOffer) {
-        console.log('make-offer > Prevented duplicate offer submission from same click.');
         return;
       }
 
@@ -951,18 +805,47 @@
       sendOfferBtn.style.opacity = '0.6';
       sendOfferBtn.style.cursor = 'not-allowed';
 
+      let sendError = '';
+
       try {
         console.log('[OFFER SUBMIT] started');
+
+        // Double-check active deal immediately before creating offer
+        try {
+          const lockedNow = await checkActiveDeal(adId);
+          if (lockedNow) {
+            activeDealLocked = true;
+            alert('This ad is locked because it already has an active deal.');
+            return;
+          }
+        } catch (e) {
+          console.warn('make-offer > error checking active deal before submit', e);
+        }
 
         const buyerUserId = await getCurrentBuyerUserId();
         if (!buyerUserId) {
           console.warn('make-offer > No authenticated buyer found. Offer was not recorded.');
+          sendError = 'Please sign in to send an offer.';
+          return;
+        }
+
+        // One pending offer at a time: block if this buyer already has one for this ad
+        const existingPendingOffer = await getPendingOfferForBuyer(buyerUserId, adId);
+        if (existingPendingOffer) {
+          console.log('make-offer > pending offer found, blocking submission:', {
+            adId,
+            buyerId: buyerUserId,
+            offerId: existingPendingOffer.id
+          });
+          pendingOffer = existingPendingOffer;
+          startPendingOfferPolling();
           return;
         }
 
         const currentAd = await fetchCurrentAdForOffer();
         if (!currentAd || !currentAd.seller_id) {
           console.warn('make-offer > Missing seller_id for current ad. Offer was not recorded.');
+          sendError = 'Could not load this ad. Please try again.';
           return;
         }
 
@@ -974,42 +857,63 @@
         });
 
         if (!insertedOffer) {
-          console.warn('make-offer > Offer insert failed. Offer Sent success was not shown.');
+          console.warn('make-offer > Offer insert failed. Offer Sent page was not opened.');
+
+          // It may have failed because a pending offer appeared in the meantime
+          const nowPending = await getPendingOfferForBuyer(buyerUserId, adId);
+          if (nowPending) {
+            pendingOffer = nowPending;
+            startPendingOfferPolling();
+          } else {
+            sendError = 'Could not send your offer. Please try again.';
+          }
           return;
         }
 
-        successOfferAmount.textContent = 'Rs. ' + formatNumber(numericValue);
-        offerSuccess.hidden = false;
-        offerSuccess.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
         console.log('[OFFER SUBMIT] success');
-        setOfferCooldown();
-        hideOfferCooldownWarning();
-        startOfferCooldownTimer();
 
+        // The new offer is pending: lock sending until the seller accepts or rejects
+        pendingOffer = insertedOffer;
+
+        // Create the notification first, so it exists before the page changes
         const buyerNotificationMessage = await createBuyerOfferNotification({
           offerAmount: numericValue,
           productTitle: adTitleEl.textContent || storedTitle || 'Ad'
         });
 
         console.log('[OFFER NOTIFICATION] created:', buyerNotificationMessage);
+
+        // Open the "Offer sent" page (replace, so Back does not return to this form)
+        isRedirecting = true;
+        stopPendingOfferPolling();
+
+        const sentAdId = String(currentAd.id || adId);
+
+        window.location.replace(
+          'offer-sent.html?id=' + encodeURIComponent(sentAdId) +
+          '&amount=' + encodeURIComponent(String(numericValue))
+        );
       } catch (error) {
         console.error('make-offer > Offer submission failed:', error);
+        sendError = 'Could not send your offer. Please try again.';
       } finally {
         isSubmittingOffer = false;
 
-        if (!getRemainingOfferCooldownMs()) {
-          sendOfferBtn.disabled = false;
-          sendOfferBtn.style.opacity = '1';
-          sendOfferBtn.style.cursor = 'pointer';
-        }
+        // When redirecting, leave the page as it is until the new page opens
+        if (!isRedirecting) {
+          refreshSendButtonState();
 
-        console.log('[OFFER COOLDOWN] final button state:', {
-          adId,
-          disabled: sendOfferBtn.disabled,
-          opacity: sendOfferBtn.style.opacity,
-          cursor: sendOfferBtn.style.cursor
-        });
+          if (sendError) {
+            showNotice(sendError);
+          }
+        }
+      }
+    });
+
+    // Coming back to this tab: check right away if the seller has replied
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        syncPendingOfferState();
       }
     });
 
@@ -1018,16 +922,14 @@
       if (!allowed) return;
       applyAdInfo(storedTitle, storedPrice, 'Category');
 
-      const remainingMs = getRemainingOfferCooldownMs();
-      console.log('[OFFER COOLDOWN] init remaining before submit:', remainingMs);
-
-      // Do not disable the button on page load just because a cooldown exists.
-      // The button stays enabled, and the warning is shown only when a user tries to submit again.
       sendOfferBtn.disabled = false;
       sendOfferBtn.style.opacity = '1';
       sendOfferBtn.style.cursor = 'pointer';
 
       await loadSelectedAd();
+
+      // If this buyer already has a pending offer on this ad, lock the button now
+      await syncPendingOfferState();
     })();
   </script>
 </body>
