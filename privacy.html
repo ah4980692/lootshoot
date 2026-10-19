@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="How LootShoot collects, uses and protects your information.">
+  <title>Privacy Policy - LootShoot</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+
+    :root {
+      --primary: #0c4b32;
+      --accent: #15965a;
+      --bg: #f4faf6;
+      --ink: #123c2a;
+      --muted: #5e6f66;
+      --line: #dcebe3;
+      --soft: #eef9f2;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+      scroll-padding-top: 84px;
+    }
+
+    body {
+      font-family: "DM Sans", Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.7;
+      font-size: 16px;
+    }
+
+    a {
+      color: var(--accent);
+      text-underline-offset: 3px;
+    }
+
+    a:focus-visible,
+    button:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 3px;
+      border-radius: 4px;
+    }
+
+    /* Top bar */
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--primary);
+      color: #ffffff;
+    }
+
+    .topbar-inner {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 14px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .brand {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: #ffffff;
+      text-decoration: none;
+    }
+
+    .back-link {
+      color: #d9f5e5;
+      font-size: 14px;
+      font-weight: 600;
+      text-decoration: none;
+      padding: 8px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .back-link:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* Page */
+
+    .page {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 32px 20px 64px;
+    }
+
+    .doc {
+      background: #ffffff;
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 36px 32px 40px;
+      box-shadow: 0 10px 34px rgba(12, 75, 50, 0.06);
+    }
+
+    h1 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 2.2rem;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 8px;
+    }
+
+    .updated {
+      color: var(--muted);
+      font-size: 14px;
+      margin-bottom: 22px;
+    }
+
+    .intro {
+      max-width: 68ch;
+      margin-bottom: 26px;
+    }
+
+    h2 {
+      font-family: "Space Grotesk", sans-serif;
+      font-size: 1.35rem;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      margin: 40px 0 12px;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin: 20px 0 6px;
+    }
+
+    p,
+    ul {
+      max-width: 68ch;
+    }
+
+    p + p {
+      margin-top: 12px;
+    }
+
+    ul {
+      margin: 10px 0 0 1.2em;
+    }
+
+    li {
+      margin-bottom: 7px;
+      padding-left: 4px;
+    }
+
+    li::marker {
+      color: var(--accent);
+    }
+
+    /* Summary */
+
+    .summary {
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--accent);
+      border-radius: 14px;
+      padding: 18px 20px 14px;
+      margin-bottom: 26px;
+    }
+
+    .summary h2 {
+      margin: 0 0 8px;
+      font-size: 1.1rem;
+    }
+
+    .summary ul {
+      margin-top: 4px;
+    }
+
+    /* Table of contents */
+
+    .toc {
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 16px 0;
+    }
+
+    .toc-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 8px;
+    }
+
+    .toc ul {
+      list-style: none;
+      margin: 0;
+      max-width: none;
+      columns: 2;
+      column-gap: 28px;
+    }
+
+    .toc li {
+      padding: 0;
+      margin-bottom: 5px;
+      break-inside: avoid;
+      font-size: 14.5px;
+    }
+
+    /* Who can see what + providers */
+
+    .rows {
+      margin-top: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      overflow: hidden;
+      max-width: 68ch;
+    }
+
+    .row {
+      padding: 13px 16px;
+    }
+
+    .row + .row {
+      border-top: 1px solid var(--line);
+    }
+
+    .row-title {
+      font-weight: 700;
+      margin-bottom: 2px;
+    }
+
+    .row p {
+      font-size: 15px;
+      color: var(--muted);
+      margin: 0;
+    }
+
+    .row p + p {
+      margin-top: 6px;
+    }
+
+    .contact-box {
+      margin-top: 12px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 16px 18px;
+      max-width: 68ch;
+    }
+
+    .contact-box strong {
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    /* Footer */
+
+    .footer {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 20px 40px;
+      color: var(--muted);
+      font-size: 13.5px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px 18px;
+      justify-content: space-between;
+    }
+
+    .footer a {
+      color: var(--muted);
+    }
+
+    @media (max-width: 640px) {
+
+      body {
+        font-size: 15.5px;
+      }
+
+      .page {
+        padding: 18px 12px 44px;
+      }
+
+      .doc {
+        padding: 24px 18px 30px;
+        border-radius: 16px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+
+      h2 {
+        margin-top: 32px;
+      }
+
+      .toc ul {
+        columns: 1;
+      }
+
+      .topbar-inner {
+        padding: 12px 14px;
+      }
+
+      .brand {
+        font-size: 18px;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html">LOOTSHOOT</a>
+      <a class="back-link" href="index.html">Back to home</a>
+    </div>
+  </header>
+
+  <main class="page" id="top">
+
+    <article class="doc">
+
+      <h1>Privacy Policy</h1>
+      <p class="updated">Last updated: October 2026</p>
+
+      <p class="intro">
+        LootShoot is an independent marketplace where people buy and sell PUBG Mobile accounts, popularity (POP) and other gaming items. This policy explains what information we collect, why we collect it, who can see it, and what choices you have. By using LootShoot you agree to this policy. Please read it together with our <a href="terms.html">Terms &amp; Conditions</a>.
+      </p>
+
+      <section class="summary" aria-labelledby="short-version">
+        <h2 id="short-version">The short version</h2>
+        <ul>
+          <li>We collect only what we need to run the marketplace: your account details, your listings, offers, orders, chats and payment proofs.</li>
+          <li>Your email address and WhatsApp number are never shown to other users.</li>
+          <li>Your username, profile photo and listings are public.</li>
+          <li>We do not sell your personal information.</li>
+          <li>You can update your details, delete your listings, or ask us to delete your account.</li>
+        </ul>
+      </section>
+
+      <nav class="toc" aria-label="Contents">
+        <div class="toc-title">On this page</div>
+        <ul>
+          <li><a href="#collect">Information we collect</a></li>
+          <li><a href="#use">How we use it</a></li>
+          <li><a href="#visible">Who can see what</a></li>
+          <li><a href="#share">Who we share it with</a></li>
+          <li><a href="#payments">Payments and payouts</a></li>
+          <li><a href="#media">Photos, videos and links</a></li>
+          <li><a href="#storage">Browser storage</a></li>
+          <li><a href="#keep">How long we keep it</a></li>
+          <li><a href="#choices">Your choices</a></li>
+          <li><a href="#security">Security</a></li>
+          <li><a href="#countries">Other countries</a></li>
+          <li><a href="#changes">Changes to this policy</a></li>
+          <li><a href="#contact">Contact us</a></li>
+        </ul>
+      </nav>
+
+
+      <h2 id="collect">Information we collect</h2>
+
+      <h3>Account details</h3>
+      <p>
+        Your username, email address, password, WhatsApp number (saved as +92 followed by your number), the date you joined, and a profile photo if you add one. Your password is handled by our sign-in provider and is not visible to us.
+      </p>
+
+      <h3>Listings</h3>
+      <p>
+        The title, description, price, type, photos and, for Account listings, an optional video that you add to an ad.
+      </p>
+
+      <h3>Offers, orders and notifications</h3>
+      <p>
+        Offers you make or receive, orders (including their status, such as delivered or received), the payment proof you upload when you buy, and the notifications we send you inside LootShoot.
+      </p>
+
+      <h3>Chats</h3>
+      <p>
+        Messages and images you send in an order chat, with the time they were sent and whether they were read.
+      </p>
+
+      <h3>Support and payouts</h3>
+      <p>
+        When you contact us on WhatsApp or by email, we receive what you send. Some LootShoot buttons open WhatsApp with a ready-made message that can include the ad title, price, order or conversation ID and the buyer’s and seller’s usernames. Sellers who ask for a payout also send us their payout details, such as the payment method, account title and account number.
+      </p>
+
+      <h3>Technical information</h3>
+      <p>
+        When your device connects to LootShoot or to the services we use, those services automatically receive technical information such as your IP address, browser type and the time of the request.
+      </p>
+
+
+      <h2 id="use">How we use it</h2>
+      <ul>
+        <li>To create and secure your account, and to confirm your email with a one-time code.</li>
+        <li>To show listings and to run offers, orders and chats.</li>
+        <li>To review listings, photos and videos before they appear on the marketplace.</li>
+        <li>To check payment proofs, confirm orders and release payments to sellers.</li>
+        <li>To send you notifications about your offers, orders and listings.</li>
+        <li>To prevent fraud and misuse, enforce our Terms, and resolve reports and disputes.</li>
+        <li>To answer your questions and give you support.</li>
+        <li>To follow the law when we are required to.</li>
+      </ul>
+
+
+      <h2 id="visible">Who can see what</h2>
+
+      <div class="rows">
+        <div class="row">
+          <div class="row-title">Public</div>
+          <p>Your username and profile photo, the month you joined, and your listings: title, description, price, photos and video. Your active listings are also shown together on your seller page. Anyone can see this, including people who are not signed in.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">The other person in an order</div>
+          <p>When you buy from or sell to someone, you can see each other’s username and photo, and the messages and images you send each other in the order chat.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">Only you and LootShoot</div>
+          <p>Your email address, your WhatsApp number, and the payment proof you upload are not shown to other users in the app. Payout details you send us are used only to pay you.</p>
+        </div>
+      </div>
+
+      <p style="margin-top:14px">
+        Please do not put personal contact details or sensitive information in listings, photos, videos or chat.
+      </p>
+
+
+      <h2 id="share">Who we share it with</h2>
+      <p>
+        We do not sell your personal information. We use the services below to run LootShoot, and they handle information only to provide their service to us.
+      </p>
+
+      <div class="rows">
+        <div class="row">
+          <div class="row-title">Supabase</div>
+          <p>Our database, sign-in system and file storage. It holds your account details, listings, offers, orders, chats, notifications, and the images you upload.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">Bunny.net (Bunny Stream)</div>
+          <p>Stores and plays the videos on Account listings. It receives the videos sellers upload, and the IP address of people who watch them.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">Google Fonts and jsDelivr</div>
+          <p>Load the fonts and code libraries our pages use. They receive your IP address and browser details when a page loads.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">WhatsApp (Meta)</div>
+          <p>When you tap Contact us, the report flag, or a payout link, you continue in WhatsApp. What you send there is covered by WhatsApp’s own terms and privacy policy.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">Easypaisa and JazzCash</div>
+          <p>You pay using these apps, outside LootShoot. We only receive the proof of payment you upload. Their handling of your payment details is covered by their own policies.</p>
+        </div>
+        <div class="row">
+          <div class="row-title">Email delivery</div>
+          <p>Our sign-in system sends one-time verification codes to your email address.</p>
+        </div>
+      </div>
+
+      <p style="margin-top:14px">
+        We may also share information when the law requires it, to protect LootShoot or its users, or to investigate fraud or a breach of our Terms. If LootShoot is ever sold or merged with another business, your information may move with it, and this policy would continue to apply.
+      </p>
+
+
+      <h2 id="payments">Payments and payouts</h2>
+      <p>
+        We use your payment proof to confirm that you paid, and we do not show it to other users in the app. A screenshot may include your account details, so please upload only what is needed to prove the payment.
+      </p>
+      <p>
+        When a deal is completed, we ask the seller to send their payout details on WhatsApp so we can pay them. We use these details only for that payout and to keep records of it.
+      </p>
+
+
+      <h2 id="media">Photos, videos and links</h2>
+      <p>
+        Listing photos, profile photos and chat images are stored at web addresses that are hard to guess. Anyone who has the exact address of a photo can open it, so share an address only with people you trust. Listing videos are public in the same way as the rest of the listing.
+      </p>
+      <p>
+        When you delete a listing, we also delete its photos and its video.
+      </p>
+
+
+      <h2 id="storage">Browser storage</h2>
+      <p>
+        We do not use advertising or analytics cookies. We use your browser’s local and session storage to keep you signed in, remember which chats you have opened, and make our pages work. If you clear your browser data, you will be signed out.
+      </p>
+
+
+      <h2 id="keep">How long we keep it</h2>
+      <ul>
+        <li><strong>Your account details:</strong> for as long as your account is active.</li>
+        <li><strong>Your listings:</strong> until you delete them or they are removed.</li>
+        <li><strong>Orders, payment proofs and chats:</strong> for as long as we need them to handle disputes, refunds, fraud checks and legal duties. They may be kept after a listing is deleted.</li>
+        <li><strong>Backups:</strong> deleted information can remain in our providers’ backups for a short time.</li>
+      </ul>
+
+
+      <h2 id="choices">Your choices</h2>
+      <ul>
+        <li>You can change your username, WhatsApp number and profile photo any time in <strong>Edit Profile</strong>.</li>
+        <li>You can edit or delete your listings, and remove a listing’s video, whenever you like.</li>
+        <li>You can ask us for a copy of your information, to correct it, or to delete your account. Email us from the address on your account. We may keep records we need for an open order, a dispute, fraud prevention or the law.</li>
+        <li>You can sign out at any time, and clear your browser data to remove what we store in your browser.</li>
+      </ul>
+
+
+      <h2 id="security">Security</h2>
+      <p>
+        We use encrypted connections, and access rules that limit what each user can read. Our team opens your information only when we need to, for example to review a payment or answer a report. No online service is completely secure, so please use a strong password and keep it private.
+      </p>
+
+
+      <h2 id="countries">Other countries</h2>
+      <p>
+        The services we use run servers in different countries, so your information may be processed outside Pakistan.
+      </p>
+
+
+      <h2 id="changes">Changes to this policy</h2>
+      <p>
+        If we change this policy, we will post the new version here and update the date at the top. If a change is important, we will also tell you inside LootShoot. Using LootShoot after a change means you accept the updated policy.
+      </p>
+
+
+      <h2 id="contact">Contact us</h2>
+      <p>
+        For questions about this policy or your information, contact us.
+      </p>
+
+      <div class="contact-box">
+        <strong>LootShoot support</strong>
+        <a href="mailto:lootshoot.support@gmail.com">lootshoot.support@gmail.com</a>
+      </div>
+
+      <p style="margin-top:22px; color:var(--muted); font-size:14px;">
+        LootShoot is an independent marketplace and is not affiliated with, sponsored by, or endorsed by PUBG Mobile.
+      </p>
+
+    </article>
+
+  </main>
+
+  <footer class="footer">
+    <span>© 2026 LootShoot</span>
+    <span>
+      <a href="terms.html">Terms</a> &nbsp;·&nbsp; <a href="#top">Back to top</a>
+    </span>
+  </footer>
+
+</body>
+</html>
