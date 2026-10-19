@@ -307,7 +307,7 @@
     <div class="step">
       <div class="step-header">
         <div class="step-number">3</div>
-        <h2 class="step-title">Upload your screenshot</h2>
+        <h2 class="step-title">Upload your payment screenshot</h2>
       </div>
 
       <div class="step-block">
@@ -545,6 +545,8 @@
         /* 4. Success */
         showMessage('Payment submitted successfully. We will review your payment shortly and will contact you.', 'success');
         submitBtn.textContent = 'Payment submitted';
+        sessionStorage.setItem('paymentSubmittedAdId', adId || '');
+        window.location.href = 'payment-submitted.html';
 
       } catch (error) {
         console.error('Payment submission error:', error);
