@@ -6,6 +6,17 @@
   <meta name="description" content="LootShoot Terms & Conditions.">
   <title>Terms &amp; Conditions - LootShoot</title>
 
+  <!-- THEME: uses the choice saved from the main page. Runs first so there is no white flash. -->
+  <script>
+    (function () {
+      var theme = "light";
+      try {
+        theme = localStorage.getItem("lootshootTheme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -232,6 +243,9 @@
     }
 
   </style>
+
+  <!-- Dark theme (loaded after the styles above so it can override them) -->
+  <link rel="stylesheet" href="dark-terms.css">
 </head>
 
 <body>
