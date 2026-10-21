@@ -1,0 +1,149 @@
+/* =========================================================
+   dark-explore.css  -  LootShoot Explore (explore.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page and saved in the browser,
+   so this page has no switch of its own.
+   This page is also shown inside the dashboard, so the dashboard
+   and Explore stay in the same theme.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: #0a120e;
+  color: #e9f4ee;
+}
+
+/* ---------- Page and hero ---------- */
+
+html[data-theme="dark"] .explore-page {
+  background: linear-gradient(135deg, #0a120e 0%, #0d1712 100%);
+}
+
+html[data-theme="dark"] .explore-hero {
+  border-color: #223a2d;
+  background: linear-gradient(110deg, #0f1d16 0%, #0a120e 100%);
+}
+
+html[data-theme="dark"] .hero-label {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .hero-content h1 {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .hero-content p {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .hero-decoration {
+  background: #25c27a;
+  opacity: 0.12;
+}
+
+html[data-theme="dark"] .hero-character img {
+  opacity: 0.9;
+}
+
+/* ---------- Search and categories ---------- */
+
+html[data-theme="dark"] .sticky-filters {
+  background: #0d1712;
+  border-bottom-color: #1d3226;
+}
+
+html[data-theme="dark"] .search-box {
+  background: #111d17;
+  border-color: #223a2d;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .search-icon {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .search-box textarea {
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .search-box textarea::placeholder {
+  color: #6f8a7b;
+}
+
+html[data-theme="dark"] .category {
+  background: #111d17;
+  border-color: #223a2d;
+  color: #cfe3d7;
+}
+
+html[data-theme="dark"] .category:hover {
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .category.active {
+  background: #0f7a48;
+  border-color: #0f7a48;
+  color: #ffffff;
+}
+
+/* ---------- Listing cards ---------- */
+
+html[data-theme="dark"] .card {
+  background: #111d17;
+  border-color: #223a2d;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="dark"] .card-image {
+  background: #16251d;
+}
+
+html[data-theme="dark"] .card-title {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .card-info {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .price {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .seller {
+  color: #cfe3d7;
+}
+
+html[data-theme="dark"] .seller-avatar {
+  background: #143324;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .details {
+  background: transparent;
+  border-color: #2c5a40;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .details:hover {
+  background: #0f7a48;
+  border-color: #0f7a48;
+  color: #ffffff;
+}
+
+/* ---------- Empty and loading messages ---------- */
+
+html[data-theme="dark"] .no-results {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .no-results h3 {
+  color: #f2faf5;
+}
