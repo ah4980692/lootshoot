@@ -1,0 +1,426 @@
+/* =========================================================
+   dark-seller-dashboard.css  -  LootShoot dashboard (seller-dashboard.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page or with the switch in the
+   dashboard header, and is saved in the browser.
+========================================================= */
+
+/* ---------- Theme switch in the header (works in light AND dark) ---------- */
+
+.theme-toggle {
+  width: 42px;
+  height: 42px;
+  border: none;
+  border-radius: 50%;
+  background: var(--light-green);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+  flex-shrink: 0;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.theme-toggle:hover,
+.theme-toggle:focus-visible {
+  background: #d9f3df;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(12, 75, 50, 0.12);
+}
+
+.theme-toggle svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Light mode shows the moon, dark mode shows the sun */
+.theme-toggle .icon-sun { display: none; }
+.theme-toggle .icon-moon { display: block; }
+
+html[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+html[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Colour variables used all over the dashboard.
+     --primary and --accent are NOT changed here, because buttons use them
+     with white text. Those buttons are restyled below. */
+  --bg: #0a120e;
+  --text: #e9f4ee;
+  --muted: #9bb0a4;
+  --muted-2: #8aa093;
+  --border: #223a2d;
+  --border-2: #1d3226;
+  --light-green: #143324;
+  --light-green-2: #16251d;
+  --red: #ff8a8a;
+  --red-bg: #3a1a1a;
+  --red-bg-2: #3f1f1f;
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (min-width: 900px) {
+  html[data-theme="dark"] body {
+    background: #050907;
+  }
+
+  html[data-theme="dark"] .app-shell {
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* ---------- Header ---------- */
+
+html[data-theme="dark"] .dashboard-header {
+  background: #0d1712;
+  border-bottom: 1px solid #1d3226;
+}
+
+html[data-theme="dark"] .seller-avatar,
+html[data-theme="dark"] .theme-toggle,
+html[data-theme="dark"] .header-chat-button {
+  background: var(--light-green);
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .theme-toggle:hover,
+html[data-theme="dark"] .theme-toggle:focus-visible,
+html[data-theme="dark"] .header-chat-button:hover,
+html[data-theme="dark"] .header-chat-button:focus-visible {
+  background: #1b4430;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Explore frame ---------- */
+
+html[data-theme="dark"] .explore-frame {
+  background: #0a120e;
+}
+
+/* ---------- Sell Now form ---------- */
+
+html[data-theme="dark"] .form-card,
+html[data-theme="dark"] .profile-card,
+html[data-theme="dark"] .empty-message {
+  background: #111d17;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .form-group input,
+html[data-theme="dark"] .form-group textarea {
+  background: #0d1712;
+  border-color: #2a4535;
+  color: var(--text);
+}
+
+html[data-theme="dark"] .form-group input::placeholder,
+html[data-theme="dark"] .form-group textarea::placeholder {
+  color: #6f8a7b;
+}
+
+html[data-theme="dark"] .form-group input:focus,
+html[data-theme="dark"] .form-group textarea:focus {
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .type-option.selected {
+  color: #3fd68b;
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .photo-thumb {
+  background: #0d1712;
+}
+
+html[data-theme="dark"] .publish-button {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .publish-button:hover {
+  background: #0c6a3e;
+}
+
+html[data-theme="dark"] .review-note {
+  background: var(--light-green-2);
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .message.success {
+  color: #7fe0ae;
+}
+
+/* ---------- My Ads ---------- */
+
+html[data-theme="dark"] .my-ad-card {
+  background: #111d17;
+  border-color: #223a2d;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .my-ad-card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="dark"] .my-ad-image {
+  background: #16251d;
+}
+
+html[data-theme="dark"] .my-ad-title {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .my-ad-desc {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .my-ad-price {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .my-ad-seller {
+  color: #cfe3d7;
+}
+
+html[data-theme="dark"] .seller-avatar-sm {
+  background: #143324;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .pending-badge {
+  background: #143324;
+  border-color: rgba(63, 214, 139, 0.3);
+}
+
+html[data-theme="dark"] .pending-badge svg {
+  stroke: #3fd68b;
+}
+
+html[data-theme="dark"] .ad-countdown-pill {
+  background: #143324;
+  border-color: #28442f;
+  color: #7fe0ae;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .ad-countdown-pill.is-expired {
+  background: #3a1a1a;
+  border-color: #5a2a2a;
+  color: #ff9b9b;
+}
+
+html[data-theme="dark"] .ad-delete-btn {
+  background: #111d17;
+}
+
+html[data-theme="dark"] .view-details-btn {
+  background: transparent;
+  border-color: #2c5a40;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .view-details-btn:hover {
+  background: #0f7a48;
+  border-color: #0f7a48;
+  color: #ffffff;
+}
+
+/* ---------- Notifications ---------- */
+
+html[data-theme="dark"] .notifications-tabs {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+html[data-theme="dark"] .notification-tab:hover {
+  background: rgba(63, 214, 139, 0.06);
+}
+
+html[data-theme="dark"] .notification-tab.active {
+  color: #3fd68b;
+  background: rgba(63, 214, 139, 0.08);
+}
+
+html[data-theme="dark"] .notification-tab.active::after {
+  background: #3fd68b;
+}
+
+html[data-theme="dark"] .tab-badge {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .notification-tab.active .tab-badge {
+  background: #0f7a48;
+  color: #ffffff;
+}
+
+html[data-theme="dark"] .empty-notification {
+  background: #111d17;
+}
+
+html[data-theme="dark"] .official-notification {
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.3);
+}
+
+html[data-theme="dark"] .official-notification.unread {
+  background: #1a2b22;
+  border-color: #2c5a40;
+}
+
+html[data-theme="dark"] .official-notification-icon {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .official-unread-dot {
+  background: #3fd68b;
+}
+
+html[data-theme="dark"] .official-notification-message a {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .official-notification.selling-offer-notification {
+  background: #111d17;
+  border-color: #223a2d;
+}
+
+html[data-theme="dark"] .selling-offer-avatar {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .selling-offer-image {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .selling-offer-amount {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .selling-offer-action-btn.reject {
+  background: transparent;
+  border-color: #2f4d3d;
+  color: var(--text);
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .selling-offer-action-btn.accept {
+  background: #0f7a48;
+  border-color: #0f7a48;
+  box-shadow: 0 12px 28px rgba(15, 122, 72, 0.3);
+}
+
+/* ---------- My Profile ---------- */
+
+html[data-theme="dark"] .profile-avatar-large {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .profile-status-pill {
+  color: #7fe0ae;
+}
+
+html[data-theme="dark"] .profile-btn.primary {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .profile-btn.primary:hover {
+  background: #0c6a3e;
+}
+
+/* ---------- Bottom navigation ---------- */
+
+html[data-theme="dark"] .seller-bottom-nav {
+  background: #0d1712;
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="dark"] .nav-item.active {
+  background: var(--light-green-2);
+  color: #3fd68b;
+  border-color: rgba(63, 214, 139, 0.25);
+}
+
+html[data-theme="dark"] .nav-badge {
+  background: #0f7a48;
+}
+
+/* ---------- Popups ---------- */
+
+html[data-theme="dark"] .delete-confirm-modal,
+html[data-theme="dark"] .offer-reject-modal-card,
+html[data-theme="dark"] .offer-accept-modal-card,
+html[data-theme="dark"] .auth-modal {
+  background: #111d17;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.6);
+}
+
+html[data-theme="dark"] .delete-confirm-title,
+html[data-theme="dark"] .offer-reject-modal-title,
+html[data-theme="dark"] .auth-modal-title {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .offer-reject-modal-icon {
+  background: #3a1a1a;
+  color: #ff8a8a;
+}
+
+html[data-theme="dark"] .delete-confirm-btn.cancel,
+html[data-theme="dark"] .offer-reject-modal-btn.cancel,
+html[data-theme="dark"] .auth-modal-btn.secondary,
+html[data-theme="dark"] .auth-inline-btn.secondary {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .offer-accept-modal-icon {
+  background: #143324;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .offer-accept-modal-price-new {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .offer-accept-modal-btn.cancel {
+  background: transparent;
+  color: var(--text);
+  border-color: #2f4d3d;
+}
+
+html[data-theme="dark"] .offer-accept-modal-btn.cancel:hover {
+  background: #16251d;
+}
+
+html[data-theme="dark"] .offer-accept-modal-btn.accept {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .offer-accept-modal-btn.accept:hover:not(:disabled) {
+  background: #0c6a3e;
+}
+
+html[data-theme="dark"] .offer-accept-modal-btn.accept:disabled {
+  background: #1f3328;
+  color: #6f8a7b;
+}
+
+html[data-theme="dark"] .auth-modal-btn.primary,
+html[data-theme="dark"] .auth-inline-btn.primary {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .auth-modal-btn.primary:hover,
+html[data-theme="dark"] .auth-inline-btn.primary:hover {
+  background: #0c6a3e;
+}
+
+html[data-theme="dark"] .auth-inline-card {
+  background: #111d17;
+}
