@@ -1,0 +1,257 @@
+/* =========================================================
+   dark-ad-details.css  -  LootShoot Ad Details (ad-details.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Colour variables used on this page.
+     --green is NOT changed, because the seller avatar uses it with white text. */
+  --ink: #e9f4ee;
+  --sub: #9bb0a4;
+  --line: #223a2d;
+  --green-light: #143324;
+}
+
+html[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0a120e 0%, #0d1712 45%, #0a120e 100%);
+  color: var(--ink);
+}
+
+@media (min-width: 600px) {
+  html[data-theme="dark"] body {
+    background: #050907;
+  }
+
+  html[data-theme="dark"] .page {
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* ---------- Top bar ---------- */
+
+html[data-theme="dark"] .topbar {
+  background: rgba(13, 23, 18, 0.94);
+  border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .back-btn {
+  background: #111d17;
+  border-color: var(--line);
+  color: var(--ink);
+  box-shadow: none;
+}
+
+/* ---------- Photos and video ---------- */
+
+html[data-theme="dark"] .image-section,
+html[data-theme="dark"] .dots {
+  background: #0d1712;
+}
+
+/* The "no photo" slide has an inline light background, so !important is needed */
+html[data-theme="dark"] .slide {
+  background: #0d1712 !important;
+}
+
+html[data-theme="dark"] .slide-backdrop {
+  opacity: 0.3;
+}
+
+html[data-theme="dark"] .no-image {
+  background: #16251d;
+  border-color: #2a4535;
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .dot {
+  background: #16251d;
+}
+
+html[data-theme="dark"] .dot.active {
+  border-color: #3fd68b;
+  box-shadow: 0 0 0 1px rgba(63, 214, 139, 0.25);
+}
+
+/* ---------- Title, price, seller ---------- */
+
+html[data-theme="dark"] .price {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .type-badge {
+  background: #143324;
+  color: #7fe0ae;
+}
+
+html[data-theme="dark"] .contact-line {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .contact-line b {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .contact-line-icon {
+  background: #143324;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .seller-row {
+  background: #111d17;
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] a.seller-row:hover {
+  border-color: #2c5a40;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+
+/* ---------- Description ---------- */
+
+html[data-theme="dark"] .details-section {
+  background: #111d17;
+  border-color: var(--line);
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .description-title {
+  color: #8aa093;
+}
+
+html[data-theme="dark"] .description {
+  color: #cfe3d7;
+}
+
+html[data-theme="dark"] .read-more-btn {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .read-more-btn:hover {
+  color: #7fe0ae;
+}
+
+html[data-theme="dark"] .date {
+  color: #8aa093;
+  border-top-color: var(--line);
+}
+
+/* ---------- Bottom buttons ---------- */
+
+html[data-theme="dark"] .action-buttons,
+html[data-theme="dark"] .purchase-buttons {
+  background: rgba(13, 23, 18, 0.98);
+  border-top-color: #1d3226;
+  box-shadow: 0 -8px 20px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="dark"] .edit-btn,
+html[data-theme="dark"] .buy-now-btn {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .edit-btn:hover,
+html[data-theme="dark"] .buy-now-btn:hover {
+  background: #0c6a3e;
+  box-shadow: 0 4px 12px rgba(15, 122, 72, 0.35);
+}
+
+html[data-theme="dark"] .delete-btn {
+  background: #3a1a1a;
+  color: #ff8a8a;
+}
+
+html[data-theme="dark"] .delete-btn:hover {
+  background: #4a2222;
+}
+
+html[data-theme="dark"] .make-offer-btn {
+  background: #143324;
+  color: #7fe0ae;
+  border-color: #28442f;
+}
+
+html[data-theme="dark"] .make-offer-btn:hover {
+  background: #1b4430;
+}
+
+/* ---------- "Sign in required" popup ---------- */
+
+html[data-theme="dark"] .auth-modal {
+  background: #111d17;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+html[data-theme="dark"] .auth-modal-close {
+  background: #16251d;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .auth-modal-close:hover {
+  background: #1f3328;
+}
+
+html[data-theme="dark"] .auth-modal-icon {
+  background: #143324;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .auth-modal-title {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .auth-modal-subtitle {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .auth-modal-btn.secondary {
+  color: #3fd68b;
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .auth-modal-btn.secondary:hover {
+  background: #143324;
+}
+
+html[data-theme="dark"] .auth-modal-btn.primary {
+  background: #0f7a48;
+  border-color: #0f7a48;
+}
+
+html[data-theme="dark"] .auth-modal-btn.primary:hover {
+  background: #0c6a3e;
+  border-color: #0c6a3e;
+}
+
+/* ---------- Delete popup ---------- */
+
+html[data-theme="dark"] .delete-modal {
+  background: #111d17;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+}
+
+html[data-theme="dark"] .delete-modal-title {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .delete-modal-text {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .delete-modal-btn.cancel {
+  background: #1f3328;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .delete-modal-btn.cancel:hover {
+  background: #28442f;
+}
+
+/* ---------- "Ad not found" ---------- */
+
+html[data-theme="dark"] .not-found {
+  color: #9bb0a4;
+}
