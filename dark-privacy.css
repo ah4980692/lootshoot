@@ -1,0 +1,90 @@
+/* =========================================================
+   dark-privacy.css  -  LootShoot Privacy Policy (privacy.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page and saved in the browser,
+   so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* The page colours come from these variables */
+  --primary: #0d1712;
+  --accent: #3fd68b;
+  --bg: #0a120e;
+  --ink: #e9f4ee;
+  --muted: #9bb0a4;
+  --line: #223a2d;
+  --soft: #16251d;
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Top bar */
+
+html[data-theme="dark"] .topbar {
+  border-bottom: 1px solid #1d3226;
+}
+
+html[data-theme="dark"] .back-link {
+  border-color: #2f4d3d;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .back-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Document card */
+
+html[data-theme="dark"] .doc {
+  background: #111d17;
+  border-color: var(--line);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] strong {
+  color: #f2faf5;
+}
+
+/* Short summary box, table of contents, rows, contact box */
+
+html[data-theme="dark"] .summary {
+  background: var(--soft);
+  border-color: var(--line);
+  border-left-color: var(--accent);
+}
+
+html[data-theme="dark"] .toc {
+  border-top-color: var(--line);
+  border-bottom-color: var(--line);
+}
+
+html[data-theme="dark"] .rows {
+  border-color: var(--line);
+}
+
+html[data-theme="dark"] .row + .row {
+  border-top-color: var(--line);
+}
+
+html[data-theme="dark"] .contact-box {
+  background: var(--soft);
+  border-color: var(--line);
+}
+
+/* Footer */
+
+html[data-theme="dark"] .footer a {
+  color: var(--muted);
+}
+
+html[data-theme="dark"] .footer a:hover {
+  color: var(--accent);
+}
