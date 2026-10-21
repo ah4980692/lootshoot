@@ -6,6 +6,17 @@
   <meta name="description" content="How LootShoot collects, uses and protects your information.">
   <title>Privacy Policy - LootShoot</title>
 
+  <!-- THEME: uses the choice saved from the main page. Runs first so there is no white flash. -->
+  <script>
+    (function () {
+      var theme = "light";
+      try {
+        theme = localStorage.getItem("lootshootTheme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
@@ -321,6 +332,9 @@
     }
 
   </style>
+
+  <!-- Dark theme (loaded after the styles above so it can override them) -->
+  <link rel="stylesheet" href="dark-privacy.css">
 </head>
 
 <body>
@@ -328,6 +342,7 @@
   <header class="topbar">
     <div class="topbar-inner">
       <a class="brand" href="index.html">LOOTSHOOT</a>
+
       <a class="back-link" href="index.html">Back to home</a>
     </div>
   </header>
