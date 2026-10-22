@@ -114,6 +114,17 @@
       transform: translateY(-2px);
     }
   </style>
+  <!-- DARK THEME: uses the choice saved from the main page. Runs before the page draws, so there is no white flash. -->
+<script>
+  (function () {
+    var theme = "light";
+    try {
+      theme = localStorage.getItem("lootshootTheme") === "dark" ? "dark" : "light";
+    } catch (e) {}
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<link rel="stylesheet" href="dark-status.css">
 </head>
 
 <body>
