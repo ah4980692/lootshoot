@@ -1,0 +1,115 @@
+/* =========================================================
+   dark-otp.css  -  LootShoot Verify OTP (otp.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+   This page uses style1.css, so these rules come after it.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: #0a120e;
+  color: #e9f4ee;
+}
+
+/* Header */
+
+html[data-theme="dark"] .site-header {
+  background: rgba(13, 23, 18, 0.94);
+  border-bottom-color: #1d3226;
+}
+
+html[data-theme="dark"] .brand b {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .brand b span {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .brand small {
+  color: #93a89b;
+}
+
+/* Page and card */
+
+html[data-theme="dark"] .otp-section {
+  background:
+    radial-gradient(circle at 82% 15%, rgba(37, 194, 122, 0.18), transparent 38%),
+    #0a120e;
+}
+
+html[data-theme="dark"] .otp-card {
+  background: #111d17;
+  border-color: #223a2d;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="dark"] .otp-card h2 {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .otp-subtitle {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .otp-email {
+  color: #e9f4ee;
+}
+
+/* The six code boxes */
+
+html[data-theme="dark"] .otp-input {
+  background: #0d1712;
+  border-color: #2a4535;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .otp-input:hover {
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .otp-input:focus {
+  background: #111d17;
+  border-color: #3fd68b;
+  box-shadow: 0 0 0 3px rgba(63, 214, 139, 0.15);
+}
+
+/* Button, messages and links */
+
+html[data-theme="dark"] .button-green {
+  background: #0f7a48;
+  box-shadow: 0 8px 24px rgba(15, 122, 72, 0.35);
+}
+
+html[data-theme="dark"] .button-green:hover {
+  background: #0c6a3e;
+}
+
+html[data-theme="dark"] .otp-error {
+  color: #ff9b9b;
+}
+
+html[data-theme="dark"] .otp-resend-text,
+html[data-theme="dark"] .otp-back-link {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .otp-resend-link {
+  color: #6db3f2;
+}
+
+html[data-theme="dark"] .otp-resend-link:hover {
+  color: #9bcbf7;
+}
+
+html[data-theme="dark"] .otp-resend-link:disabled {
+  color: #6f8a7b;
+}
+
+html[data-theme="dark"] .otp-back-link:hover {
+  color: #3fd68b;
+}
