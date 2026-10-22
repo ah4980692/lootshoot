@@ -1,0 +1,60 @@
+/* =========================================================
+   dark-status.css  -  LootShoot status pages
+   Used by: offer-sent.html, offer-submitted.html, payment-submitted.html
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so these pages have no switch of their own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: #0a120e;
+  color: #e9f4ee;
+}
+
+/* Text */
+
+html[data-theme="dark"] h1 {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] p {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] p strong {
+  color: #f2faf5;
+}
+
+/* Round icon (plane, hourglass, card) */
+
+html[data-theme="dark"] .plane-badge,
+html[data-theme="dark"] .hourglass-badge,
+html[data-theme="dark"] .payment-badge {
+  background: linear-gradient(145deg, #143324, #0f2a1e);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+html[data-theme="dark"] .plane-badge svg,
+html[data-theme="dark"] .hourglass-badge svg,
+html[data-theme="dark"] .payment-badge svg {
+  stroke: #3fd68b;
+}
+
+/* Button */
+
+html[data-theme="dark"] .back-button {
+  background: #0f7a48;
+  box-shadow: 0 8px 22px rgba(15, 122, 72, 0.35);
+}
+
+html[data-theme="dark"] .back-button:hover {
+  background: #0c6a3e;
+}
+
+html[data-theme="dark"] .back-button:focus-visible {
+  outline-color: #3fd68b;
+}
