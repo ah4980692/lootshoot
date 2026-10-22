@@ -1,0 +1,62 @@
+/* =========================================================
+   dark-make-offer.css  -  LootShoot Make an Offer (make-offer.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --green is NOT changed, because the button uses it with white text */
+  --ink: #e9f4ee;
+  --bg: #0a120e;
+  --card: #111d17;
+  --line: #223a2d;
+  --muted: #9bb0a4;
+  --green-soft: #143324;
+  --input-bg: #0d1712;
+  --orange: #f0a860;
+  --shadow: transparent;
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Top bar and bottom bar */
+
+html[data-theme="dark"] .topbar {
+  background: rgba(13, 23, 18, 0.94);
+}
+
+html[data-theme="dark"] .bar {
+  background: rgba(13, 23, 18, 0.94);
+}
+
+/* Product card and offer field */
+
+html[data-theme="dark"] .product-image-placeholder {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] input[type="text"]::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #6f8a7b;
+}
+
+/* The lock message has an inline red colour, so !important is needed */
+html[data-theme="dark"] #offerLockNotice {
+  color: #ff8a8a !important;
+}
+
+/* Button */
+
+html[data-theme="dark"] .submit-btn {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .submit-btn:hover {
+  background: #0c6a3e;
+}
