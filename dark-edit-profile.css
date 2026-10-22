@@ -1,0 +1,110 @@
+/* =========================================================
+   dark-edit-profile.css  -  LootShoot Edit Profile (edit-profile.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: #0a120e;
+  color: #e9f4ee;
+}
+
+/* Top bar */
+
+html[data-theme="dark"] .topbar {
+  background: linear-gradient(135deg, #0a120e, #12402a);
+}
+
+/* Card */
+
+html[data-theme="dark"] .card {
+  background: #111d17;
+  border-color: #223a2d;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+/* Profile photo */
+
+html[data-theme="dark"] .avatar {
+  border-color: #223a2d;
+  background: #143324;
+}
+
+html[data-theme="dark"] .avatar-fallback {
+  border-color: #223a2d;
+  background: #143324;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .camera {
+  background: #0f7a48;
+  border-color: #111d17;
+}
+
+html[data-theme="dark"] .photo-text,
+html[data-theme="dark"] .hint {
+  color: #9bb0a4;
+}
+
+/* Fields */
+
+html[data-theme="dark"] input {
+  background: #0d1712;
+  border-color: #2a4535;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] input:focus {
+  border-color: #3fd68b;
+  box-shadow: 0 0 0 3px rgba(63, 214, 139, 0.15);
+}
+
+html[data-theme="dark"] input::placeholder {
+  color: #6f8a7b;
+}
+
+html[data-theme="dark"] input[readonly] {
+  background: #16251d;
+  color: #8aa093;
+}
+
+html[data-theme="dark"] .phone-field {
+  background: #0d1712;
+  border-color: #2a4535;
+}
+
+html[data-theme="dark"] .phone-field:focus-within {
+  border-color: #3fd68b;
+  box-shadow: 0 0 0 3px rgba(63, 214, 139, 0.15);
+}
+
+html[data-theme="dark"] .phone-prefix {
+  background: #16251d;
+  border-right-color: #2a4535;
+  color: #e9f4ee;
+}
+
+/* Buttons and messages */
+
+html[data-theme="dark"] .cancel {
+  background: transparent;
+  border-color: #2f4d3d;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .save {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .error {
+  color: #ff9b9b;
+}
+
+html[data-theme="dark"] .success {
+  color: #7fe0ae;
+}
