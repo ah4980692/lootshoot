@@ -1,0 +1,53 @@
+/* =========================================================
+   dark-buy-now.css  -  LootShoot Buy Now (buy-now.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --green is NOT changed, because buttons use it with white text */
+  --ink: #e9f4ee;
+  --bg: #0a120e;
+  --card: #111d17;
+  --line: #223a2d;
+  --muted: #9bb0a4;
+  --green-soft: #143324;
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Top bar and bottom bar */
+
+html[data-theme="dark"] .topbar {
+  background: rgba(13, 23, 18, 0.94);
+}
+
+html[data-theme="dark"] .bar {
+  background: rgba(13, 23, 18, 0.94);
+}
+
+/* Order summary */
+
+html[data-theme="dark"] .summary-row.total .muted {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .summary-row .value.total-value {
+  color: #3fd68b;
+}
+
+/* Button */
+
+html[data-theme="dark"] .checkout-btn {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .checkout-btn:hover {
+  background: #0c6a3e;
+}
