@@ -1,0 +1,120 @@
+/* =========================================================
+   dark-seller.css  -  LootShoot Seller profile (seller.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+}
+
+html[data-theme="dark"] body {
+  background: linear-gradient(180deg, #0a120e 0%, #0d1712 45%, #0a120e 100%);
+  color: #e9f4ee;
+}
+
+/* Top bar */
+
+html[data-theme="dark"] .topbar {
+  background: rgba(13, 23, 18, 0.94);
+  border-bottom-color: #1d3226;
+}
+
+html[data-theme="dark"] .back-btn {
+  background: #111d17;
+  border-color: #223a2d;
+  color: #e9f4ee;
+  box-shadow: none;
+}
+
+/* Profile card */
+
+html[data-theme="dark"] .profile-card {
+  background: #111d17;
+  border-color: #223a2d;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .seller-name {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .seller-meta,
+html[data-theme="dark"] .profile-message {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .stat {
+  background: #143324;
+  border-color: #28442f;
+  color: #7fe0ae;
+}
+
+/* Filter chips */
+
+html[data-theme="dark"] .chip {
+  background: #111d17;
+  border-color: #223a2d;
+  color: #cfe3d7;
+}
+
+html[data-theme="dark"] .chip:hover {
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .chip.active {
+  background: #0f7a48;
+  border-color: #0f7a48;
+  color: #ffffff;
+}
+
+/* Ad cards */
+
+html[data-theme="dark"] .card {
+  background: #111d17;
+  border-color: #223a2d;
+  box-shadow: 0 7px 25px rgba(0, 0, 0, 0.35);
+}
+
+html[data-theme="dark"] .card:hover {
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5);
+}
+
+html[data-theme="dark"] .card-image {
+  background: #16251d;
+}
+
+html[data-theme="dark"] .card-title {
+  color: #f2faf5;
+}
+
+html[data-theme="dark"] .card-info {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .price {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .details {
+  background: transparent;
+  border-color: #2c5a40;
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .details:hover {
+  background: #0f7a48;
+  border-color: #0f7a48;
+  color: #ffffff;
+}
+
+/* Empty state */
+
+html[data-theme="dark"] .empty {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .empty h3 {
+  color: #f2faf5;
+}
