@@ -1,0 +1,254 @@
+/* =========================================================
+   dark-chat.css  -  LootShoot Chat (chat.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --primary and --accent are NOT changed, because buttons use them
+     with white text. Those buttons are restyled below. */
+  --bg: #0a120e;
+  --text: #e9f4ee;
+  --muted: #9bb0a4;
+  --muted-2: #8aa093;
+  --border: #223a2d;
+  --border-2: #1d3226;
+  --light-green: #143324;
+  --light-green-2: #16251d;
+  --red: #ff8a8a;
+  --red-bg: #3a1a1a;
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+@media (min-width: 900px) {
+  html[data-theme="dark"] body {
+    background: #050907;
+  }
+
+  html[data-theme="dark"] .app-shell {
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  }
+}
+
+/* ---------- Header ---------- */
+
+html[data-theme="dark"] .chat-header {
+  background: #0d1712;
+  border-bottom-color: #1d3226;
+}
+
+html[data-theme="dark"] .header-avatar {
+  color: #3fd68b;
+}
+
+/* Order button (top right) */
+
+html[data-theme="dark"] .order-btn.ready {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .order-btn.waiting {
+  color: #cfe3d7;
+}
+
+html[data-theme="dark"] .order-btn.done {
+  color: #7fe0ae;
+}
+
+/* ---------- Ad strip ---------- */
+
+html[data-theme="dark"] .ad-strip {
+  background: #111d17;
+}
+
+html[data-theme="dark"] .ad-strip-price {
+  color: #3fd68b;
+}
+
+/* ---------- Conversation list ---------- */
+
+html[data-theme="dark"] .chat-tab.active {
+  background: #111d17;
+  color: #3fd68b;
+  box-shadow: none;
+}
+
+html[data-theme="dark"] .conversation-item {
+  background: #111d17;
+}
+
+html[data-theme="dark"] .conversation-item:hover {
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.4);
+}
+
+html[data-theme="dark"] .chat-error {
+  border-color: #5a2a2a;
+}
+
+/* ---------- Messages ---------- */
+
+html[data-theme="dark"] .message-bubble.sent .message-content {
+  background: #14402b;
+  border-color: #1f5c3e;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .message-bubble.received .message-content {
+  background: #16251d;
+  border-color: #223a2d;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .message-status.read {
+  color: #5eeaa0;
+}
+
+/* Order status notices in the chat */
+
+html[data-theme="dark"] .system-message-pill {
+  background: #3a2f12;
+  border-color: #5c4a1c;
+  color: #f3d9a0;
+}
+
+html[data-theme="dark"] .system-message-time {
+  color: #d9b36a;
+}
+
+html[data-theme="dark"] .order-notice b {
+  color: #3fd68b;
+}
+
+/* Quoted (replied-to) messages and the reply bar */
+
+html[data-theme="dark"] .reply-quote {
+  background: rgba(63, 214, 139, 0.08);
+}
+
+html[data-theme="dark"] .message-bubble.received .reply-quote {
+  background: #1b2d23;
+}
+
+html[data-theme="dark"] .reply-quote-name,
+html[data-theme="dark"] .reply-bar-name {
+  color: #3fd68b;
+}
+
+/* Swipe-to-reply icon (the arrow was dark green, now bright green) */
+
+html[data-theme="dark"] .message-bubble::before {
+  background: #143324 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%233fd68b' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 14L4 9l5-5'/%3E%3Cpath d='M4 9h10a6 6 0 0 1 6 6v3'/%3E%3C/svg%3E") center/16px no-repeat;
+}
+
+/* ---------- Message box ---------- */
+
+html[data-theme="dark"] .chat-input-area {
+  background: #0d1712;
+}
+
+html[data-theme="dark"] .message-input-wrapper {
+  background: #111d17;
+}
+
+html[data-theme="dark"] .pending-image-thumb {
+  background: #0d1712;
+}
+
+html[data-theme="dark"] .pending-image-spinner {
+  background: rgba(10, 18, 14, 0.7);
+}
+
+html[data-theme="dark"] .pending-image-remove {
+  background: #111d17;
+}
+
+html[data-theme="dark"] .send-button {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .send-button:hover {
+  background: #0c6a3e;
+}
+
+html[data-theme="dark"] .send-button:disabled {
+  background: #1f3328;
+  color: #6f8a7b;
+}
+
+/* ---------- "Sign in required" ---------- */
+
+html[data-theme="dark"] .auth-message {
+  background: #111d17;
+}
+
+html[data-theme="dark"] .auth-message-btn.secondary {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .auth-message-btn.primary {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .auth-message-btn.primary:hover {
+  background: #0c6a3e;
+}
+
+/* ---------- Order confirmation sheet ---------- */
+
+html[data-theme="dark"] .order-sheet {
+  background: #111d17;
+  box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.6);
+}
+
+html[data-theme="dark"] .order-sheet-icon {
+  background: #143324;
+  box-shadow: 0 0 0 8px #16251d, 0 0 0 9px #223a2d;
+}
+
+html[data-theme="dark"] .order-sheet-icon svg {
+  stroke: #3fd68b;
+}
+
+html[data-theme="dark"] .order-sheet-value {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .order-sheet-check {
+  background: #0d1712;
+}
+
+html[data-theme="dark"] .order-sheet-check.is-checked {
+  background: #16251d;
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .order-sheet-check input {
+  background: #0d1712;
+  border-color: #3a5a47;
+}
+
+html[data-theme="dark"] .order-sheet-check input:checked {
+  background: #0f7a48;
+  border-color: #0f7a48;
+}
+
+html[data-theme="dark"] .order-sheet-confirm {
+  background: #0f7a48;
+  border-color: #0f7a48 !important;
+  box-shadow: 0 8px 18px rgba(15, 122, 72, 0.3);
+}
+
+html[data-theme="dark"] .order-sheet-confirm:hover:not(:disabled) {
+  background: #0c6a3e;
+}
+
+html[data-theme="dark"] .order-sheet-cancel:hover {
+  color: #3fd68b;
+}
