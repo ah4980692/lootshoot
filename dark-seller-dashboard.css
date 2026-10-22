@@ -424,3 +424,69 @@ html[data-theme="dark"] .auth-inline-btn.primary:hover {
 html[data-theme="dark"] .auth-inline-card {
   background: #111d17;
 }
+
+/* ---------- Video box (added by ad-video.js on Sell Now and Edit Ad) ---------- */
+
+html[data-theme="dark"] .advid-title {
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .advid-title span,
+html[data-theme="dark"] .advid-note {
+  color: #8aa093;
+}
+
+html[data-theme="dark"] .advid-existing {
+  background: #16251d;
+  border-color: #223a2d;
+  color: #e9f4ee;
+}
+
+html[data-theme="dark"] .advid-btn {
+  background: #111d17;
+  border-color: #2a4535;
+  color: #7fe0ae;
+}
+
+html[data-theme="dark"] .advid-btn:hover {
+  background: #16251d;
+}
+
+html[data-theme="dark"] .advid-btn.danger {
+  color: #ff8a8a;
+}
+
+html[data-theme="dark"] .advid-choose {
+  background: #16251d;
+  border-color: #2a4535;
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .advid-choose:hover {
+  background: #1b2d23;
+}
+
+html[data-theme="dark"] .advid-choose-icon {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .advid-thumb {
+  border-color: #223a2d;
+}
+
+html[data-theme="dark"] .advid-bar {
+  background: #223a2d;
+}
+
+html[data-theme="dark"] .advid-fill {
+  background: #3fd68b;
+}
+
+html[data-theme="dark"] .advid-status {
+  color: #9bb0a4;
+}
+
+html[data-theme="dark"] .advid-error {
+  background: #3a1a1a;
+  color: #ff9b9b;
+}
