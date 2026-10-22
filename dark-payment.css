@@ -1,0 +1,100 @@
+/* =========================================================
+   dark-payment.css  -  LootShoot Payment (payment.html)
+   Applies only when <html data-theme="dark">.
+   The theme is chosen on the main page (or the dashboard switch)
+   and saved in the browser, so this page has no switch of its own.
+========================================================= */
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* --green is NOT changed, because buttons use it with white text */
+  --ink: #e9f4ee;
+  --bg: #0a120e;
+  --card: #111d17;
+  --line: #223a2d;
+  --muted: #9bb0a4;
+  --green-soft: #143324;
+  --error: #ff9b9b;
+}
+
+html[data-theme="dark"] body {
+  background: var(--bg);
+  color: var(--ink);
+}
+
+/* Steps */
+
+html[data-theme="dark"] .step-number {
+  background: #0f7a48;
+}
+
+/* Payment methods */
+
+html[data-theme="dark"] .wallet-icon {
+  background: #143324;
+  color: #7fe0ae;
+}
+
+html[data-theme="dark"] .checkmark {
+  border-color: #3a5a47;
+}
+
+html[data-theme="dark"] .method-option.selected .checkmark {
+  border-color: var(--green);
+}
+
+html[data-theme="dark"] .details-grid .value:last-child {
+  color: #f2faf5;
+}
+
+/* Upload box */
+
+html[data-theme="dark"] .upload-box {
+  border-color: #2f4d3d;
+}
+
+html[data-theme="dark"] .upload-box:hover {
+  border-color: #3fd68b;
+}
+
+html[data-theme="dark"] .upload-icon {
+  color: #3fd68b;
+}
+
+html[data-theme="dark"] .preview-remove-btn {
+  background: #1f3328;
+  border: 1px solid #2f4d3d;
+}
+
+html[data-theme="dark"] .preview-remove-btn:hover {
+  background: #a83232;
+}
+
+/* Messages */
+
+html[data-theme="dark"] .message.error {
+  background: #3a1a1a;
+  border-color: #5a2a2a;
+  color: #ff9b9b;
+}
+
+html[data-theme="dark"] .message.success {
+  background: #143324;
+  border-color: #28442f;
+  color: #7fe0ae;
+}
+
+/* Bottom bar and button */
+
+html[data-theme="dark"] .bar {
+  background: rgba(13, 23, 18, 0.94);
+}
+
+html[data-theme="dark"] .submit-btn {
+  background: #0f7a48;
+}
+
+html[data-theme="dark"] .submit-btn:hover {
+  background: #0c6a3e;
+}
