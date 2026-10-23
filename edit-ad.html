@@ -435,24 +435,8 @@
     // The video the ad has right now (null id = no video)
     let currentVideo = { id: null, status: null };
 
-    // Video box (shown for Account ads only)
-    const adVideoPicker = createAdVideoPicker(document.getElementById("adVideoBox"), {
-      onRemoveExisting: async () => {
-        if (isSaving) return;
-        if (!window.confirm("Remove this video from your ad?")) return;
-
-        const result = await adVideoRemove(supabaseClient, adId);
-
-        if (!result.ok) {
-          adVideoPicker.setError(result.error);
-          return;
-        }
-
-        adVideoPicker.setError("");
-        currentVideo = { id: null, status: null };
-        adVideoPicker.setExisting(null);
-      }
-    });
+       // Video box (shown for Account ads only)
+    const adVideoPicker = createAdVideoPicker(document.getElementById("adVideoBox"));
 
     adVideoPicker.show(false);
 
@@ -773,9 +757,25 @@
         const isAccount = adVideoIsAccountType(type);
         const videoFile = isAccount ? adVideoPicker.getFile() : null;
 
-        // If the ad is no longer an account, its video is removed
+               // If the ad is no longer an account, its video is removed
         if (!isAccount && currentVideo.id) {
           await adVideoRemove(supabaseClient, adId);
+          currentVideo = { id: null, status: null };
+        }
+
+        // The seller pressed the cross on the video: remove it now (only when saving)
+        if (isAccount && currentVideo.id && adVideoPicker.isRemovingExisting()) {
+          const removeResult = await adVideoRemove(supabaseClient, adId);
+
+          if (!removeResult.ok) {
+            showMessage("Your changes were saved, but the video could not be removed.", true);
+            adVideoPicker.setError(removeResult.error);
+            setSaving(false);
+            saveButton.disabled = false;
+            saveButton.textContent = "Save Changes";
+            return;
+          }
+
           currentVideo = { id: null, status: null };
         }
 
