@@ -10,6 +10,9 @@ const AD_VIDEO_MAX_SECONDS = 180;              // 3 minutes
 const AD_VIDEO_MAX_BYTES = 300 * 1024 * 1024;  // 300 MB
 const AD_VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 
+// Public Bunny address used for video thumbnails (same value as on the ad page)
+const AD_VIDEO_CDN_HOSTNAME = "vz-62dd5ed1-61d.b-cdn.net";
+
 function adVideoIsAccountType(type) {
   const t = String(type || "").trim().toLowerCase();
   return t === "account" || t === "accounts";
@@ -199,8 +202,13 @@ async function adVideoUpload(client, adId, file, onProgress) {
 
 /* =========================================================
    The "Choose video" box shown inside the ad forms
-   (works like the photo boxes: the picked video fills the
-   box as a preview, with a cross to remove it)
+   (works like the photo boxes: the video fills the box as a
+   preview, with a cross at the top right to remove it)
+
+   On the Edit page, a video the ad already has is shown in the
+   same kind of box. Pressing its cross does NOT remove anything
+   right away: it only marks the video for removal. The page
+   removes it when the seller presses Save (see isRemovingExisting).
 ========================================================= */
 
 function adVideoInjectStyles() {
@@ -214,11 +222,6 @@ function adVideoInjectStyles() {
     .advid-title{font-weight:700;font-size:14px;margin-bottom:6px;color:#123c2a}
     .advid-title span{font-weight:500;color:#718078}
     .advid-note{font-size:13px;color:#7b8982;margin-top:7px;line-height:1.5}
-    .advid-existing{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;margin-bottom:10px;border:1px solid #d8e7de;border-radius:10px;background:#eef9f2;font-size:13px;color:#123c2a}
-    .advid-btn{border:1px solid #d8e7de;background:#fff;color:#0c4b32;border-radius:10px;padding:10px 14px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit}
-    .advid-btn:hover{background:#eef9f2}
-    .advid-btn.danger{color:#a83232}
-    .advid-btn.small{padding:6px 10px;font-size:12px}
 
     /* Same grid as the photo boxes, so the video box is the same size */
     .advid-grid{
@@ -255,7 +258,7 @@ function adVideoInjectStyles() {
       color:#25a56a;
     }
 
-    /* Filled box with the video preview */
+    /* Filled box (new video preview, or the video the ad already has) */
     .advid-thumb{
       position:relative;
       aspect-ratio:1 / 1;
@@ -286,6 +289,20 @@ function adVideoInjectStyles() {
       align-items:center;
       justify-content:center;
       padding-left:2px;
+      pointer-events:none;
+    }
+    .advid-label{
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      padding:3px 4px;
+      background:rgba(0,0,0,0.6);
+      color:#fff;
+      font-size:0.62rem;
+      font-weight:700;
+      text-align:center;
+      line-height:1.2;
       pointer-events:none;
     }
     .advid-clear{
@@ -323,21 +340,25 @@ function createAdVideoPicker(container, options) {
     <div class="advid" hidden>
       <div class="advid-title">Video <span>(optional)</span></div>
 
-      <div class="advid-existing" hidden>
-        <span class="advid-existing-text"></span>
-        <button type="button" class="advid-btn danger small advid-remove-existing">Remove video</button>
-      </div>
-
       <div class="advid-grid">
         <button type="button" class="advid-choose" aria-label="Choose video">
           <span class="advid-choose-icon">+</span>
           <span class="advid-choose-label">Add video</span>
         </button>
 
-        <div class="advid-thumb" hidden>
+        <!-- A new video the seller picked -->
+        <div class="advid-thumb advid-new-thumb" hidden>
           <video class="advid-preview" muted playsinline preload="metadata"></video>
           <span class="advid-play" aria-hidden="true">▶</span>
           <button type="button" class="advid-clear" aria-label="Remove video">×</button>
+        </div>
+
+        <!-- The video the ad already has (Edit page) -->
+        <div class="advid-thumb advid-existing-thumb" hidden>
+          <img class="advid-preview advid-existing-img" alt="">
+          <span class="advid-play" aria-hidden="true">▶</span>
+          <span class="advid-label advid-existing-label" hidden></span>
+          <button type="button" class="advid-clear advid-existing-clear" aria-label="Remove video">×</button>
         </div>
       </div>
 
@@ -355,14 +376,15 @@ function createAdVideoPicker(container, options) {
   `;
 
   const root = container.querySelector(".advid");
-  const existingBox = container.querySelector(".advid-existing");
-  const existingText = container.querySelector(".advid-existing-text");
-  const removeExistingBtn = container.querySelector(".advid-remove-existing");
   const chooseBtn = container.querySelector(".advid-choose");
   const chooseLabel = container.querySelector(".advid-choose-label");
-  const thumb = container.querySelector(".advid-thumb");
+  const thumb = container.querySelector(".advid-new-thumb");
   const preview = container.querySelector(".advid-preview");
-  const clearBtn = container.querySelector(".advid-clear");
+  const clearBtn = container.querySelector(".advid-new-thumb .advid-clear");
+  const existingThumb = container.querySelector(".advid-existing-thumb");
+  const existingImg = container.querySelector(".advid-existing-img");
+  const existingLabel = container.querySelector(".advid-existing-label");
+  const existingClearBtn = container.querySelector(".advid-existing-clear");
   const input = container.querySelector(".advid-input");
   const progressBox = container.querySelector(".advid-progress");
   const fillBar = container.querySelector(".advid-fill");
@@ -374,6 +396,19 @@ function createAdVideoPicker(container, options) {
   let file = null;
   let visible = false;
   let previewUrl = "";
+
+  // The video the ad already has, and whether the seller pressed its cross
+  let existing = null;
+  let removed = false;
+
+  // Shows the right box: existing video, new video, or the empty "Add video" box
+  function render() {
+    const keepExisting = !!existing && !removed;
+
+    existingThumb.hidden = !keepExisting;
+    chooseBtn.hidden = keepExisting || !!file;
+    thumb.hidden = keepExisting || !file;
+  }
 
   function setError(message) {
     errorBox.textContent = message || "";
@@ -391,10 +426,9 @@ function createAdVideoPicker(container, options) {
   }
 
   function showEmptyBox() {
-    thumb.hidden = true;
-    chooseBtn.hidden = false;
     chooseBtn.disabled = false;
     chooseLabel.textContent = DEFAULT_CHOOSE_LABEL;
+    render();
   }
 
   function showFilledBox(pickedFile) {
@@ -404,9 +438,8 @@ function createAdVideoPicker(container, options) {
     // #t=0.1 makes the browser show a frame instead of a black box
     preview.src = previewUrl + "#t=0.1";
 
-    chooseBtn.hidden = true;
-    thumb.hidden = false;
     thumb.title = `${pickedFile.name} (${adVideoFormatSize(pickedFile.size)})`;
+    render();
   }
 
   function clearFile() {
@@ -429,8 +462,12 @@ function createAdVideoPicker(container, options) {
     setError("");
   });
 
-  removeExistingBtn.addEventListener("click", () => {
-    if (options.onRemoveExisting) options.onRemoveExisting();
+  // Cross on the video the ad already has: only marks it for removal.
+  // Nothing is removed until the seller presses Save.
+  existingClearBtn.addEventListener("click", () => {
+    removed = true;
+    setError("");
+    render();
   });
 
   input.addEventListener("change", async () => {
@@ -455,6 +492,8 @@ function createAdVideoPicker(container, options) {
     showFilledBox(picked);
   });
 
+  render();
+
   return {
     // Show the box only for account ads
     show(isVisible) {
@@ -462,6 +501,7 @@ function createAdVideoPicker(container, options) {
       root.hidden = !visible;
 
       if (!visible) {
+        removed = false;
         clearFile();
         setError("");
         hideProgress();
@@ -472,25 +512,41 @@ function createAdVideoPicker(container, options) {
       return visible ? file : null;
     },
 
+    // True when the ad has a video and the seller pressed its cross
+    // (the page should remove the video when saving)
+    isRemovingExisting() {
+      return visible && !!existing && removed;
+    },
+
     // info = { video_id, video_status } or null (used on the edit page)
     setExisting(info) {
+      removed = false;
+
       if (!info || !info.video_id) {
-        existingBox.hidden = true;
+        existing = null;
+        existingImg.removeAttribute("src");
+        render();
         return;
       }
 
-      existingBox.hidden = false;
+      existing = info;
 
-      if (info.video_status === "ready") {
-        existingText.textContent = "A video is added to this ad.";
-        removeExistingBtn.hidden = false;
-      } else if (info.video_status === "processing") {
-        existingText.textContent = "Your video is being processed.";
-        removeExistingBtn.hidden = false;
+      // The thumbnail may not exist yet right after an upload: keep the dark box
+      existingImg.style.display = "";
+      existingImg.onerror = () => { existingImg.style.display = "none"; };
+      existingImg.src = `https://${AD_VIDEO_CDN_HOSTNAME}/${info.video_id}/thumbnail.jpg`;
+
+      if (info.video_status === "processing") {
+        existingLabel.textContent = "Processing";
+        existingLabel.hidden = false;
+      } else if (info.video_status === "ready") {
+        existingLabel.hidden = true;
       } else {
-        existingText.textContent = "An earlier upload did not finish. Please choose the video again.";
-        removeExistingBtn.hidden = true;
+        existingLabel.textContent = "Not finished";
+        existingLabel.hidden = false;
       }
+
+      render();
     },
 
     setProgress(percent, text) {
@@ -503,6 +559,7 @@ function createAdVideoPicker(container, options) {
     setError,
 
     reset() {
+      removed = false;
       clearFile();
       setError("");
       hideProgress();
