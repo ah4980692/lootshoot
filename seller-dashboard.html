@@ -2213,9 +2213,7 @@
             Publish Offer
           </button>
 
-          <div class="review-note">
-            Your offer will be reviewed before it appears on the marketplace.
-          </div>
+                    <div class="review-note" id="feeNote" style="display:none;"></div>
 
         </form>
 
@@ -3615,7 +3613,27 @@
 
   // Video box (shown for Account ads only)
   const adVideoPicker = createAdVideoPicker(document.getElementById("adVideoBox"));
-  adVideoPicker.show(false);
+    adVideoPicker.show(false);
+
+  // Fee note under the Publish button: only after a category is chosen
+  function showFeeNote(type) {
+
+    const feeNote = document.getElementById("feeNote");
+
+    if (!feeNote) return;
+
+    if (!type) {
+      feeNote.style.display = "none";
+      feeNote.textContent = "";
+      return;
+    }
+
+    const percent = adVideoIsAccountType(type) ? 5 : 10;
+
+    feeNote.textContent = `A ${percent}% fee applies to every successful sale.`;
+    feeNote.style.display = "block";
+
+  }
 
   typeOptions.forEach(option => {
 
@@ -3627,9 +3645,11 @@
         item.classList.toggle("selected", item === option);
       });
 
-      offerTypeInput.value = option.dataset.type;
+           offerTypeInput.value = option.dataset.type;
 
       adVideoPicker.show(adVideoIsAccountType(option.dataset.type));
+
+      showFeeNote(option.dataset.type);
 
     });
 
