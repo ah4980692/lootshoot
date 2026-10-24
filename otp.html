@@ -29,17 +29,18 @@
 
   <link rel="stylesheet" href="style1.css" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <!-- DARK THEME: uses the choice saved from the main page. Runs before the page draws, so there is no white flash. -->
-<script>
-  (function () {
-    var theme = "light";
-    try {
-      theme = localStorage.getItem("lootshootTheme") === "dark" ? "dark" : "light";
-    } catch (e) {}
-    document.documentElement.setAttribute("data-theme", theme);
-  })();
-</script>
-<link rel="stylesheet" href="dark-otp.css">
+  <script>
+    (function () {
+      var theme = "light";
+      try {
+        theme = localStorage.getItem("lootshootTheme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+  <link rel="stylesheet" href="dark-otp.css">
 </head>
 
 <body>
@@ -290,7 +291,11 @@
 
 
           // ============================================
-          // SAVE SELLER DATA TO DATABASE
+          // MAKE SURE THE SELLER PROFILE EXISTS
+          // The database already creates it automatically when the email
+          // is confirmed. So we only create it here if it is missing.
+          // (Creating it again always failed with "duplicate key", which
+          // showed a red error even though the account was fine.)
           // ============================================
 
           const username =
@@ -300,32 +305,45 @@
             sessionStorage.getItem('signupWhatsApp');
 
 
-          const { error: sellerError } =
+          const { data: existingSeller } =
             await supabaseClient
               .from('sellers')
-              .insert({
-                id: data.user.id,
-                username: username,
-                email: email,
-                whatsapp: whatsapp
-              });
+              .select('id')
+              .eq('id', data.user.id)
+              .maybeSingle();
 
 
-          if (sellerError) {
+          if (!existingSeller) {
 
-            console.error(
-              'Seller profile creation error:',
-              sellerError
-            );
+            const { error: sellerError } =
+              await supabaseClient
+                .from('sellers')
+                .insert({
+                  id: data.user.id,
+                  username: username,
+                  email: email,
+                  whatsapp: whatsapp
+                });
 
-            otpError.textContent =
-              sellerError.message;
 
-            showToast(
-              'Account verified, but seller profile could not be saved.'
-            );
+            // 23505 = the profile already exists, which is fine
+            if (sellerError && sellerError.code !== '23505') {
 
-            return;
+              console.error(
+                'Seller profile creation error:',
+                sellerError
+              );
+
+              otpError.textContent =
+                sellerError.message;
+
+              showToast(
+                'Account verified, but seller profile could not be saved.'
+              );
+
+              return;
+            }
+
           }
 
 
