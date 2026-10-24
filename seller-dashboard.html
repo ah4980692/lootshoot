@@ -2550,9 +2550,24 @@
       btn.classList.toggle("active", btn.dataset.target === target);
     });
 
-    sections.forEach(sec => {
+       sections.forEach(sec => {
       sec.classList.toggle("active", sec.id === target);
     });
+
+    // Remember the open tab in the address, so a refresh stays on it
+    const tabKey = {
+      exploreSection: "explore",
+      notificationsSection: "notifications",
+      createSection: "sell",
+      myAdsSection: "my-ads",
+      profileSection: "my-profile"
+    }[target];
+
+    if (tabKey) {
+      const tabUrl = new URL(window.location.href);
+      tabUrl.searchParams.set("tab", tabKey);
+      window.history.replaceState(null, "", tabUrl);
+    }
 
     const user = await getAuthenticatedUser();
 
@@ -2596,12 +2611,18 @@
     });
   });
 
-  const requestedTab = new URLSearchParams(window.location.search).get("tab");
+   const requestedTab = new URLSearchParams(window.location.search).get("tab");
 
-  if (requestedTab === "my-profile") {
-    activateTab("profileSection");
-  } else if (requestedTab === "my-ads") {
-    activateTab("myAdsSection");
+  const tabTargets = {
+    "explore": "exploreSection",
+    "notifications": "notificationsSection",
+    "sell": "createSection",
+    "my-ads": "myAdsSection",
+    "my-profile": "profileSection"
+  };
+
+  if (tabTargets[requestedTab]) {
+    activateTab(tabTargets[requestedTab]);
   }
 
   /* =========================================================
