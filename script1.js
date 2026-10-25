@@ -82,19 +82,16 @@ document.querySelectorAll('.faq-question').forEach((question) => {
     answer.classList.toggle('open', !isOpen);
   });
 });
-
 // ============================================
-// CONTACT US → WHATSAPP
+// CONTACT US → EMAIL
 // ============================================
 const supportButton = document.getElementById('supportButton');
 
 if (supportButton) {
   supportButton.addEventListener('click', () => {
-    // TODO: replace with your real WhatsApp number in international
-    // format, digits only, no + or spaces (e.g. 919876543210)
-    const phoneNumber = '923411444759';
-    const message = encodeURIComponent('Hi, I have a question about LootShoot.');
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+    const supportEmail = 'lootshoot.support@gmail.com';
+    const subject = encodeURIComponent('LootShoot support');
+    window.location.href = `mailto:${supportEmail}?subject=${subject}`;
   });
 }
 
