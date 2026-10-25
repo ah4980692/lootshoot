@@ -389,7 +389,7 @@
       try {
         const { data, error } = await supabaseClient
           .from('ads')
-          .select('id, seller_id')
+                    .select('id, seller_id, price')
           .eq('id', adId)
           .maybeSingle();
 
@@ -793,9 +793,19 @@
       window.location.href = returnUrl;
     });
 
-    offerInput.addEventListener('input', function () {
+       offerInput.addEventListener('input', function () {
       const digits = this.value.replace(/[^\d]/g, '');
-      const numericValue = digits ? Number(digits) : 0;
+      let numericValue = digits ? Number(digits) : 0;
+      const asking = liveAskingPrice || 0;
+
+      // The offer can never be higher than the listed price
+      if (asking > 0 && numericValue > asking) {
+        numericValue = asking;
+        offerNote.textContent = `Your offer can't be higher than the listed price (Rs. ${formatNumber(asking)}).`;
+      } else {
+        offerNote.textContent = 'Enter the amount you are willing to pay';
+      }
+
       setOfferText(numericValue);
     });
 
@@ -857,6 +867,12 @@
         if (!currentAd || !currentAd.seller_id) {
           console.warn('make-offer > Missing seller_id for current ad. Offer was not recorded.');
           sendError = 'Could not load this ad. Please try again.';
+          return;
+        }
+        
+        // Last check with the real price from the database
+        if (numericValue > Number(currentAd.price || 0)) {
+          sendError = `Your offer can't be higher than the listed price (Rs. ${formatNumber(currentAd.price)}).`;
           return;
         }
 
