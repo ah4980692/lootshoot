@@ -3133,6 +3133,14 @@
       const safeConversationId = escapeHTML(match[1]);
       return `${escapeHTML(beforeLink)}<a href="chat.html?conversation_id=${safeConversationId}">here</a>${escapeHTML(afterLink)}`;
     }
+        match = rawMessage.match(/<a\s+href="payment-release\.html\?deal_id=([^"]+)"\s*>here<\/a>/i);
+
+    if (match) {
+      const beforeLink = rawMessage.slice(0, match.index);
+      const afterLink = rawMessage.slice(match.index + match[0].length);
+      const safeDealId = escapeHTML(match[1]);
+      return `${escapeHTML(beforeLink)}<a href="payment-release.html?deal_id=${safeDealId}">here</a>${escapeHTML(afterLink)}`;
+    }
 
     match = rawMessage.match(adPattern);
 
