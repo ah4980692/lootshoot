@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Report a problem - LootShoot</title>
+
+  <!-- THEME: uses the choice saved from the main page. Runs first so there is no white flash. -->
+  <script>
+    (function () {
+      var theme = "light";
+      try {
+        theme = localStorage.getItem("lootshootTheme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #10281b;
+      --green: #15965a;
+      --green-dark: #0f7a48;
+      --green-soft: #e7f4ed;
+      --bg: #f3f6f4;
+      --card: #ffffff;
+      --line: #dde6e0;
+      --muted: #5d6e64;
+      --input-bg: #f7f7f7;
+      --error: #c0392b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+    .page { max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 110px; }
+
+    .topbar {
+      height: 64px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+    }
+
+    .topbar-title { font-size: 1.15rem; font-weight: 700; }
+
+    .content { padding: 16px; display: grid; gap: 14px; }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .label { color: var(--muted); font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; }
+    .order-title { font-size: 1.15rem; font-weight: 700; overflow-wrap: anywhere; }
+    .order-sub { color: var(--muted); font-size: 0.9rem; margin-top: 2px; }
+
+    .field-label { font-size: 0.95rem; font-weight: 700; margin-bottom: 10px; }
+
+    .reasons { display: grid; gap: 8px; }
+
+    .reason {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 14px;
+      border: 1.5px solid var(--line);
+      border-radius: 12px;
+      cursor: pointer;
+      font-size: 0.95rem;
+    }
+
+    .reason input { width: 18px; height: 18px; accent-color: var(--green); flex-shrink: 0; }
+    .reason.selected { border-color: var(--green); background: var(--green-soft); }
+
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      resize: vertical;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: var(--input-bg);
+      color: var(--ink);
+    }
+
+    textarea:focus { outline: none; border-color: var(--green); }
+
+    .count { text-align: right; color: var(--muted); font-size: 0.8rem; margin-top: 6px; }
+    .hint { color: var(--muted); font-size: 0.85rem; margin-top: 10px; }
+
+    .message {
+      padding: 12px 14px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+
+    .message.error { background: #fbeae8; color: var(--error); border: 1px solid #efc7c2; }
+    .message.info { background: var(--green-soft); color: var(--green-dark); border: 1px solid #b9dfca; }
+
+    .done { text-align: center; padding: 34px 20px; }
+
+    .done-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: var(--green-soft);
+      color: var(--green);
+      display: grid;
+      place-items: center;
+    }
+
+    .done h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    .done p { color: var(--muted); font-size: 0.95rem; margin-bottom: 20px; }
+
+    .link-btn {
+      display: inline-block;
+      padding: 13px 24px;
+      border: none;
+      border-radius: 14px;
+      background: var(--green);
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .bar-inner { max-width: 480px; margin: 0 auto; }
+
+    .submit-btn {
+      width: 100%;
+      height: 52px;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .submit-btn:hover { background: var(--green-dark); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ---------- Dark theme ---------- */
+
+    html[data-theme="dark"] { color-scheme: dark; }
+
+    html[data-theme="dark"] {
+      --ink: #e9f4ee;
+      --bg: #0a120e;
+      --card: #111d17;
+      --line: #223a2d;
+      --muted: #9bb0a4;
+      --green-soft: #143324;
+      --input-bg: #0d1712;
+    }
+
+    html[data-theme="dark"] .topbar,
+    html[data-theme="dark"] .bar { background: rgba(13, 23, 18, 0.94); }
+
+    html[data-theme="dark"] .submit-btn,
+    html[data-theme="dark"] .link-btn { background: #0f7a48; }
+
+    html[data-theme="dark"] .submit-btn:hover { background: #0c6a3e; }
+    html[data-theme="dark"] .reason.selected { border-color: #3fd68b; }
+    html[data-theme="dark"] .done-icon { color: #3fd68b; }
+    html[data-theme="dark"] .message.error { background: #3a1a1a; border-color: #5a2a2a; color: #ff9b9b; }
+    html[data-theme="dark"] .message.info { border-color: #28442f; color: #7fe0ae; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <button class="back-btn" id="backBtn" aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="topbar-title">Report a problem</div>
+    </div>
+
+    <div class="content" id="content">
+      <div class="card"><p class="label">Loading...</p></div>
+    </div>
+  </div>
+
+  <div class="bar" id="bar" hidden>
+    <div class="bar-inner">
+      <button type="button" class="submit-btn" id="sendBtn">Send report</button>
+    </div>
+  </div>
+
+  <script>
+    const supabaseUrl = "https://saguwhkijrdiwiabxvyv.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const $ = (id) => document.getElementById(id);
+
+    function esc(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    const conversationId = new URLSearchParams(window.location.search).get("conversation_id");
+    const chatUrl = conversationId
+      ? "chat.html?conversation_id=" + encodeURIComponent(conversationId)
+      : "chat.html";
+
+    $("backBtn").addEventListener("click", () => {
+      window.location.href = chatUrl;
+    });
+
+    const REASONS = {
+      buyer: [
+        "I did not receive my order",
+        "The order is not as described",
+        "The seller is not responding",
+        "The account was taken back or recovered",
+        "I think this is a scam",
+        "Something else"
+      ],
+      seller: [
+        "The buyer is not responding",
+        "The buyer is asking for something outside the deal",
+        "There is a problem with the payment or order",
+        "I think this is a scam",
+        "Something else"
+      ]
+    };
+
+    const MAX_DETAILS = 1000;
+    let selectedReason = "";
+
+    // Same sign-in restore as the chat page
+    async function getAuthenticatedUser() {
+      try {
+        let { data: sessionData } = await supabaseClient.auth.getSession();
+
+        if (!sessionData?.session) {
+          const stored = sessionStorage.getItem("sellerAuthSession") || localStorage.getItem("sellerAuthSession");
+
+          if (stored) {
+            try {
+              const { data, error } = await supabaseClient.auth.setSession(JSON.parse(stored));
+              if (error) throw error;
+              sessionData = data;
+            } catch (e) {
+              return null;
+            }
+          }
+        }
+
+        return sessionData?.session?.user || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function showMessage(html) {
+      $("content").innerHTML = `<div class="card"><p class="label">${html}</p></div>`;
+      $("bar").hidden = true;
+    }
+
+    function showDone() {
+      $("bar").hidden = true;
+      $("content").innerHTML = `
+        <div class="card done">
+          <div class="done-icon">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <h2>Report sent</h2>
+          <p>Thank you. LootShoot will review your report and contact you if we need more information. You will get a notification when it has been reviewed.</p>
+          <a class="link-btn" href="${esc(chatUrl)}">Back to chat</a>
+        </div>`;
+    }
+
+    async function init() {
+      if (!conversationId) {
+        showMessage("Open this page from an order chat, using the flag at the top.");
+        return;
+      }
+
+      const user = await getAuthenticatedUser();
+
+      if (!user) {
+        $("content").innerHTML = `
+          <div class="card done">
+            <h2>Sign in required</h2>
+            <p>You must sign in to send a report.</p>
+            <a class="link-btn" href="index.html">Sign in</a>
+          </div>`;
+        $("bar").hidden = true;
+        return;
+      }
+
+      const { data: conv } = await supabaseClient
+        .from("conversations")
+        .select("id, deal_id, buyer_id, seller_id")
+        .eq("id", conversationId)
+        .maybeSingle();
+
+      if (!conv || (conv.buyer_id !== user.id && conv.seller_id !== user.id)) {
+        showMessage("This order could not be found, or it is not yours.");
+        return;
+      }
+
+      const role = conv.buyer_id === user.id ? "buyer" : "seller";
+      const otherId = role === "buyer" ? conv.seller_id : conv.buyer_id;
+
+      // Order title and the other person's name (best effort)
+      let title = "Your order";
+
+      const { data: deal } = await supabaseClient
+        .from("deals").select("ad_id").eq("id", conv.deal_id).maybeSingle();
+
+      if (deal?.ad_id) {
+        const { data: ad } = await supabaseClient
+          .from("ads").select("title").eq("id", deal.ad_id).maybeSingle();
+        if (ad?.title) title = ad.title;
+      }
+
+      const { data: other } = await supabaseClient.rpc("get_public_seller", { p_seller_id: otherId });
+      const otherName = (other && other.username) || (role === "buyer" ? "the seller" : "the buyer");
+
+      // One open report per order
+      const { data: openReports } = await supabaseClient
+        .from("reports")
+        .select("id")
+        .eq("deal_id", conv.deal_id)
+        .eq("reporter_id", user.id)
+        .eq("status", "open")
+        .limit(1);
+
+      if (openReports && openReports.length) {
+        $("content").innerHTML = `
+          <div class="card">
+            <p class="label">Order</p>
+            <div class="order-title">${esc(title)}</div>
+          </div>
+          <div class="message info">You already have an open report for this order. We will review it soon and notify you.</div>
+          <a class="link-btn" style="text-align:center" href="${esc(chatUrl)}">Back to chat</a>`;
+        $("bar").hidden = true;
+        return;
+      }
+
+      $("content").innerHTML = `
+        <div class="card">
+          <p class="label">Order</p>
+          <div class="order-title">${esc(title)}</div>
+          <div class="order-sub">With ${esc(otherName)}</div>
+        </div>
+
+        <div class="card">
+          <div class="field-label">What is the problem?</div>
+          <div class="reasons" id="reasons">
+            ${REASONS[role].map((r, i) => `
+              <label class="reason">
+                <input type="radio" name="reason" value="${esc(r)}" id="r${i}">
+                <span>${esc(r)}</span>
+              </label>`).join("")}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="field-label">Tell us what happened</div>
+          <textarea id="details" maxlength="${MAX_DETAILS}" placeholder="Write what happened, step by step."></textarea>
+          <div class="count" id="count">0/${MAX_DETAILS}</div>
+          <p class="hint">Only LootShoot can see this report. Do not share your password or card details.</p>
+        </div>
+
+        <div class="message error" id="error" hidden></div>`;
+
+      $("bar").hidden = false;
+
+      document.querySelectorAll('input[name="reason"]').forEach((input) => {
+        input.addEventListener("change", () => {
+          selectedReason = input.value;
+          document.querySelectorAll(".reason").forEach((el) => {
+            el.classList.toggle("selected", el.contains(input) && input.checked);
+          });
+        });
+      });
+
+      $("details").addEventListener("input", () => {
+        $("count").textContent = $("details").value.length + "/" + MAX_DETAILS;
+      });
+
+      $("sendBtn").onclick = send;
+    }
+
+    function showError(text) {
+      const box = $("error");
+      if (!box) return;
+      box.textContent = text;
+      box.hidden = !text;
+    }
+
+    async function send() {
+      const details = $("details").value.trim();
+
+      showError("");
+
+      if (!selectedReason) {
+        showError("Please choose what the problem is.");
+        return;
+      }
+
+      if (details.length < 10) {
+        showError("Please write a little more, at least 10 characters.");
+        return;
+      }
+
+      const button = $("sendBtn");
+      button.disabled = true;
+      button.textContent = "Sending...";
+
+      const { error } = await supabaseClient.rpc("submit_report", {
+        p_conversation_id: conversationId,
+        p_reason: selectedReason,
+        p_details: details
+      });
+
+      if (error) {
+        console.error("Could not send report:", error);
+        showError(error.message || "Could not send your report. Please try again.");
+        button.disabled = false;
+        button.textContent = "Send report";
+        return;
+      }
+
+      showDone();
+    }
+
+    init();
+  </script>
+</body>
+</html>
