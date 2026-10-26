@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Payout details - LootShoot</title>
+
+  <!-- THEME: uses the choice saved from the main page. Runs first so there is no white flash. -->
+  <script>
+    (function () {
+      var theme = "light";
+      try {
+        theme = localStorage.getItem("lootshootTheme") === "dark" ? "dark" : "light";
+      } catch (e) {}
+      document.documentElement.setAttribute("data-theme", theme);
+    })();
+  </script>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --ink: #10281b;
+      --green: #15965a;
+      --green-dark: #0f7a48;
+      --green-soft: #e7f4ed;
+      --bg: #f3f6f4;
+      --card: #ffffff;
+      --line: #dde6e0;
+      --muted: #5d6e64;
+      --input-bg: #f7f7f7;
+      --error: #c0392b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    [hidden] { display: none !important; }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input, textarea { font: inherit; color: inherit; }
+    button { cursor: pointer; }
+    :focus-visible { outline: 3px solid var(--green); outline-offset: 2px; }
+
+    .page { max-width: 480px; margin: 0 auto; min-height: 100vh; padding-bottom: 110px; }
+
+    .topbar {
+      height: 64px;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      gap: 12px;
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .back-btn {
+      width: 40px;
+      height: 40px;
+      border: 1px solid var(--line);
+      background: var(--card);
+      color: var(--ink);
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+    }
+
+    .topbar-title { font-size: 1.15rem; font-weight: 700; }
+
+    .content { padding: 16px; display: grid; gap: 14px; }
+
+    .card {
+      background: var(--card);
+      border-radius: 16px;
+      padding: 20px;
+      border: 1px solid var(--line);
+    }
+
+    .label { color: var(--muted); font-size: 0.85rem; font-weight: 500; margin-bottom: 4px; }
+    .order-title { font-size: 1.15rem; font-weight: 700; overflow-wrap: anywhere; }
+    .amount { font-size: 1.6rem; font-weight: 700; color: var(--green); margin-top: 8px; }
+    .sub { color: var(--muted); font-size: 0.88rem; margin-top: 2px; }
+
+    .field { display: grid; gap: 6px; margin-bottom: 16px; }
+    .field:last-child { margin-bottom: 0; }
+    .field label { font-size: 0.92rem; font-weight: 700; }
+    .field label span { color: var(--muted); font-weight: 500; }
+
+    input, textarea {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--input-bg);
+      color: var(--ink);
+      font-size: 1rem;
+    }
+
+    textarea { min-height: 100px; resize: vertical; }
+    input:focus, textarea:focus { outline: none; border-color: var(--green); }
+
+    .count { text-align: right; color: var(--muted); font-size: 0.8rem; }
+    .hint { color: var(--muted); font-size: 0.85rem; }
+
+    .message { padding: 12px 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; }
+    .message.error { background: #fbeae8; color: var(--error); border: 1px solid #efc7c2; }
+    .message.info { background: var(--green-soft); color: var(--green-dark); border: 1px solid #b9dfca; }
+
+    .done { text-align: center; padding: 34px 20px; }
+
+    .done-icon {
+      width: 72px;
+      height: 72px;
+      margin: 0 auto 16px;
+      border-radius: 50%;
+      background: var(--green-soft);
+      color: var(--green);
+      display: grid;
+      place-items: center;
+    }
+
+    .done h2 { font-size: 1.3rem; margin-bottom: 8px; }
+    .done p { color: var(--muted); font-size: 0.95rem; margin-bottom: 20px; }
+
+    .link-btn {
+      display: inline-block;
+      padding: 13px 24px;
+      border: none;
+      border-radius: 14px;
+      background: var(--green);
+      color: #fff;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    .bar {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(8px);
+      border-top: 1px solid var(--line);
+      padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .bar-inner { max-width: 480px; margin: 0 auto; }
+
+    .submit-btn {
+      width: 100%;
+      height: 52px;
+      border: none;
+      background: var(--green);
+      color: #fff;
+      border-radius: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .submit-btn:hover { background: var(--green-dark); }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    /* ---------- Dark theme ---------- */
+
+    html[data-theme="dark"] { color-scheme: dark; }
+
+    html[data-theme="dark"] {
+      --ink: #e9f4ee;
+      --bg: #0a120e;
+      --card: #111d17;
+      --line: #223a2d;
+      --muted: #9bb0a4;
+      --green-soft: #143324;
+      --input-bg: #0d1712;
+    }
+
+    html[data-theme="dark"] .topbar,
+    html[data-theme="dark"] .bar { background: rgba(13, 23, 18, 0.94); }
+
+    html[data-theme="dark"] .submit-btn,
+    html[data-theme="dark"] .link-btn { background: #0f7a48; }
+
+    html[data-theme="dark"] .submit-btn:hover { background: #0c6a3e; }
+    html[data-theme="dark"] .amount,
+    html[data-theme="dark"] .done-icon { color: #3fd68b; }
+    html[data-theme="dark"] input:focus,
+    html[data-theme="dark"] textarea:focus { border-color: #3fd68b; }
+    html[data-theme="dark"] .message.error { background: #3a1a1a; border-color: #5a2a2a; color: #ff9b9b; }
+    html[data-theme="dark"] .message.info { border-color: #28442f; color: #7fe0ae; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="topbar">
+      <button class="back-btn" id="backBtn" aria-label="Go back">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      </button>
+      <div class="topbar-title">Payout details</div>
+    </div>
+
+    <div class="content" id="content">
+      <div class="card"><p class="label">Loading...</p></div>
+    </div>
+  </div>
+
+  <div class="bar" id="bar" hidden>
+    <div class="bar-inner">
+      <button type="button" class="submit-btn" id="sendBtn">Send payout details</button>
+    </div>
+  </div>
+
+  <datalist id="banks">
+    <option value="Meezan Bank"></option>
+    <option value="HBL"></option>
+    <option value="UBL"></option>
+    <option value="MCB Bank"></option>
+    <option value="Allied Bank"></option>
+    <option value="Bank Alfalah"></option>
+    <option value="Askari Bank"></option>
+    <option value="Faysal Bank"></option>
+    <option value="Habib Metropolitan Bank"></option>
+    <option value="Standard Chartered"></option>
+    <option value="Bank Al Habib"></option>
+    <option value="Easypaisa"></option>
+    <option value="JazzCash"></option>
+    <option value="NayaPay"></option>
+    <option value="SadaPay"></option>
+  </datalist>
+
+  <script>
+    const supabaseUrl = "https://saguwhkijrdiwiabxvyv.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ";
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    const $ = (id) => document.getElementById(id);
+
+    function esc(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    const dealId = new URLSearchParams(window.location.search).get("deal_id");
+    const dashboardUrl = "seller-dashboard.html?tab=notifications";
+    const MAX_MESSAGE = 500;
+
+    $("backBtn").addEventListener("click", () => {
+      window.location.href = dashboardUrl;
+    });
+
+    // Same sign-in restore as the chat page
+    async function getAuthenticatedUser() {
+      try {
+        let { data: sessionData } = await supabaseClient.auth.getSession();
+
+        if (!sessionData?.session) {
+          const stored = sessionStorage.getItem("sellerAuthSession") || localStorage.getItem("sellerAuthSession");
+
+          if (stored) {
+            try {
+              const { data, error } = await supabaseClient.auth.setSession(JSON.parse(stored));
+              if (error) throw error;
+              sessionData = data;
+            } catch (e) {
+              return null;
+            }
+          }
+        }
+
+        return sessionData?.session?.user || null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function showMessage(text) {
+      $("content").innerHTML = `
+        <div class="card"><p class="label">${esc(text)}</p></div>
+        <a class="link-btn" style="text-align:center" href="${dashboardUrl}">Back to dashboard</a>`;
+      $("bar").hidden = true;
+    }
+
+    function showDone() {
+      $("bar").hidden = true;
+      $("content").innerHTML = `
+        <div class="card done">
+          <div class="done-icon">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+          </div>
+          <h2>Details sent</h2>
+          <p>Thank you. We have your payout details. Your payment will be sent once the order is cleared. You can open this page again to change the details until you are paid.</p>
+          <a class="link-btn" href="${dashboardUrl}">Back to dashboard</a>
+        </div>`;
+    }
+
+    function formatMoney(value) {
+      return "Rs. " + Number(value || 0).toLocaleString();
+    }
+
+    async function init() {
+      if (!dealId || !/^[0-9a-fA-F-]{36}$/.test(dealId)) {
+        showMessage("Open this page from the link in your notification.");
+        return;
+      }
+
+      const user = await getAuthenticatedUser();
+
+      if (!user) {
+        $("content").innerHTML = `
+          <div class="card done">
+            <h2>Sign in required</h2>
+            <p>You must sign in to send your payout details.</p>
+            <a class="link-btn" href="index.html">Sign in</a>
+          </div>`;
+        $("bar").hidden = true;
+        return;
+      }
+
+      const { data: deal } = await supabaseClient
+        .from("deals")
+        .select("id, ad_id, seller_id, status, payout_status, seller_payout, commission_amount, commission_percent")
+        .eq("id", dealId)
+        .maybeSingle();
+
+      if (!deal || deal.seller_id !== user.id) {
+        showMessage("This order could not be found, or it is not yours.");
+        return;
+      }
+
+      if (deal.status !== "completed") {
+        showMessage("This order is not completed yet. Please come back after the buyer confirms the order.");
+        return;
+      }
+
+      if (deal.payout_status === "paid") {
+        showMessage("This order has already been paid.");
+        return;
+      }
+
+      let title = "Your order";
+
+      if (deal.ad_id) {
+        const { data: ad } = await supabaseClient
+          .from("ads").select("title").eq("id", deal.ad_id).maybeSingle();
+        if (ad?.title) title = ad.title;
+      }
+
+      // Details sent earlier (so the seller can fix a mistake)
+      const { data: previous } = await supabaseClient
+        .from("payout_requests")
+        .select("bank_name, account_number, account_holder, message")
+        .eq("deal_id", dealId)
+        .maybeSingle();
+
+      const amountHtml = deal.seller_payout != null
+        ? `<div class="amount">${formatMoney(deal.seller_payout)}</div>
+           <div class="sub">You will receive this after our ${esc(deal.commission_percent)}% fee.</div>`
+        : "";
+
+      $("content").innerHTML = `
+        <div class="card">
+          <p class="label">Order</p>
+          <div class="order-title">${esc(title)}</div>
+          ${amountHtml}
+        </div>
+
+        ${previous ? `<div class="message info">You already sent your details. You can change them below until you are paid.</div>` : ""}
+
+        <div class="card">
+          <div class="field">
+            <label for="bank">Bank name</label>
+            <input id="bank" list="banks" maxlength="60" autocomplete="off" placeholder="For example: Meezan Bank">
+          </div>
+          <div class="field">
+            <label for="number">Account number or IBAN</label>
+            <input id="number" maxlength="40" autocomplete="off" autocapitalize="characters" placeholder="PK00 XXXX 0000 0000 0000 0000">
+          </div>
+          <div class="field">
+            <label for="holder">Account holder name</label>
+            <input id="holder" maxlength="80" autocomplete="off" placeholder="Name as written on the account">
+          </div>
+          <div class="field">
+            <label for="msg">Message <span>(optional)</span></label>
+            <textarea id="msg" maxlength="${MAX_MESSAGE}" placeholder="Anything we should know?"></textarea>
+            <div class="count" id="count">0/${MAX_MESSAGE}</div>
+          </div>
+          <p class="hint">Check the details carefully. We pay exactly to the account you write here.</p>
+        </div>
+
+        <div class="message error" id="error" hidden></div>`;
+
+      if (previous) {
+        $("bank").value = previous.bank_name || "";
+        $("number").value = previous.account_number || "";
+        $("holder").value = previous.account_holder || "";
+        $("msg").value = previous.message || "";
+        $("count").textContent = $("msg").value.length + "/" + MAX_MESSAGE;
+      }
+
+      $("msg").addEventListener("input", () => {
+        $("count").textContent = $("msg").value.length + "/" + MAX_MESSAGE;
+      });
+
+      $("bar").hidden = false;
+      $("sendBtn").onclick = send;
+    }
+
+    function showError(text) {
+      const box = $("error");
+      if (!box) return;
+      box.textContent = text;
+      box.hidden = !text;
+    }
+
+    async function send() {
+      const bank = $("bank").value.trim();
+      const number = $("number").value.trim();
+      const holder = $("holder").value.trim();
+      const msg = $("msg").value.trim();
+
+      showError("");
+
+      if (bank.length < 2) { showError("Please enter the bank name."); return; }
+
+      if (!/^[A-Za-z0-9 -]{6,40}$/.test(number)) {
+        showError("Please enter a valid account number or IBAN. Use only letters, numbers, spaces and dashes.");
+        return;
+      }
+
+      if (holder.length < 3) { showError("Please enter the account holder name."); return; }
+
+      const button = $("sendBtn");
+      button.disabled = true;
+      button.textContent = "Sending...";
+
+      const { error } = await supabaseClient.rpc("submit_payout_details", {
+        p_deal_id: dealId,
+        p_bank_name: bank,
+        p_account_number: number,
+        p_account_holder: holder,
+        p_message: msg || null
+      });
+
+      if (error) {
+        console.error("Could not send payout details:", error);
+        showError(error.message || "Could not send your details. Please try again.");
+        button.disabled = false;
+        button.textContent = "Send payout details";
+        return;
+      }
+
+      showDone();
+    }
+
+    init();
+  </script>
+</body>
+</html>
