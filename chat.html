@@ -2063,25 +2063,11 @@ $("orderSheetConfirm").addEventListener("click", () => {
   if (action) onOrderConfirm(action);
 });
 
-/* Report: Opens WhatsApp with pre-filled message containing order details */
-function openReportOnWhatsApp() {
-  const whatsappNumber = "923411444759";
-  
-  const message = `Hi LootShoot Support, I need help with an issue regarding my order.
-
-Product: ${currentAdTitle}
-
-Buyer: ${currentBuyerName}
-
-Seller: ${currentSellerName}
-
-Conversation ID: ${currentConversationId}`;
-  
-  const encodedMessage = encodeURIComponent(message);
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-  window.open(whatsappUrl, "_blank");
-}
-$("reportBtn").addEventListener("click", openReportOnWhatsApp);
+/* Report: opens the report page for this order */
+$("reportBtn").addEventListener("click", () => {
+  if (!currentConversationId) return;
+  window.location.href = "report.html?conversation_id=" + encodeURIComponent(currentConversationId);
+});
 
 // Run once, whether the DOM is ready yet or not
 if (document.readyState === "loading") {
