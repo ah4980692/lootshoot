@@ -225,8 +225,9 @@ if (forgotPasswordModal) {
 
 // ============================================
 // FORGOT PASSWORD: 6-BOX OTP INPUT
-// Each box holds exactly 1 digit. Pasting (or mobile autofill)
-// spreads the digits across the boxes.
+// Each box shows 1 digit. The boxes accept up to 6 characters, so a pasted
+// or auto-filled code is not cut to 1 digit by the browser. The code below
+// then spreads the digits across the boxes.
 // ============================================
 const resetOtpBoxes = Array.from(document.querySelectorAll('.reset-otp-input'));
 
@@ -247,12 +248,17 @@ function fillResetOtpFrom(start, digits) {
 
 resetOtpBoxes.forEach((box, index) => {
 
-  box.addEventListener('input', () => {
+  box.addEventListener('input', (e) => {
     setResetError('otp', '');
 
-    const digits = box.value.replace(/\D/g, '');
+    let digits = box.value.replace(/\D/g, '');
 
-    // Autofill or fast typing can put several digits in one box
+    // Typing a new digit into a box that already has one: keep only the new digit
+    if (digits.length === 2 && e.inputType === 'insertText') {
+      digits = digits.slice(-1);
+    }
+
+    // A pasted or auto-filled code (several digits at once) is spread across the boxes
     if (digits.length > 1) {
       box.value = '';
       const start = digits.length >= resetOtpBoxes.length ? 0 : index;
