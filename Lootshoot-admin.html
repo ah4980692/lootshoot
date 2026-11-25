@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>LootShoot Admin</title>
+<meta name="robots" content="noindex,nofollow">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--bg:#0a120e;--card:#111d17;--line:#223a2d;--tx:#e9f4ee;--mu:#9bb0a4;--ac:#3fd68b;--btn:#0f7a48;--red:#a83232;--warn:#f0a860}
+*{box-sizing:border-box;margin:0}
+body{font:15px/1.5 system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);padding-bottom:84px}
+button{font:inherit;cursor:pointer;color:inherit}
+input{font:inherit}
+.hide{display:none!important}
+header{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#0d1712;border-bottom:1px solid var(--line)}
+h1{font-size:18px}
+.hb{display:flex;gap:8px}
+.ic{background:none;border:1px solid var(--line);border-radius:10px;padding:6px 12px}
+main{padding:14px;max-width:560px;margin:0 auto;display:grid;gap:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+h3{font-size:16px;margin-bottom:2px;overflow-wrap:anywhere}
+.mu{color:var(--mu);font-size:13px}
+.c{text-align:center;padding:24px 0}
+.big{font-size:20px;font-weight:700;color:var(--ac);margin:6px 0}
+.warn{color:var(--warn);font-size:13px;margin:6px 0}
+.desc{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 0;font-size:14px}
+.shot{width:100%;max-height:340px;object-fit:contain;background:#0d1712;border-radius:10px;margin:6px 0}
+.imgs{display:flex;gap:6px;overflow-x:auto;margin:8px 0}
+.imgs img{width:90px;height:90px;object-fit:cover;border-radius:8px;flex:none}
+.row{display:flex;gap:8px;margin-top:10px}
+.row button,.row a{flex:1;text-align:center;border:0;border-radius:10px;padding:11px;font-weight:700;text-decoration:none;color:#fff}
+.ok{background:var(--btn)}.bad{background:var(--red)}.wa{background:#1f3328;color:var(--ac)!important}
+button:disabled{opacity:.5}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;text-align:left;display:grid}
+.stat b{font-size:28px;color:var(--ac)}.stat span{color:var(--mu);font-size:13px}
+.chips{display:flex;gap:8px}
+.chip{border:1px solid var(--line);background:none;border-radius:999px;padding:7px 14px}
+.chip.on{background:var(--btn);border-color:var(--btn);color:#fff}
+.tag{display:inline-block;font-size:12px;padding:2px 9px;border-radius:999px;background:#143324;color:#7fe0ae;margin:6px 6px 0 0}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:#0d1712;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;padding:14px 4px;color:var(--mu);font-weight:600}
+nav button.on{color:var(--ac)}
+#login{min-height:100vh;display:grid;place-items:center;padding:20px}
+#login form{width:100%;max-width:360px;display:grid;gap:12px}
+input{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:#0d1712;color:var(--tx)}
+#lerr{color:#ff9b9b;font-size:14px;min-height:20px}
+
+.item{display:flex;gap:12px;align-items:center;cursor:pointer}
+.item img.th{width:84px;height:84px;object-fit:cover;border-radius:10px;flex:none}
+.item .info{min-width:0;flex:1}
+.lnk{cursor:pointer;text-decoration:underline}
+.sm{font-size:15px}
+.list{display:grid;gap:12px}
+.imgbox{position:relative;background:#0d1712;border-radius:14px;overflow:hidden}
+.slider{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;aspect-ratio:16/9;scrollbar-width:none}
+.slide{min-width:100%;scroll-snap-align:start;display:block}
+.slide img{width:100%;height:100%;object-fit:contain}
+.cnt{position:absolute;top:10px;right:10px;background:rgba(0,0,0,.65);padding:3px 9px;border-radius:999px;font-size:12px}
+.ttl{font-size:22px;line-height:1.25;overflow-wrap:anywhere}
+.lab{font-size:11px;letter-spacing:.14em;color:var(--mu);margin-bottom:8px}
+.dt{margin-top:10px;font-size:12px}
+.vid{width:100%;aspect-ratio:16/9;border:0;border-radius:12px}
+.bar{position:fixed;left:0;right:0;bottom:0;display:flex;gap:10px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:#0d1712;border-top:1px solid var(--line)}
+.bar button{flex:1;border:0;border-radius:10px;padding:13px;font-weight:700;color:#fff}
+.av{width:44px;height:44px;border-radius:50%;background:#143324;color:var(--ac);display:grid;place-items:center;font-weight:700;overflow:hidden;flex:none;object-fit:cover}
+.av.big{width:84px;height:84px;font-size:26px;margin:0 auto 8px}
+.prof{text-align:center}
+.kv{display:flex;justify-content:space-between;gap:12px;text-align:left;padding:9px 0;border-top:1px solid var(--line)}
+.kv span{color:var(--mu)}.kv b{overflow-wrap:anywhere;text-align:right}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ac{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:pointer}
+.aci{position:relative;height:110px;background:#16251d}
+.aci img{width:100%;height:100%;object-fit:cover}
+.bd,.bs{position:absolute;font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px}
+.bd{top:8px;left:8px;background:#6ff0bb;color:#06352a}.bs{bottom:8px;left:8px}
+.acc{padding:10px}
+.st-pending{background:#3a2f12;color:#f3d9a0}.st-approved{background:#143324;color:#7fe0ae}
+.st-rejected{background:#3a1a1a;color:#ff9b9b}.st-expired{background:#1f3328;color:#9bb0a4}
+.nform{display:grid;gap:10px;margin-top:14px;text-align:left}
+textarea{width:100%;padding:13px;border-radius:10px;border:1px solid var(--line);background:#0d1712;color:var(--tx);font:inherit;min-height:110px;resize:vertical}
+.row{flex-wrap:wrap}.row>*{min-width:30%}
+.thread{display:grid;gap:8px}
+.msg{max-width:85%;padding:8px 12px;border-radius:14px;font-size:14px;overflow-wrap:anywhere;white-space:pre-wrap}
+.msg small{display:block;color:var(--mu);font-size:11px;margin-bottom:2px}
+.msg img{max-width:100%;border-radius:8px;display:block}
+.msg.b{background:#16251d;border:1px solid var(--line);justify-self:start}
+.msg.s{background:#14402b;border:1px solid #1f5c3e;justify-self:end}
+.sys{justify-self:center;background:#3a2f12;color:#f3d9a0;border:1px solid #5c4a1c;border-radius:12px;padding:6px 12px;font-size:12px;text-align:center;max-width:90%}
+.day{justify-self:center;font-size:12px;color:var(--mu);margin-top:6px}
+.msg small.rd{margin:4px 0 0;text-align:right;font-size:11px}
+.msg small.rd.r{color:#5eeaa0}
+.cp{border:1px solid var(--line);background:none;border-radius:8px;padding:2px 10px;font-size:12px;color:var(--ac);margin-left:8px}
+</style>
+</head>
+<body>
+
+<div id="login" class="hide">
+  <form id="lform">
+    <h1>LootShoot Admin</h1>
+    <input id="le" type="email" placeholder="Admin email" autocomplete="username" required>
+    <input id="lp" type="password" placeholder="Password" autocomplete="current-password" required>
+    <button class="row ok" style="border:0;border-radius:10px;padding:13px;font-weight:700;color:#fff;background:var(--btn)">Sign in</button>
+    <div id="lerr"></div>
+  </form>
+</div>
+
+<div id="app" class="hide">
+  <header>
+    <div class="hb"><button class="ic hide" id="back">&lsaquo; Back</button><h1 id="title">Home</h1></div>
+    <div class="hb"><button class="ic" id="refresh">Refresh</button><button class="ic" id="logout">Logout</button></div>
+  </header>
+  <main id="main"></main>
+  <nav>
+    <button data-tab="home">Home</button>
+    <button data-tab="payments">Payments</button>
+    <button data-tab="ads">Ads</button>
+    <button data-tab="orders">Orders</button>
+    <button data-tab="users">Users</button>
+  </nav>
+</div>
+
+<script>
+const sb = supabase.createClient(
+  "https://saguwhkijrdiwiabxvyv.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNhZ3V3aGtpanJkaXdpYWJ4dnl2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODkxMTQ1ODEsImV4cCI6MjEwNDY5MDU4MX0.onEJePT4-Ijz-O9R8E3RRoFVaqwY1mIez-F9Xy0xUbQ",
+  // Its own storage key, so the admin login never mixes with the shop login
+  { auth: { storageKey: "lootshoot-admin-auth" } }
+);
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const rs = n => "Rs. " + Number(n || 0).toLocaleString();
+const ago = d => { const m = Math.round((Date.now() - new Date(d)) / 6e4); return m < 60 ? m + "m ago" : m < 1440 ? Math.round(m / 60) + "h ago" : Math.round(m / 1440) + "d ago"; };
+const until = d => { const ms = new Date(d) - Date.now(); if (ms <= 0) return "ended"; return Math.floor(ms / 36e5) + "h " + Math.floor(ms % 36e5 / 6e4) + "m left"; };
+const fail = e => `<p class="warn c">${esc(e.message || e)}</p>`;
+const empty = t => `<p class="mu c">${t}</p>`;
+let filter = "action";
+
+async function names(ids) {
+  ids = [...new Set(ids.filter(Boolean))];
+  if (!ids.length) return {};
+  const { data } = await sb.from("sellers").select("id,username,whatsapp").in("id", ids);
+  return Object.fromEntries((data || []).map(s => [s.id, s]));
+}
+
+/* ---------------- HOME ---------------- */
+async function home() {
+  const { data, error } = await sb.rpc("admin_home_counts");
+  if (error) return fail(error);
+  const { count } = await sb.from("deals").select("id", { count: "exact", head: true }).is("chat_closed_at", null).in("status", ["active", "completed"]);
+  data.current_chats = count || 0;
+  const { count: offersCount } = await sb.from("offers").select("id", { count: "exact", head: true }).eq("status", "pending");
+  data.current_offers = offersCount || 0;
+  const { count: reportsCount } = await sb.from("reports").select("id", { count: "exact", head: true }).eq("status", "open");
+  data.open_reports = reportsCount || 0;
+  const { count: payoutInfoCount } = await sb.from("payout_requests").select("id, deals!inner(payout_status)", { count: "exact", head: true }).eq("deals.payout_status", "pending");
+  data.payout_details = payoutInfoCount || 0;
+  const t = [["pending_payments","Payments to review","payments"],["pending_ads","Ads to review","ads"],
+    ["chats_to_close","Chats to close","orders"],["payouts_due","Payouts due","orders"],
+    ["awaiting_delivery","Waiting for seller","orders"],["awaiting_buyer_confirm","Waiting for buyer","orders"],
+    ["open_disputes","Open disputes","orders"],["current_chats","Current chats","chats"],["current_offers","Current offers","offers"],["open_reports","Open reports","reports"],["payout_details","Payout details","payouts"]];
+  return `<div class="stats">${t.map(([k, l, to]) => `<button class="stat" data-go="${to}"><b>${data[k]}</b><span>${l}</span></button>`).join("")}</div>`;
+}
+
+/* ---------------- PAYMENTS ---------------- */
+async function payments() {
+  const { data, error } = await sb.from("payments").select("*, ads(title,type,price)").eq("status", "pending").order("created_at");
+  if (error) return fail(error);
+  if (!data.length) return empty("No payments waiting.");
+  const n = await names(data.map(p => p.buyer_id));
+  const urls = await Promise.all(data.map(p => sb.storage.from("payment-screenshots").createSignedUrl(p.screenshot_path, 900)));
+  return data.map((p, i) => {
+    const u = urls[i].data?.signedUrl, b = n[p.buyer_id] || {}, price = p.ads?.price;
+    return `<div class="card"><h3 class="lnk" data-ad="${p.ad_id}">${esc(p.ads?.title || "Ad was deleted")}</h3>
+      <p class="mu">${esc(b.username || "Buyer")} · ${esc(p.payment_method)} · ${ago(p.created_at)}</p>
+      <p class="big">${rs(p.amount)}</p>
+      ${price != null && Number(price) !== Number(p.amount) ? `<p class="warn">The ad price is now ${rs(price)}</p>` : ""}
+      ${u ? `<a href="${u}" target="_blank"><img class="shot" src="${u}"></a>` : `<p class="warn">Screenshot not found</p>`}
+      <div class="row"><button class="bad" data-act="rejpay" data-id="${p.id}">Reject</button>
+      <button class="ok" data-act="appay" data-id="${p.id}" data-t="${esc(p.ads?.title)}" data-a="${p.amount}">Approve</button></div></div>`;
+  }).join("");
+}
+
+/* ---------------- SMALL HELPERS ---------------- */
+const avatar = (u, big) => u && u.avatar_url
+  ? `<img class="av ${big || ""}" src="${esc(u.avatar_url)}" alt="">`
+  : `<div class="av ${big || ""}">${esc(String((u && u.username) || "?").trim().slice(0, 2).toUpperCase())}</div>`;
+const adCard = a => {
+  const im = (Array.isArray(a.images) && a.images[0]) || "";
+  return `<div class="ac" data-ad="${a.id}"><div class="aci">${im ? `<img src="${esc(im)}" alt="">` : ""}<span class="bd">${esc(a.type)}</span><span class="bs st-${esc(a.status)}">${esc(a.status)}</span></div><div class="acc"><h3>${esc(a.title)}</h3><p class="big sm">${rs(a.price)}</p></div></div>`;
+};
+
+/* ---------------- ADS (pending list) ---------------- */
+async function adsView() {
+  const { data, error } = await sb.from("ads").select("id,title,price,type,images,seller_id,created_at,ever_approved").eq("status", "pending").order("created_at");
+  if (error) return fail(error);
+  if (!data.length) return empty("No ads waiting.");
+  const n = await names(data.map(a => a.seller_id));
+  return data.map(a => {
+    const im = Array.isArray(a.images) && a.images[0];
+    return `<div class="card item" data-ad="${a.id}">${im ? `<img class="th" src="${esc(im)}" alt="">` : ""}
+      <div class="info"><h3>${esc(a.title)}</h3>
+      <p class="mu">${esc(a.type)} · ${esc((n[a.seller_id] || {}).username || "Seller")} · ${ago(a.created_at)}</p>
+      <p class="big sm">${rs(a.price)}</p>${a.ever_approved ? `<span class="tag">Edited ad</span>` : ""}</div></div>`;
+  }).join("");
+}
+
+/* ---------------- AD DETAILS (same layout as the website) ---------------- */
+async function adDetail(id) {
+  const { data: a, error } = await sb.from("ads").select("*").eq("id", id).maybeSingle();
+  if (error) return fail(error);
+  if (!a) return empty("This ad no longer exists.");
+  const s = (await names([a.seller_id]))[a.seller_id] || {};
+  const im = Array.isArray(a.images) ? a.images : [];
+  const fmt = d => new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" });
+  return `<div class="imgbox">${im.length
+      ? `<div class="slider">${im.map(u => `<a class="slide" href="${esc(u)}" target="_blank"><img src="${esc(u)}" alt=""></a>`).join("")}</div><div class="cnt">1/${im.length}</div>`
+      : `<p class="mu c">No photos</p>`}</div>
+    ${a.video_status === "ready" && a.video_id ? `<button class="chip" data-play="${esc(a.video_id)}">&#9654; Play video</button>` : ""}
+    <div><h2 class="ttl">${esc(a.title)}</h2><p class="big">${rs(a.price)}</p>
+      <span class="tag">${esc(a.type)}</span><span class="tag st-${esc(a.status)}">${esc(a.status)}</span>
+      ${a.ever_approved ? `<span class="tag">Was approved before</span>` : ""}</div>
+    ${a.rejection_reason ? `<p class="warn">Rejection reason: ${esc(a.rejection_reason)}</p>` : ""}
+    <div class="card item" data-user="${a.seller_id}">${avatar(s)}<div class="info"><b>${esc(s.username || "Seller")}</b><p class="mu">Seller · tap to see their profile</p></div></div>
+    <div class="card"><p class="lab">DESCRIPTION</p><p class="desc">${esc(a.description)}</p>
+      <p class="mu dt">Posted ${fmt(a.created_at)}${a.expires_at ? " · Expires " + fmt(a.expires_at) : ""}</p></div>
+    ${a.status === "pending" ? `<div class="bar"><button class="bad" data-act="rejad" data-id="${a.id}">Reject</button><button class="ok" data-act="apad" data-id="${a.id}" data-t="${esc(a.title)}">Approve</button></div>` : ""}`;
+}
+
+/* ---------------- USERS ---------------- */
+let usersCache = [];
+const userRow = u => `<div class="card item" data-user="${u.id}">${avatar(u)}<div class="info"><h3>${esc(u.username)}</h3><p class="mu">Joined ${new Date(u.created_at).toLocaleDateString("en-US", { month: "short", year: "numeric" })}</p></div></div>`;
+
+async function usersView() {
+  const { data, error } = await sb.from("sellers").select("id,username,email,whatsapp,avatar_url,created_at").order("created_at", { ascending: false }).limit(1000);
+  if (error) return fail(error);
+  usersCache = data;
+  return `<input id="usearch" placeholder="Search name, email or WhatsApp" autocomplete="off">
+    <p class="mu" id="ucount">${data.length} users</p><div id="ulist" class="list">${data.map(userRow).join("")}</div>`;
+}
+
+async function userDetail(id) {
+  const [u, ads] = await Promise.all([
+    sb.from("sellers").select("*").eq("id", id).maybeSingle(),
+    sb.from("ads").select("id,title,price,type,status,images,created_at").eq("seller_id", id).order("created_at", { ascending: false })
+  ]);
+  if (u.error || ads.error) return fail(u.error || ads.error);
+  const x = u.data;
+  if (!x) return empty("User not found.");
+  const wa = String(x.whatsapp || "").replace(/\D/g, "");
+  return `<div class="card prof">${avatar(x, "big")}<h2>${esc(x.username)}</h2>
+      <div class="kv"><span>Email</span><b>${esc(x.email)}</b></div>
+      <div class="kv"><span>WhatsApp</span><b>${esc(x.whatsapp || "-")}</b></div>
+      <div class="kv"><span>Member since</span><b>${new Date(x.created_at).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" })}</b></div>
+      <div class="row">${wa ? `<a class="wa" href="https://wa.me/${wa}" target="_blank">WhatsApp</a>` : ""}<a class="wa" href="mailto:${esc(x.email)}">Email</a><button class="wa" data-act="notifyform">Notification</button></div>
+      <div class="nform hide" id="nform">
+        <input id="ntitle" maxlength="80" placeholder="Title">
+        <textarea id="nmsg" maxlength="1000" placeholder="Message to ${esc(x.username)}"></textarea>
+        <div class="row"><button class="bad" data-act="notifyform">Cancel</button><button class="ok" data-act="notifysend" data-id="${x.id}" data-t="${esc(x.username)}">Send</button></div>
+      </div></div>
+    <h3>Ads (${ads.data.length})</h3>
+    ${ads.data.length ? `<div class="grid">${ads.data.map(adCard).join("")}</div>` : empty("This user has no ads.")}`;
+}
+
+/* ---------------- CHATS (read only, to help with disputes) ---------------- */
+const CHAT_IMG = "https://saguwhkijrdiwiabxvyv.supabase.co/storage/v1/object/public/chat-images/";
+const parseMsg = t => { const m = String(t || ""); const r = m.match(/^CHAT_REPLY:[\w-]+\n([\s\S]*)$/); return r ? r[1] : m; };
+const one = x => Array.isArray(x) ? x[0] : x;
+
+async function chatsView() {
+  const { data, error } = await sb.from("deals").select("id,status,created_at,buyer_id,seller_id,dispute_reported,seller_delivered,ads(title),conversations(id)")
+    .is("chat_closed_at", null).in("status", ["active", "completed"]).order("created_at", { ascending: false });
+  if (error) return fail(error);
+  if (!data.length) return empty("No chats going on.");
+  const ids = data.map(d => (one(d.conversations) || {}).id).filter(Boolean);
+  const [n, ms] = await Promise.all([
+    names(data.flatMap(d => [d.buyer_id, d.seller_id])),
+    ids.length ? sb.from("messages").select("conversation_id,message,created_at").in("conversation_id", ids).order("created_at", { ascending: false }).limit(600) : { data: [] }
+  ]);
+  const last = {};
+  (ms.data || []).forEach(m => { if (!last[m.conversation_id]) last[m.conversation_id] = m; });
+  const items = data.map(d => ({ d, m: last[(one(d.conversations) || {}).id] }))
+    .sort((x, y) => new Date(y.m?.created_at || y.d.created_at) - new Date(x.m?.created_at || x.d.created_at));
+  return `<p class="mu">${items.length} chats going on</p>` + items.map(({ d, m }) => {
+    const text = m ? parseMsg(m.message) : "";
+    const prev = !m ? "No messages yet" : text.startsWith("CHAT_IMAGE:") ? "[Photo]" : text.slice(0, 80);
+    return `<div class="card item" data-chat="${d.id}"><div class="info"><h3>${esc(d.ads?.title || "Ad was deleted")}</h3>
+      <p class="mu">${esc((n[d.buyer_id] || {}).username || "Buyer")} &harr; ${esc((n[d.seller_id] || {}).username || "Seller")}</p>
+      <span class="tag">${d.status === "completed" ? "Completed" : d.seller_delivered ? "Delivered" : "In progress"}</span>${d.dispute_reported ? `<span class="tag" style="color:#f0a860">Dispute</span>` : ""}
+      <p class="mu" style="margin-top:6px">${esc(prev)} · ${ago(m?.created_at || d.created_at)}</p></div></div>`;
+  }).join("");
+}
+
+async function chatDetail(id) {
+  const { data: d, error } = await sb.from("deals").select("*, ads(id,title), conversations(id)").eq("id", id).maybeSingle();
+  if (error) return fail(error);
+  if (!d) return empty("This order no longer exists.");
+  const c = one(d.conversations);
+  const [n, ms] = await Promise.all([
+    names([d.buyer_id, d.seller_id]),
+    c ? sb.from("messages").select("sender_id,message,created_at,is_system,is_read,delivered_at").eq("conversation_id", c.id).order("created_at", { ascending: true }).limit(1000) : { data: [] }
+  ]);
+  if (ms.error) return fail(ms.error);
+  const b = n[d.buyer_id] || {}, s = n[d.seller_id] || {};
+  const real = ms.data.filter(m => !m.is_system);
+  const unreadSeller = real.filter(m => m.sender_id === d.buyer_id && !m.is_read).length;
+  const unreadBuyer = real.filter(m => m.sender_id === d.seller_id && !m.is_read).length;
+  const seen = (name, n, from) => n ? `<b style="color:#f0a860">${esc(name)} has ${n} unread message${n > 1 ? "s" : ""} from the ${from}</b>` : `${esc(name)} has read everything`;
+  let day = "";
+  const thread = ms.data.map(m => {
+    const dt = new Date(m.created_at);
+    const dk = dt.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+    const sep = dk !== day ? `<div class="day">${dk}</div>` : "";
+    day = dk;
+    const time = dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    const text = parseMsg(m.message);
+    if (m.is_system) return sep + `<div class="sys">${esc(text)}<br><small>${time}</small></div>`;
+    const buyer = m.sender_id === d.buyer_id;
+    const img = text.startsWith("CHAT_IMAGE:") ? text.slice(11).trim() : "";
+    const body = img.startsWith(CHAT_IMG) ? `<a href="${esc(img)}" target="_blank"><img src="${esc(img)}" alt=""></a>` : esc(text);
+    const other = buyer ? s.username || "Seller" : b.username || "Buyer";
+    const when = m.delivered_at ? " · " + new Date(m.delivered_at).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "";
+    const rd = m.is_read ? `<small class="rd r">&#10003;&#10003; Read by ${esc(other)}${when}</small>`
+      : m.delivered_at ? `<small class="rd">&#10003;&#10003; Delivered, not read</small>`
+      : `<small class="rd">&#10003; Not seen by ${esc(other)}</small>`;
+    return sep + `<div class="msg ${buyer ? "b" : "s"}"><small>${esc(buyer ? b.username || "Buyer" : s.username || "Seller")} · ${time}</small>${body}${rd}</div>`;
+  }).join("");
+  return `<div class="card"><h3 ${d.ads ? `class="lnk" data-ad="${d.ads.id}"` : ""}>${esc(d.ads?.title || "Ad was deleted")}</h3>
+      <p class="mu"><span class="lnk" data-user="${d.buyer_id}">${esc(b.username || "Buyer")}</span> (buyer) &harr; <span class="lnk" data-user="${d.seller_id}">${esc(s.username || "Seller")}</span> (seller)</p>
+      <span class="tag">${esc(d.status)}</span>${d.chat_closed_at ? `<span class="tag">Chat closed</span>` : ""}${d.dispute_reported ? `<span class="tag" style="color:#f0a860">Dispute</span>` : ""}
+      <p class="mu" style="margin-top:8px">${seen(b.username || "Buyer", unreadBuyer, "seller")}<br>${seen(s.username || "Seller", unreadSeller, "buyer")}</p></div>
+    <div class="thread">${thread || empty("No messages yet.")}</div>`;
+}
+
+/* ---------------- OFFERS (still pending) ---------------- */
+async function offersView() {
+  const { data, error } = await sb.from("offers").select("id,offer_amount,created_at,buyer_id,seller_id,ads(id,title,price)")
+    .eq("status", "pending").order("created_at", { ascending: false }).limit(100);
+  if (error) return fail(error);
+  if (!data.length) return empty("No pending offers.");
+  const n = await names(data.flatMap(o => [o.buyer_id, o.seller_id]));
+  return `<p class="mu">${data.length} pending offer${data.length > 1 ? "s" : ""}</p>` + data.map(o => {
+    const price = Number(o.ads?.price || 0), amt = Number(o.offer_amount);
+    const diff = price > 0 && amt < price ? `${Math.round((1 - amt / price) * 100)}% below the listed price` : "At the listed price";
+    return `<div class="card"><h3 ${o.ads ? `class="lnk" data-ad="${o.ads.id}"` : ""}>${esc(o.ads?.title || "Ad was deleted")}</h3>
+      <p class="mu"><span class="lnk" data-user="${o.buyer_id}">${esc((n[o.buyer_id] || {}).username || "Buyer")}</span> (buyer) &rarr; <span class="lnk" data-user="${o.seller_id}">${esc((n[o.seller_id] || {}).username || "Seller")}</span> (seller) · ${ago(o.created_at)}</p>
+      <p class="big">${rs(amt)}</p><p class="mu">Listed price ${rs(price)} · ${diff}</p></div>`;
+  }).join("");
+}
+
+/* ---------------- REPORTS ---------------- */
+let rfilter = "open";
+async function reportsView() {
+  const chips = `<div class="chips"><button class="chip ${rfilter === "open" ? "on" : ""}" data-rf="open">Open</button><button class="chip ${rfilter === "resolved" ? "on" : ""}" data-rf="resolved">Resolved</button></div>`;
+  const { data, error } = await sb.from("reports").select("*, deals(id,ads(title))")
+    .eq("status", rfilter).order("created_at", { ascending: rfilter === "open" }).limit(100);
+  if (error) return chips + fail(error);
+  if (!data.length) return chips + empty(rfilter === "open" ? "No open reports." : "No resolved reports.");
+  const n = await names(data.flatMap(r => [r.reporter_id, r.reported_user_id]));
+  return chips + data.map(r => {
+    const title = (one(r.deals) || {}).ads?.title;
+    return `<div class="card"><h3>${esc(title || "Ad was deleted")}</h3>
+      <p class="mu"><span class="lnk" data-user="${r.reporter_id}">${esc((n[r.reporter_id] || {}).username || "User")}</span> (${esc(r.reporter_role)}) reported <span class="lnk" data-user="${r.reported_user_id}">${esc((n[r.reported_user_id] || {}).username || "User")}</span> · ${ago(r.created_at)}</p>
+      <span class="tag">${esc(r.reason)}</span>
+      <p class="desc">${esc(r.details)}</p>
+      ${r.status === "resolved" ? `<p class="mu">Resolved ${ago(r.resolved_at)}${r.admin_note ? ": " + esc(r.admin_note) : ""}</p>` : ""}
+      <div class="row">${r.deal_id ? `<button class="wa" data-chat="${r.deal_id}">View chat</button>` : ""}
+      ${r.status === "open" ? `<button class="ok" data-act="resolve" data-id="${r.id}" data-t="${esc(title)}">Resolve</button>` : ""}</div></div>`;
+  }).join("");
+}
+
+/* ---------------- PAYOUT DETAILS (sent by sellers) ---------------- */
+let pf = "pending";
+async function payoutsView() {
+  const chips = `<div class="chips"><button class="chip ${pf === "pending" ? "on" : ""}" data-pf="pending">To pay</button><button class="chip ${pf === "paid" ? "on" : ""}" data-pf="paid">Paid</button></div>`;
+  const { data, error } = await sb.from("payout_requests")
+    .select("*, deals!inner(id,status,seller_payout,commission_amount,commission_percent,closes_at,payout_status,dispute_reported,ads(title))")
+    .eq("deals.payout_status", pf).order("created_at", { ascending: false }).limit(100);
+  if (error) return chips + fail(error);
+  if (!data.length) return chips + empty(pf === "pending" ? "No payout details waiting." : "Nothing paid yet.");
+  const n = await names(data.map(r => r.seller_id));
+  const line = (k, v) => `<div class="kv"><span>${k}</span><b>${esc(v)} <button class="cp" data-copy="${esc(v)}">Copy</button></b></div>`;
+  return chips + data.map(r => {
+    const d = one(r.deals) || {};
+    const title = (one(d.ads) || {}).title;
+    const due = d.status === "completed" && (!d.closes_at || new Date(d.closes_at) <= new Date());
+    const canPay = due && d.payout_status === "pending" && !d.dispute_reported;
+    return `<div class="card"><h3>${esc(title || "Ad was deleted")}</h3>
+      <p class="mu"><span class="lnk" data-user="${r.seller_id}">${esc((n[r.seller_id] || {}).username || "Seller")}</span> · sent ${ago(r.updated_at)}</p>
+      <p class="big">Pay ${rs(d.seller_payout)}</p>
+      <p class="mu">Commission ${rs(d.commission_amount)} (${d.commission_percent ?? "-"}%)</p>
+      <span class="tag">${d.payout_status === "paid" ? "Paid" : due ? "Trade Shield ended" : "Trade Shield: " + until(d.closes_at)}</span>${d.dispute_reported ? `<span class="tag" style="color:#f0a860">Dispute</span>` : ""}
+      <div style="margin-top:8px">${line("Bank", r.bank_name)}${line("Account / IBAN", r.account_number)}${line("Holder", r.account_holder)}
+      ${r.message ? `<div class="kv"><span>Message</span><b>${esc(r.message)}</b></div>` : ""}</div>
+      <div class="row"><button class="wa" data-chat="${d.id}">Chat</button>
+      ${canPay ? `<button class="ok" data-act="paid" data-id="${d.id}" data-t="${esc(title)}" data-a="${d.seller_payout}">Mark paid</button>` : ""}</div></div>`;
+  }).join("");
+}
+
+/* ---------------- ORDERS (chats to close + payouts) ---------------- */
+async function orders() {
+  const { data, error } = await sb.from("deals").select("*, ads(title,type)").in("status", ["active", "completed"]).order("created_at", { ascending: false }).limit(60);
+  if (error) return fail(error);
+  const n = await names(data.flatMap(d => [d.buyer_id, d.seller_id]));
+  const due = d => d.status === "completed" && (!d.closes_at || new Date(d.closes_at) <= new Date());
+  const canPay = d => due(d) && d.payout_status === "pending" && !d.dispute_reported;
+  const need = d => due(d) && (!d.chat_closed_at || canPay(d));
+  const list = filter === "action" ? data.filter(need) : data;
+  const chips = `<div class="chips"><button class="chip ${filter === "action" ? "on" : ""}" data-f="action">Action needed</button><button class="chip ${filter === "all" ? "on" : ""}" data-f="all">All orders</button></div>`;
+  if (!list.length) return chips + empty("Nothing here.");
+  return chips + list.map(d => {
+    const s = n[d.seller_id] || {}, b = n[d.buyer_id] || {};
+    const state = d.status === "active" ? (d.seller_delivered ? "Delivered, waiting for the buyer" : "Waiting for the seller to deliver")
+      : due(d) ? "Trade Shield ended" : "Trade Shield: " + until(d.closes_at);
+    const wa = String(s.whatsapp || "").replace(/\D/g, "");
+    return `<div class="card"><h3>${esc(d.ads?.title || "Ad was deleted")}</h3>
+      <p class="mu">${esc(b.username || "Buyer")} → ${esc(s.username || "Seller")} · ${ago(d.created_at)}</p>
+      <span class="tag">${state}</span>
+      ${d.chat_closed_at ? `<span class="tag">Chat closed</span>` : ""}
+      ${d.payout_status === "paid" ? `<span class="tag">Paid ${esc(d.payout_reference || "")}</span>` : ""}
+      ${d.dispute_reported ? `<span class="tag" style="color:#f0a860">Dispute</span>` : ""}
+      ${d.seller_payout != null ? `<p class="big">Pay seller ${rs(d.seller_payout)}</p><p class="mu">Commission ${rs(d.commission_amount)} (${d.commission_percent}%)</p>` : ""}
+      <div class="row">
+        ${wa ? `<a class="wa" href="https://wa.me/${wa}" target="_blank">WhatsApp</a>` : ""}
+        <button class="wa" data-chat="${d.id}">Chat</button>
+        ${due(d) && !d.chat_closed_at ? `<button class="bad" data-act="close" data-id="${d.id}" data-t="${esc(d.ads?.title)}">Close chat</button>` : ""}
+        ${canPay(d) ? `<button class="ok" data-act="paid" data-id="${d.id}" data-t="${esc(d.ads?.title)}" data-a="${d.seller_payout}">Mark paid</button>` : ""}
+      </div></div>`;
+  }).join("");
+}
+
+/* ---------------- ACTIONS ---------------- */
+async function act(a, el) {
+  const id = el.dataset.id, t = el.dataset.t;
+  if (a === "notifyform") { $("nform").classList.toggle("hide"); return; }
+  if (a === "notifysend") {
+    const title = $("ntitle").value.trim(), msg = $("nmsg").value.trim();
+    if (!title || !msg) { alert("Write a title and a message."); return; }
+    if (!confirm(`Send this notification to ${t}?`)) return;
+    el.disabled = true;
+    const res = await sb.rpc("admin_send_notification", { p_user_id: id, p_title: title, p_message: msg });
+    el.disabled = false;
+    if (res.error) { alert(res.error.message); return; }
+    $("ntitle").value = ""; $("nmsg").value = ""; $("nform").classList.add("hide");
+    alert("Notification sent.");
+    return;
+  }
+  let r;
+  if (a === "appay") { if (!confirm(`Approve ${rs(el.dataset.a)} for "${t}"?`)) return; el.disabled = true; r = await sb.rpc("admin_approve_payment", { p_payment_id: id }); }
+  if (a === "rejpay") { const w = prompt("Reason for rejecting this payment:"); if (!w) return; el.disabled = true; r = await sb.rpc("admin_reject_payment", { p_payment_id: id, p_reason: w }); }
+  if (a === "apad") { if (!confirm(`Approve the ad "${t}"?`)) return; el.disabled = true; r = await sb.rpc("admin_approve_ad", { p_ad_id: id }); }
+  if (a === "rejad") { const w = prompt("Reason for rejecting this ad:"); if (!w) return; el.disabled = true; r = await sb.rpc("admin_reject_ad", { p_ad_id: id, p_reason: w }); }
+  if (a === "close") { if (!confirm(`Close the chat for "${t}"? Nobody can send messages after this.`)) return; el.disabled = true; r = await sb.rpc("admin_close_chat", { p_deal_id: id, p_note: null }); }
+  if (a === "paid") { const ref = prompt(`Mark ${rs(el.dataset.a)} as paid for "${t}".\nPayment reference (optional):`); if (ref === null) return; el.disabled = true; r = await sb.rpc("admin_mark_paid", { p_deal_id: id, p_reference: ref }); }
+  if (a === "resolve") {
+    const note = prompt(`Resolve the report about "${t}".\nNote for the user (optional):`);
+    if (note === null) return;
+    const clear = confirm("Release the payout hold on this order?\nOK = release it, Cancel = keep it on hold");
+    el.disabled = true;
+    r = await sb.rpc("admin_resolve_report", { p_report_id: id, p_note: note, p_clear_dispute: clear });
+  }
+  if (r?.error) { alert(r.error.message); el.disabled = false; return; }
+  load();
+}
+
+/* ---------------- SCREENS ---------------- */
+let cur = { tab: "home" }, hist = [];
+const titles = { home: "Home", payments: "Payments", ads: "Pending ads", orders: "Orders", users: "Users", chats: "Current chats", offers: "Current offers", reports: "Reports", payouts: "Payout details" };
+
+function go(next) { hist.push(cur); cur = next; load(); window.scrollTo(0, 0); }
+
+async function load() {
+  const d = cur.d, inAd = d && d.t === "ad";
+  $("title").textContent = d ? (inAd ? "Ad details" : d.t === "chat" ? "Chat" : "User") : titles[cur.tab];
+  $("back").classList.toggle("hide", !hist.length);
+  document.querySelector("nav").classList.toggle("hide", !!inAd);
+  document.querySelectorAll("nav button").forEach(b => b.classList.toggle("on", b.dataset.tab === (["chats", "offers", "reports", "payouts"].includes(cur.tab) ? "home" : cur.tab)));
+  $("main").innerHTML = `<p class="mu c">Loading...</p>`;
+  try {
+    const view = d ? (inAd ? adDetail(d.id) : d.t === "chat" ? chatDetail(d.id) : userDetail(d.id))
+      : { home, payments, ads: adsView, orders, users: usersView, chats: chatsView, offers: offersView, reports: reportsView, payouts: payoutsView }[cur.tab]();
+    $("main").innerHTML = await view;
+    if (d && d.t === "chat") window.scrollTo(0, document.body.scrollHeight);
+  } catch (e) { $("main").innerHTML = fail(e); }
+}
+
+document.addEventListener("click", e => {
+  const el = e.target.closest("[data-tab],[data-go],[data-f],[data-rf],[data-pf],[data-copy],[data-act],[data-ad],[data-user],[data-chat],[data-play],#back");
+  if (!el) return;
+  if (el.id === "back") { cur = hist.pop() || { tab: "home" }; load(); }
+  else if (el.dataset.tab || el.dataset.go) { cur = { tab: el.dataset.tab || el.dataset.go }; hist = []; load(); }
+  else if (el.dataset.f) { filter = el.dataset.f; load(); }
+  else if (el.dataset.rf) { rfilter = el.dataset.rf; load(); }
+  else if (el.dataset.pf) { pf = el.dataset.pf; load(); }
+  else if (el.dataset.copy !== undefined) {
+    const text = el.dataset.copy;
+    (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject())
+      .then(() => { el.textContent = "Copied"; setTimeout(() => { el.textContent = "Copy"; }, 1200); })
+      .catch(() => prompt("Copy this:", text));
+  }
+  else if (el.dataset.chat) go({ tab: cur.tab, d: { t: "chat", id: el.dataset.chat } });
+  else if (el.dataset.ad) go({ tab: cur.tab, d: { t: "ad", id: el.dataset.ad } });
+  else if (el.dataset.user) go({ tab: cur.tab, d: { t: "user", id: el.dataset.user } });
+  else if (el.dataset.play) el.outerHTML = `<iframe class="vid" src="https://iframe.mediadelivery.net/embed/779246/${esc(el.dataset.play)}?autoplay=true" allow="autoplay;fullscreen" allowfullscreen></iframe>`;
+  else act(el.dataset.act, el);
+});
+
+// Photo counter (1/4) while swiping the ad photos
+document.addEventListener("scroll", e => {
+  const s = e.target;
+  if (s.classList && s.classList.contains("slider")) {
+    s.nextElementSibling.textContent = (Math.round(s.scrollLeft / s.clientWidth) + 1) + "/" + s.children.length;
+  }
+}, true);
+
+// Search box on the Users screen
+document.addEventListener("input", e => {
+  if (e.target.id !== "usearch") return;
+  const q = e.target.value.trim().toLowerCase();
+  const list = usersCache.filter(u => [u.username, u.email, u.whatsapp].join(" ").toLowerCase().includes(q));
+  $("ulist").innerHTML = list.length ? list.map(userRow).join("") : empty("No users found.");
+  $("ucount").textContent = list.length + " users";
+});
+
+$("refresh").onclick = load;
+$("logout").onclick = async () => { await sb.auth.signOut(); boot(); };
+
+/* ---------------- LOGIN ---------------- */
+$("lform").onsubmit = async e => {
+  e.preventDefault();
+  $("lerr").textContent = "";
+  const { error } = await sb.auth.signInWithPassword({ email: $("le").value.trim(), password: $("lp").value });
+  if (error) { $("lerr").textContent = error.message; return; }
+  boot();
+};
+
+async function boot() {
+  const { data: { session } } = await sb.auth.getSession();
+  const show = app => { $("login").classList.toggle("hide", app); $("app").classList.toggle("hide", !app); };
+  if (!session) return show(false);
+  const { data: ok } = await sb.rpc("is_admin");
+  if (!ok) { await sb.auth.signOut(); show(false); $("lerr").textContent = "This account is not an admin."; return; }
+  show(true);
+  load();
+}
+boot();
+</script>
+</body>
+</html>
